@@ -15,6 +15,16 @@ using namespace std;
 
 bool findThem ( const string & query, const string & data, ostream & out )
 {
+  stringstream toWord ( data );
+  string buffer;
+
+  while ( toWord >> buffer )
+  {
+    if ( query == buffer )
+    {
+      //cout << buffer << endl;
+    }
+  }
 
 
   return false;
@@ -24,23 +34,16 @@ bool isPhoneNum ( const string & words )
 {
   int len = words.size();
   if ( len != 9 )
-  {
     return false;
-  }
+  
   for ( int i = 0; i < len; i++ )
   {
     if ( words[i] >= '0' && words[i] <= '9' )
-    {
       continue;
-    }
     else if ( words[0] == '0' )
-    {
       return false;
-    }
     else
-    {
       return false;
-    }
   }
   return true;
 }
@@ -57,20 +60,19 @@ bool checkData ( const string & line, string & data )
     if ( cnt == 2 )
     {
       if ( isPhoneNum( words ) == 0 )
-      {
         return false;
-      }
+
       words.insert( len, "\n" );
-      data = words;
+      data += words;
       cnt = 0;
     }
     else
     {
       words.insert( len, " " );
-      data = words;
+      data += words;
       cnt++;
     }
-    cout << data;
+    //cout << data;
   }
   
   return true;
@@ -83,26 +85,11 @@ bool report ( const string & fileName, ostream & out )
 
   string buffer, data;
   int flag = 0;
-  while ( getline( ifs, buffer ) )
+  const int sizeLine = 4096;
+  char str[sizeLine];
+  while ( ifs.getline( str, sizeLine ) )
   {
-    if ( buffer[0] == '\0' )
-    {
-      flag = 1;
-    }
-    if ( flag == 0 )
-    {
-      if ( checkData( buffer, data ) == false )
-      {
-        return false;
-      }
-    }
-    else
-    {
-      if ( findThem( buffer, data, out ) == false )
-      {
-        return false;
-      }
-    }
+    cout << str << endl;
   }
 
   ifs.close();
