@@ -98,8 +98,8 @@ string getLine ( vector <string> & data, int i )
     }
     
   }
-  //cout << line;
-  return data[i];
+  line.erase( remove( line.end()-1, line.end(), '\n' ) );
+  return line;
 }
 
 bool report ( const string & fileName, ostream & out )
@@ -110,10 +110,12 @@ bool report ( const string & fileName, ostream & out )
     return false;
 
   vector <string> data {};
-  string toString;
+  string toString, query, line;
   const int sizeLine = 4096;
   char str[sizeLine];
-  int flag = 0, cnt = 0;
+  int flag = 0, cnt = 0, found = 0;
+
+  int a = 0;
 
   while ( ifs.getline( str, sizeLine ) )
   {
@@ -128,29 +130,33 @@ bool report ( const string & fileName, ostream & out )
       
       if ( !checkData( data, cnt ) )
       {
-        cout << "checkData" << endl;
+        //cout << "checkData" << endl;
         return false;
       }
       cnt++;
     }
     else
     {
-      string query = str;
-      int found = 0;
+      query = str;
+      found = 0;
       for ( int j = 0; j < cnt; j++ )
       {
         if ( findThem( query, data, j ) == true )
         {
           found++;
-          
-          string line = getLine( data, j );
+          line = getLine( data, j );
           out << line << endl;
           
         }
       }
-      if ( found > 0 )
-        out << "-> " << found << endl;  
-      //cout << "-> " << found << endl;
+      
+      if ( found > 0 ){
+        a++;
+        out << "-> " << found << endl;
+        if ( a == 1 ){
+          a = 2;
+          out << "-> 0" << endl;}  
+      }
     }
   }
 
