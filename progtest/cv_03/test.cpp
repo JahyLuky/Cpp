@@ -12,13 +12,12 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-
-
-bool findThem ( const string & query, const string & data )
+bool findThem ( const string & query, vector <string> & data, int i )
 {
-  stringstream toWord( data );
+  //cout << query << " q" << endl;
+  //cout << data[i] << " da" << endl;
+  stringstream toWord( data[i] );
   string word;
-  int found = 0;
 
   while ( toWord >> word )
   {
@@ -49,9 +48,9 @@ bool isPhoneNum ( const string & words )
   return true;
 }
 
-bool checkData ( const string & data )
+bool checkData ( vector <string> & data, int i )
 {
-  stringstream toWord ( data );
+  stringstream toWord ( data[i] );
   string word;
   int cnt = 0;
 
@@ -76,6 +75,33 @@ bool checkData ( const string & data )
   return true;
 }
 
+string getLine ( vector <string> & data, int i )
+{
+  stringstream toWord( data[i] );
+  string words;
+  string line;
+  int cnt = 0;
+  while( toWord >> words )
+  {
+    int len = words.size();
+    if ( cnt == 2 )
+    {
+      words.insert( len, "\n" );
+      line += words;
+      cnt = 0;
+    }
+    else
+    {
+      words.insert( len, " " );
+      line += words;
+      cnt++;
+    }
+    
+  }
+  //cout << line;
+  return data[i];
+}
+
 bool report ( const string & fileName, ostream & out )
 {
   ifstream ifs;
@@ -83,11 +109,11 @@ bool report ( const string & fileName, ostream & out )
   if ( ifs.fail() )
     return false;
 
-  vector<string> data {};
-  string s;
+  vector <string> data {};
+  string toString;
   const int sizeLine = 4096;
   char str[sizeLine];
-  int flag = 0, i = 0;
+  int flag = 0, cnt = 0;
 
   while ( ifs.getline( str, sizeLine ) )
   {
@@ -97,27 +123,34 @@ bool report ( const string & fileName, ostream & out )
     }
     if ( !flag )
     {
-      s = str;
-      cout << s;
-      //data.push_back( s );
-      //i++;
-      //cout << data[i] << endl;
-      //if ( !checkData( data[i] ) )
-      //{
-      //  cout << "checkData" << endl;
-      //  return false;
-      //}
+      toString = str;
+      data.push_back( toString );
+      
+      if ( !checkData( data, cnt ) )
+      {
+        cout << "checkData" << endl;
+        return false;
+      }
+      cnt++;
     }
     else
     {
       string query = str;
-      for ( int j = 0; j < i; j++ )
+      int found = 0;
+      for ( int j = 0; j < cnt; j++ )
       {
-        //if ( findThem( query, data[i] ) )
-        //{
-        //  cout << data[i] << endl;
-        //}
+        if ( findThem( query, data, j ) == true )
+        {
+          found++;
+          
+          string line = getLine( data, j );
+          out << line << endl;
+          
+        }
       }
+      if ( found > 0 )
+        out << "-> " << found << endl;  
+      //cout << "-> " << found << endl;
     }
   }
 
@@ -131,9 +164,9 @@ bool report ( const string & fileName, ostream & out )
 int main ()
 {
   ostringstream oss;
-  report ( "tests/test0_in.txt", oss );
+  //report ( "tests/test0_in.txt", oss );
   //report ( "tests/test1_in.txt", oss );
-  /*
+  
   oss . str ( "" );
   assert ( report( "tests/test0_in.txt", oss ) == true );
   assert ( oss . str () ==
@@ -148,7 +181,7 @@ int main ()
     "-> 1\n" );
   oss . str ( "" );
   assert ( report( "tests/test1_in.txt", oss ) == false );
-  */
+  
   return 0;
 }
 #endif /* __PROGTEST__ */
