@@ -13,20 +13,19 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 
-
-bool findThem ( const string & query, const string & data )
+bool findThem ( const string & query, const string & data, ostream & out )
 {
-  stringstream toWord( data );
-  string word;
-  int found = 0;
+  stringstream toWord ( data );
+  string buffer;
 
-  while ( toWord >> word )
+  while ( toWord >> buffer )
   {
-    if ( query == word )
+    if ( query == buffer )
     {
-      return true;
+      //cout << buffer << endl;
     }
   }
+
 
   return false;
 }
@@ -49,30 +48,33 @@ bool isPhoneNum ( const string & words )
   return true;
 }
 
-bool checkData ( const string & data )
+bool checkData ( const string & line, string & data )
 {
-  stringstream toWord ( data );
-  string word;
-  int cnt = 0;
+  stringstream toWord ( line );
+  string words;
+  int len, cnt = 0;
 
-  while ( toWord >> word )
+  while( toWord >> words )
   {
-    cnt++;
-    if ( cnt == 3 )
+    len = words.size();
+    if ( cnt == 2 )
     {
-      if ( !isPhoneNum( word ) )
+      if ( isPhoneNum( words ) == 0 )
         return false;
 
+      words.insert( len, "\n" );
+      data += words;
       cnt = 0;
     }
+    else
+    {
+      words.insert( len, " " );
+      data += words;
+      cnt++;
+    }
+    //cout << data;
   }
-
-  if ( cnt != 0 )
-  {
-    //cout << "neco chybi nebo prebyva" << endl;
-    return false;
-  }
-
+  
   return true;
 }
 
@@ -80,48 +82,31 @@ bool report ( const string & fileName, ostream & out )
 {
   ifstream ifs;
   ifs.open( fileName );
-  if ( ifs.fail() )
-    return false;
 
-  vector<string> data {};
-  string s;
-  const int sizeLine = 4096;
-  char str[sizeLine];
-  int flag = 0, i = 0;
-
-  while ( ifs.getline( str, sizeLine ) )
+  string buffer, data;
+  int flag = 0;
+  int cnt = 0;
+  while ( getline( ifs, buffer ) )
   {
-    if ( str[0] == '\0' )
+    cnt = cnt + 1;
+    cout << cnt << endl;
+    if ( buffer[0] == '\0' )
     {
       flag = 1;
     }
-    if ( !flag )
+    if ( flag == 0 )
     {
-      s = str;
-      cout << s;
-      //data.push_back( s );
-      //i++;
-      //cout << data[i] << endl;
-      //if ( !checkData( data[i] ) )
-      //{
-      //  cout << "checkData" << endl;
-      //  return false;
-      //}
+      if ( checkData( buffer, data ) == false )
+        return false;
     }
     else
     {
-      string query = str;
-      for ( int j = 0; j < i; j++ )
-      {
-        //if ( findThem( query, data[i] ) )
-        //{
-        //  cout << data[i] << endl;
-        //}
-      }
+      //cout << "bf" << buffer << endl;
+      buffer = "John";
+      if ( findThem( buffer, data, out ) == false )
+        return false;
     }
   }
-
- // cout << data[1] << endl;
   
   ifs.close();
   return true;
