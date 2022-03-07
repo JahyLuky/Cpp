@@ -14,8 +14,6 @@ using namespace std;
 
 bool findThem ( const string & query, vector <string> & data, int i )
 {
-  //cout << query << " q" << endl;
-  //cout << data[i] << " da" << endl;
   stringstream toWord( data[i] );
   string word;
 
@@ -38,10 +36,10 @@ bool isPhoneNum ( const string & words )
   
   for ( int i = 0; i < len; i++ )
   {
-    if ( words[i] >= '0' && words[i] <= '9' )
-      continue;
-    else if ( words[0] == '0' )
+    if ( words[0] == '0' )
       return false;
+    else if ( words[i] >= '0' && words[i] <= '9' )
+      continue;
     else
       return false;
   }
@@ -68,7 +66,6 @@ bool checkData ( vector <string> & data, int i )
 
   if ( cnt != 0 )
   {
-    //cout << "neco chybi nebo prebyva" << endl;
     return false;
   }
 
@@ -113,13 +110,18 @@ bool report ( const string & fileName, ostream & out )
   string toString, query, line;
   const int sizeLine = 4096;
   char str[sizeLine];
-  int flag = 0, cnt = 0, found = 0;
+  int flag = 0, cnt = 0, found = 0, isQuery = 0;
 
   while ( ifs.getline( str, sizeLine ) )
   {
     if ( str[0] == '\0' )
     {
+      if ( isQuery >= 1 )
+      {
+        out << "-> 0" << endl;
+      }
       flag = 1;
+      isQuery += 1;
       continue;
     }
     if ( !flag )
@@ -129,7 +131,6 @@ bool report ( const string & fileName, ostream & out )
       
       if ( !checkData( data, cnt ) )
       {
-        //cout << "checkData" << endl;
         return false;
       }
       cnt++;
@@ -137,7 +138,6 @@ bool report ( const string & fileName, ostream & out )
     else
     {
       query = str;
-      //cout << query << "-aa" << endl;
       found = 0;
       for ( int j = 0; j < cnt; j++ )
       {
@@ -159,9 +159,6 @@ bool report ( const string & fileName, ostream & out )
       }
     }
   }
-
- // cout << data[1] << endl;
-  
   ifs.close();
   return true;
 }
@@ -170,8 +167,8 @@ bool report ( const string & fileName, ostream & out )
 int main ()
 {
   ostringstream oss;
-  //report ( "tests/test0_in.txt", oss );
-  //report ( "tests/test1_in.txt", oss );
+  oss . str ( "" );
+  assert ( report( "tests/test2_in.txt", oss ) == false );
   
   oss . str ( "" );
   assert ( report( "tests/test0_in.txt", oss ) == true );
