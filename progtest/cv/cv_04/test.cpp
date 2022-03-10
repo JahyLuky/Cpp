@@ -14,15 +14,54 @@ using namespace std;
 
 class CTimeStamp
 {
-  // TODO
+  public:
+    CTimeStamp ( int year, int month, int day, 
+                 int hour, int min, int sec )
+    : m_year ( year ),
+      m_month ( month ),
+      m_day ( day ),
+      m_hour ( hour ),
+      m_min ( min ),
+      m_sec ( sec )
+    {}
+  private:
+    int m_year;
+    int m_month;
+    int m_day;
+    int m_hour;
+    int m_min;
+    int m_sec;
 }
+
 class CContact
 {
-  // TODO
+  public:
+    CContact ( CTimeStamp getTimeStamp, int a_phone, int b_phone )
+    : m_TimeStamp ( getTimeStamp ), m_a ( a_phone ), m_b ( b_phone )
+    {}
+  private:
+    CTimeStamp & m_TimeStamp;
+    int m_a;
+    int m_b;
 }
+
 class CEFaceMask
 {
-  // TODO
+  public:
+    CEFaceMask & addContact ( CTimeStamp contact, CContact a, CContact b )
+    {
+      m_list[a] = b;
+      return * this;
+    }
+    const CContact listContacts ( CContact a, CTimeStamp b , CTimeStamp c ) const
+    {
+
+    }
+  private:
+    CContact & m_a;
+    CContact & m_b;
+    CTimeStamp & m_contact;
+    vector <int> m_list;
 }
 
 #ifndef __PROGTEST__
