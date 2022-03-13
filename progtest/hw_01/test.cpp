@@ -24,9 +24,16 @@ using namespace std;
 
 struct Data
 {
-  vector <bool> m_code;
   vector <bool> m_data;
 };
+
+struct tree
+{
+  struct tree * left;
+  struct tree * right;
+  char character;
+};
+
 
 void printDataBin ( const vector <bool> & data )
 {
@@ -36,6 +43,25 @@ void printDataBin ( const vector <bool> & data )
     cout << data[i];
   }
   cout << '\n' << "----------------" << endl;
+}
+
+tree huffCode ( tree code ,vector <bool> & data, int i = 0 )
+{
+  code.left = code.right = nullptr;
+  
+  int len = data.size();
+  for ( ; i < len; i++ )
+  {
+    if ( data[i] == 0 )
+    {
+      code.left = huffCode( code.left->left, data, i );
+    }
+    else
+    {
+      //8bits to char
+    }
+  }
+  
 }
 
 
@@ -48,7 +74,6 @@ bool binDump( const char * fileName )
 
 
   Data data;
-  int huffCode = 0;
   //read every char from stream and convert it to bits
   for ( char c; ifs.get( c ); )
   {
@@ -59,22 +84,14 @@ bool binDump( const char * fileName )
     //converting to bits
     for( int i = 7; i >= 0; i-- )
     {
-      //huffCode represents how many bits are represented for tree coding
-      if ( huffCode != 7 )
-      {
-        data.m_code.push_back(( ( c >> i ) & 1 ));
-        huffCode++;
-      }
-      else
-      {
-        data.m_data.push_back(( ( c >> i ) & 1 ));
-      }
+      data.m_data.push_back(( ( c >> i ) & 1 ));
     }
   }
 
-  printDataBin( data.m_code );
   printDataBin( data.m_data );
 
+  tree code;
+  code = huffCode( code, data.m_data );
 
   return true;
 }
@@ -96,10 +113,7 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
   ifstream a ( fileName1, ios::binary );
   ifstream b ( fileName2, ios::binary );
 
-  if ( !a )
-    return false;
-
-  if ( !b )
+  if ( !a || !b )
     return false;
 
   a.seekg(0, ios::end);
@@ -116,10 +130,7 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
   {
     b.get( c_b );
 
-    if ( a.fail() )
-      return false;
-
-    if ( b.fail() )
+    if ( a.fail() || b.fail() )
       return false;
 
     if ( c_a != c_b )
@@ -134,9 +145,8 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
-  //hexDump("text.txt");
   binDump("tests/test0.huf");
-  assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
+  //assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
   /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
@@ -154,37 +164,6 @@ int main ( void )
   assert ( identicalFiles ( "tests/test4.orig", "tempfile" ) );
 
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
-
-
-  assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra0.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra1.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra1.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra2.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra2.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra3.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra3.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra4.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra4.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra5.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra5.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra6.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra6.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra7.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra7.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra8.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra8.orig", "tempfile" ) );
-
-  assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
 
   */
 
