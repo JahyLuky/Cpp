@@ -15,7 +15,7 @@ using namespace std;
 class CTimeStamp
 {
   public:
-    CTimeStamp();
+    //CTimeStamp();
     CTimeStamp( int year, int month, int day,
                 int hour, int min, int sec )
     {
@@ -43,11 +43,23 @@ class CTimeStamp
 class CContact
 {
   public:
-    CContact();
+    //CContact();
     CContact( const CTimeStamp getTime, const int a_phone,
      const int b_phone )
     : m_date( getTime ), m_a( a_phone ), m_b( b_phone )
     {}
+    const CTimeStamp & getTimeStamp ( void )
+    {
+      return m_date;
+    }
+    const int getA ( void )
+    {
+      return m_a;
+    }
+    const int getB ( void )
+    {
+      return m_b;
+    }
   private:
     CTimeStamp m_date;
     int m_a;
@@ -58,17 +70,18 @@ class CEFaceMask
 {
   public:
     CEFaceMask();
-    CEFaceMask & addContact( const CContact a )
+    CEFaceMask( CContact cont )
+    : m_cont ( cont )
+    {}
+    CEFaceMask & addContact( CContact a )
     {
-      m_data.push_back(a);
+      m_data.push_back( a );
       return *this;
     }
     vector <int> & listContacts( int a_phone, CTimeStamp & start,
-    CTimeStamp & end )
-    {
-
-    }
+    CTimeStamp & end );
   private:
+    CContact m_cont;
     vector <CContact> m_data;
 };
 
@@ -84,13 +97,14 @@ int main ()
   test . addContact ( CContact ( CTimeStamp ( 2021, 2, 21, 18, 0, 0 ), 123456789, 999888777 ) );
   test . addContact ( CContact ( CTimeStamp ( 2021, 1, 5, 18, 0, 0 ), 123456789, 456456456 ) );
   test . addContact ( CContact ( CTimeStamp ( 2021, 2, 1, 0, 0, 0 ), 123456789, 123456789 ) );
+  /*
   assert ( test . listContacts ( 123456789 ) == (vector<int> {999888777, 111222333, 456456456}) );
   assert ( test . listContacts ( 999888777 ) == (vector<int> {123456789, 555000222}) );
   assert ( test . listContacts ( 191919191 ) == (vector<int> {}) );
   assert ( test . listContacts ( 123456789, CTimeStamp ( 2021, 1, 5, 18, 0, 0 ), CTimeStamp ( 2021, 2, 21, 18, 0, 0 ) ) == (vector<int> {999888777, 111222333, 456456456}) );
   assert ( test . listContacts ( 123456789, CTimeStamp ( 2021, 1, 5, 18, 0, 1 ), CTimeStamp ( 2021, 2, 21, 17, 59, 59 ) ) == (vector<int> {999888777, 111222333}) );
   assert ( test . listContacts ( 123456789, CTimeStamp ( 2021, 1, 10, 12, 41, 9 ), CTimeStamp ( 2021, 2, 21, 17, 59, 59 ) ) == (vector<int> {111222333}) );
-  
+  */
   
 
   return 0;
