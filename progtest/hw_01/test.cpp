@@ -29,11 +29,10 @@ struct Data
 
 struct tree
 {
-  struct tree * left;
-  struct tree * right;
-  char character;
+  tree * left;
+  tree * right;
+  char data;
 };
-
 
 void printDataBin ( const vector <bool> & data )
 {
@@ -45,33 +44,60 @@ void printDataBin ( const vector <bool> & data )
   cout << '\n' << "----------------" << endl;
 }
 
-tree huffCode ( tree code ,vector <bool> & data, int i = 0 )
+
+void createTree ( vector <bool> & data )
 {
-  code.left = code.right = nullptr;
+  tree * node;
+  //node->left = node->right = nullptr;
   
-  int len = data.size();
-  for ( ; i < len; i++ )
+  int len = data.size(), flag = 0, cnt = 0;
+  vector <bool> znak;
+  for ( int i = 0; i < len; i++ )
   {
-    if ( data[i] == 0 )
+    if ( flag == 0 )
     {
-      code.left = huffCode( code.left->left, data, i );
+      if ( data[i] == 0 )
+      {
+        //cout << "nula" << endl;
+      }
+      else
+      {
+        flag = 1;
+      }
     }
     else
     {
-      //8bits to char
+      // gets character to save in leaf
+      znak.push_back( data[i] );
+      if ( cnt == 7 )
+      {
+        flag = 0;
+        cnt = 0;
+      }
+      else
+      {
+        cnt++;
+      }
     }
   }
-  
+  /*
+  funkce ( tree * ptr )
+  {
+  if ( ptr->data != init ) 
+    vloz data
+  funkce ( vytvor left);
+  funkce ( vytvor right);
+  }
+  */
+  printDataBin(znak);
 }
 
-
-bool binDump( const char * fileName )
+bool binDump ( const char * fileName )
 {
   ifstream ifs ( fileName, ios::in | ios::binary );
   
-  if ( !ifs )
+  if ( !ifs || !ifs.is_open() )
     return false;
-
 
   Data data;
   //read every char from stream and convert it to bits
@@ -90,9 +116,9 @@ bool binDump( const char * fileName )
 
   printDataBin( data.m_data );
 
-  tree code;
-  code = huffCode( code, data.m_data );
-
+  createTree( data.m_data );
+  
+  ifs.close();
   return true;
 }
 
@@ -146,7 +172,7 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 int main ( void )
 {
   binDump("tests/test0.huf");
-  //assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
+  assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
   /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
