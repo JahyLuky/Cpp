@@ -22,15 +22,10 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 
-struct Data
-{
-  vector <bool> m_data;
-};
-
 struct tree
 {
-  tree * left;
-  tree * right;
+  struct tree * left;
+  struct tree * right;
   char data;
 };
 
@@ -45,51 +40,65 @@ void printDataBin ( const vector <bool> & data )
 }
 
 
-void createTree ( vector <bool> & data )
+// convert 8 bits to int to char
+char getChar ( vector <bool> & data )
 {
-  tree * node;
-  //node->left = node->right = nullptr;
+  char myChar;
+  int val = 0, pow = 2, len = data.size()-2;
+  val += data[7];
+  for ( int i = len; i >= 0; i-- )
+  {
+    val += data[i] * pow;
+    pow *= 2;
+  }
+  myChar = val;
+  //cout << myChar;
+  return myChar;
+}
+
+struct tree * newNode( void )
+{
+	struct tree*  tmp = ( struct tree * ) malloc( sizeof(struct tree) );
+	tmp->right = NULL;
+	tmp->left = NULL;
+  return tmp;
+}
+
+// tree*&
+struct tree * createTree ( vector <bool> & data, int getPos, struct tree * node )
+{
+  int pos = getPos;
+  vector <bool> oneChar;
+  int len = data.size();
+  if ( pos >= len )
+    return node;
   
-  int len = data.size(), flag = 0, cnt = 0;
-  vector <bool> znak;
-  for ( int i = 0; i < len; i++ )
+  if ( data[pos] == 0 )
   {
-    if ( flag == 0 )
-    {
-      if ( data[i] == 0 )
-      {
-        //cout << "nula" << endl;
-      }
-      else
-      {
-        flag = 1;
-      }
-    }
-    else
-    {
-      // gets character to save in leaf
-      znak.push_back( data[i] );
-      if ( cnt == 7 )
-      {
-        flag = 0;
-        cnt = 0;
-      }
-      else
-      {
-        cnt++;
-      }
-    }
+    pos++;
+    node->left = newNode();
+    node->right = newNode();
+    node->left = createTree( data, pos, node->left );
+    node->right = createTree( data, pos, node->right );
   }
-  /*
-  funkce ( tree * ptr )
+  else
   {
-  if ( ptr->data != init ) 
-    vloz data
-  funkce ( vytvor left);
-  funkce ( vytvor right);
+    pos++;
+    int newPos = pos + 7;
+    cout << pos << " " << newPos << endl;
+    if ( newPos >= len )
+      return node;
+    // gets next 8 bit for ASCII
+    for ( int j = pos; j <= newPos; j++ )
+    {
+      oneChar.push_back( data[j] );
+    }
+    node->data = getChar ( oneChar );
+    cout << node->data << endl;
+    pos = newPos + 1;
   }
-  */
-  printDataBin(znak);
+
+  return node;
 }
 
 bool binDump ( const char * fileName )
@@ -99,7 +108,7 @@ bool binDump ( const char * fileName )
   if ( !ifs || !ifs.is_open() )
     return false;
 
-  Data data;
+  vector <bool> data;
   //read every char from stream and convert it to bits
   for ( char c; ifs.get( c ); )
   {
@@ -110,13 +119,16 @@ bool binDump ( const char * fileName )
     //converting to bits
     for( int i = 7; i >= 0; i-- )
     {
-      data.m_data.push_back(( ( c >> i ) & 1 ));
+      data.push_back(( ( c >> i ) & 1 ));
     }
   }
 
-  printDataBin( data.m_data );
+  printDataBin( data );
 
-  createTree( data.m_data );
+  struct tree * head = NULL;
+  head = newNode();
+  int pos = 0;
+  head = createTree( data, pos, head );
   
   ifs.close();
   return true;
@@ -166,13 +178,18 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
   }
   
   cout << "identicalFiles" << endl;
+
+  a.close();
+  b.close();
+  if ( !b.good() )
+    return false;
   return true;
 }
 
 int main ( void )
 {
   binDump("tests/test0.huf");
-  assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
+  //assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
   /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
