@@ -22,6 +22,12 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 
+struct Data
+{
+  vector <bool> m_data;
+  int m_size;
+};
+
 struct tree
 {
   struct tree * left;
@@ -29,106 +35,158 @@ struct tree
   char data;
 };
 
-void printDataBin ( const vector <bool> & data )
+tree * newNode( void )
 {
-  int len = data.size();
-  for ( int i = 0; i < len; i++)
-  {
-    cout << data[i];
-  }
-  cout << '\n' << "----------------" << endl;
+	tree * tmp = new tree;
+  return tmp;
 }
 
+void deleteTree ( tree * head )
+{
+	if ( head == NULL )
+    return;
+	deleteTree( head->left );
+	deleteTree( head->right );
+	delete [] head;
+}
 
-// convert 8 bits to int to char
-char getChar ( vector <bool> & data )
+// convert 8 bits (int) to char
+char getChar ( vector <bool> & data, int pos )
 {
   char myChar;
-  int val = 0, pow = 2, len = data.size()-2;
-  val += data[7];
-  for ( int i = len; i >= 0; i-- )
+  int val = 0, pow = 2;
+  for ( int i = (pos+8); i >= pos; i-- )
   {
+    if ( i == pos+8 )
+    {
+      val += data[i];
+      continue;
+    }
     val += data[i] * pow;
     pow *= 2;
   }
   myChar = val;
-  //cout << myChar;
   return myChar;
 }
 
-struct tree * newNode( void )
+// convert 12 bits to int
+int howManyDataLeft ( Data & data, int & pos )
 {
-	struct tree*  tmp = ( struct tree * ) malloc( sizeof(struct tree) );
-	tmp->right = NULL;
-	tmp->left = NULL;
-  return tmp;
+  int i = pos;
+  while ( data.m_data[i] == 1 )
+  {
+    i++;
+    pos += 4096;
+  }
+
+  int val = 0, pow = 2;
+  for ( i = (pos+13); i >= pos; i-- )
+  {
+    if ( i == pos+12 )
+    {
+      val += data.m_data[i];
+      continue;
+    }
+    val += data.m_data[i] * pow;
+    pow *= 2;
+  }
+  pos += 13;
+  return val;
 }
 
-// tree*&
-struct tree * createTree ( vector <bool> & data, int getPos, struct tree * node )
+tree * createTree ( vector <bool> & data, int & pos )
 {
-  int pos = getPos;
-  vector <bool> oneChar;
-  int len = data.size();
-  if ( pos >= len )
-    return node;
-  
-  if ( data[pos] == 0 )
+  tree * node;
+  node = newNode();
+  if ( data[pos] == 1 )
   {
-    pos++;
-    node->left = newNode();
-    node->right = newNode();
-    node->left = createTree( data, pos, node->left );
-    node->right = createTree( data, pos, node->right );
+    node->data = getChar( data, pos );
+    pos = pos + 8;
   }
   else
   {
-    pos++;
-    int newPos = pos + 7;
-    cout << pos << " " << newPos << endl;
-    if ( newPos >= len )
-      return node;
-    // gets next 8 bit for ASCII
-    for ( int j = pos; j <= newPos; j++ )
-    {
-      oneChar.push_back( data[j] );
-    }
-    node->data = getChar ( oneChar );
-    cout << node->data << endl;
-    pos = newPos + 1;
+    node->left = newNode();
+    node->right = newNode();
+    node->left = createTree( data, ++pos );
+    node->right = createTree( data, ++pos );
   }
-
   return node;
 }
 
-bool binDump ( const char * fileName )
+void printDataBin ( const Data & data )
+{
+  for ( int i = 0; i < data.m_size; i++)
+  {
+    cout << data.m_data[i];
+  }
+  cout << '\n' << "----------------" << endl;
+}
+
+bool saveDecom ( Data & data, int & pos, tree * head, const char * outFileName )
+{
+  ifstream ofs( outFileName, ios::out | ios::binary );
+  
+  if ( !ofs || ofs.fail() )
+    return false;
+
+  for ( int i = pos; i < data.m_size ; i++)
+  {
+    if ( data.m_data[i] == 0 )
+    {
+      
+    }
+    else
+    {
+
+    }
+  }
+  
+
+  deleteTree ( head );
+  ofs.close();
+  if ( !ofs.good() )
+    return false;
+  return true;
+}
+
+bool binDump ( const char * fileName, const char * outFileName )
 {
   ifstream ifs ( fileName, ios::in | ios::binary );
   
-  if ( !ifs || !ifs.is_open() )
+  if ( !ifs || !ifs.is_open() || ifs.fail() )
     return false;
 
-  vector <bool> data;
-  //read every char from stream and convert it to bits
+  Data data;
+  // read every char from stream and convert it to bits
   for ( char c; ifs.get( c ); )
   {
     if ( ifs.fail() )
       return false;
-    
-    //c = (unsigned char)c;
-    //converting to bits
+    // converting to bits
     for( int i = 7; i >= 0; i-- )
     {
-      data.push_back(( ( c >> i ) & 1 ));
+      data.m_data.push_back(( ( c >> i ) & 1 ));
     }
   }
+  data.m_size = data.m_data.size();
+  //printDataBin( data );
 
-  printDataBin( data );
 
-  struct tree * head = NULL;
+  // creates bin tree with coded characters
+  tree * head;
   head = newNode();
   int pos = 0;
-  head = createTree( data, pos, head );
+  head = createTree( data.m_data, pos );
+
+
+  int leftData = howManyDataLeft( data, pos );
+
+  if ( ( pos + leftData ) > data.m_size )
+    cout << "aaa";//return false;
+
+
+  if ( saveDecom( data, pos, head, outFileName ) == false )
+    return false;
   
   ifs.close();
   return true;
@@ -136,8 +194,9 @@ bool binDump ( const char * fileName )
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
-  // todo
-  return false;
+  if ( binDump( inFileName, outFileName ) == false )
+    return false;
+  return true;
 }
 
 bool compressFile ( const char * inFileName, const char * outFileName )
@@ -188,12 +247,12 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
-  binDump("tests/test0.huf");
-  //assert ( identicalFiles ( "bbb.txt", "aaa.txt" ) );
+  decompressFile( "tests/test0.huf", "tempfile" );
+  
   /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
-
+  
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
 
