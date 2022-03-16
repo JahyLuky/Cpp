@@ -30,15 +30,17 @@ struct Data
 
 struct tree
 {
-  struct tree * left;
-  struct tree * right;
+  tree * left;
+  tree * right;
   char data;
 };
 
 tree * newNode( void )
 {
-	tree * tmp = new tree;
-  return tmp;
+	tree * node = new tree;
+  //tree * node = ( tree * ) malloc ( sizeof(tree) );
+  node->left = node->right = NULL;
+  return node;
 }
 
 void deleteTree ( tree * head )
@@ -46,8 +48,9 @@ void deleteTree ( tree * head )
 	if ( head == NULL )
     return;
 	deleteTree( head->left );
-	deleteTree( head->right );
-	delete [] head;
+  deleteTree( head->right );
+	delete head;
+  //free(head);
 }
 
 // convert 8 bits (int) to char
@@ -72,15 +75,8 @@ char getChar ( vector <bool> & data, int pos )
 // convert 12 bits to int
 int howManyDataLeft ( Data & data, int & pos )
 {
-  int i = pos;
-  while ( data.m_data[i] == 1 )
-  {
-    i++;
-    pos += 4096;
-  }
-
   int val = 0, pow = 2;
-  for ( i = (pos+13); i >= pos; i-- )
+  for ( int i = (pos+13); i >= pos; i-- )
   {
     if ( i == pos+12 )
     {
@@ -96,17 +92,17 @@ int howManyDataLeft ( Data & data, int & pos )
 
 tree * createTree ( vector <bool> & data, int & pos )
 {
-  tree * node;
-  node = newNode();
+  tree * node = NULL;
+  node = newNode(  );
   if ( data[pos] == 1 )
   {
     node->data = getChar( data, pos );
-    pos = pos + 8;
+    pos += 8;
   }
   else
   {
-    node->left = newNode();
-    node->right = newNode();
+    node->left = newNode(  );
+    node->right = newNode(  );
     node->left = createTree( data, ++pos );
     node->right = createTree( data, ++pos );
   }
@@ -122,9 +118,16 @@ void printDataBin ( const Data & data )
   cout << '\n' << "----------------" << endl;
 }
 
-bool saveDecom ( Data & data, int & pos, tree * head, const char * outFileName )
+/*
+  leftData = howManyDataLeft( data, pos );
+
+  if ( ( pos + leftData ) > data.m_size )
+    cout << "aaa";//return false;
+*/
+
+bool saveFile ( Data & data, int & pos, tree * head, const char * outFileName )
 {
-  ifstream ofs( outFileName, ios::out | ios::binary );
+  ofstream ofs( outFileName, ios::out );
   
   if ( !ofs || ofs.fail() )
     return false;
@@ -137,7 +140,7 @@ bool saveDecom ( Data & data, int & pos, tree * head, const char * outFileName )
     }
     else
     {
-
+      
     }
   }
   
@@ -173,19 +176,12 @@ bool binDump ( const char * fileName, const char * outFileName )
 
 
   // creates bin tree with coded characters
-  tree * head;
-  head = newNode();
+  tree * head = NULL;
+  head = newNode(  );
   int pos = 0;
   head = createTree( data.m_data, pos );
 
-
-  int leftData = howManyDataLeft( data, pos );
-
-  if ( ( pos + leftData ) > data.m_size )
-    cout << "aaa";//return false;
-
-
-  if ( saveDecom( data, pos, head, outFileName ) == false )
+  if ( saveFile( data, pos, head, outFileName ) == false )
     return false;
   
   ifs.close();
