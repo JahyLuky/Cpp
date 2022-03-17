@@ -73,24 +73,6 @@ char getChar ( vector <bool> & data, int pos )
   return myChar;
 }
 
-// convert 12 bits to int
-int howManyDataLeft ( Data & data, int & pos )
-{
-  int val = 0, pow = 2;
-  for ( int i = (pos+13); i >= pos; i-- )
-  {
-    if ( i == pos+12 )
-    {
-      val += data.m_data[i];
-      continue;
-    }
-    val += data.m_data[i] * pow;
-    pow *= 2;
-  }
-  pos += 13;
-  return val;
-}
-
 tree * createTree ( vector <bool> & data, int & pos )
 {
   tree * node = newNode(  );
@@ -112,11 +94,35 @@ tree * createTree ( vector <bool> & data, int & pos )
 
 void printDataBin ( const Data & data )
 {
-  for ( int i = 0; i < data.m_size; i++)
+  for ( int i = 0; i < data.m_size; i++ )
   {
     cout << data.m_data[i];
   }
   cout << '\n' << "----------------" << endl;
+}
+
+// convert 12 bits to int
+int howManyDataLeft ( Data & data, int & pos )
+{
+  if ( data.m_data[++pos] == 1 )
+  {
+    return 4095;
+  }
+  int val = 0, pow = 2;
+  for ( int i = (pos+12); i >= pos; i-- )
+  {
+    //cout << data.m_data[i];
+    if ( i == pos+12 )
+    {
+      val += data.m_data[i];
+      continue;
+    }
+    val += data.m_data[i] * pow;
+    pow *= 2;
+  }
+  //cout << endl;
+  pos += 13;
+  return val;
 }
 
 bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
@@ -124,44 +130,65 @@ bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
   ofstream ofs( outFileName, ios::out );
   
   if ( !ofs || ofs.fail() )
-    cout << "ofs failt" << endl;//return false;
+    cout << "ofs fail" << endl;//return false;
 
 
   int leftData = howManyDataLeft( data, pos );
+  cout << "prv " << leftData << endl;
 
-  if ( ( pos + leftData ) > data.m_size )
-    cout << "leftdata + pos" << endl;//return false;
 
   tree * head = node;
-  cout << "110011101000101000" << endl;
-  for ( int i = pos+1; i < data.m_size ; i++)
-  {
-    if ( data.m_data[i] == 0 )
+  int cntChars = 0, cnt = 0, isLastChunk = 0;
+  cout << "size " << data.m_size << endl;
+  for ( int i = pos; i < data.m_size; i++ )
+  {/*
+    if ( leftData == 4095 )
     {
-      if ( !node->left )
-        cout << "leva" << endl;//return false;                                       
+      cnt++;
+    }
+
+    if ( cnt == 4096 )
+    {
+      leftData = howManyDataLeft( data, pos );
+      if ( leftData < 4095 )
+        isLastChunk = 1;
+      cnt=0;
+      cout << "sec " << leftData << endl;
+    }*/
+
+    if ( data.m_data[i] == 0 )
+    {  
+      if ( node->left )
+        node = node->left;                                   
       if ( !node->left && !node->right )
-      {
-        cout << node->data;
+      { 
+        ofs << node->data;
         node = head;
-      }
-      else
-      {
-        node = node->left;
+        if ( !isLastChunk )
+        {
+          cntChars++;
+          //cout << "znaky " << cntChars << " data " << leftData << endl;
+          if ( cntChars == leftData )
+            break;
+        }
+        //continue;
       }
     }
     else
-    {
-      if ( !node->right )
-        cout << "prava" << endl;//return false;     
+    {  
+      if ( node->right )
+        node = node->right;
       if ( !node->left && !node->right )
       {
-        cout << node->data;
+        ofs << node->data;
         node = head;
-      }
-      else
-      {
-        node = node->right;
+        if ( !isLastChunk )
+        {
+          cntChars++;
+          if ( cntChars == leftData )
+            break;
+          //continue;
+        }
       }
     }
   }
@@ -194,14 +221,14 @@ bool binDump ( const char * fileName, const char * outFileName )
     }
   }
   data.m_size = data.m_data.size();
+  
   //printDataBin( data );
-
 
   // creates bin tree with coded characters
   tree * head = nullptr;
   int pos = 0;
   head = createTree( data.m_data, pos );
-
+  //cout << pos << endl;
   if ( saveFile( data, pos, head, outFileName ) == false )
     return false;
 
@@ -264,27 +291,26 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
-  decompressFile( "tests/test0.huf", "tempfile" );
   
-  /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
   
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
-
+  
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
-
+  
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
+ 
+
 
   assert ( decompressFile ( "tests/test4.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test4.orig", "tempfile" ) );
 
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
-
-  */
+  
 
   return 0;
 }
