@@ -38,19 +38,20 @@ struct tree
 tree * newNode( void )
 {
 	tree * node = new tree;
-  //tree * node = ( tree * ) malloc ( sizeof(tree) );
-  node->left = node->right = NULL;
+  node->left = node->right = nullptr;
   return node;
 }
 
-void deleteTree ( tree * head )
+void deleteTree ( tree * node )
 {
-	if ( head == NULL )
+	if (!node)
     return;
-	deleteTree( head->left );
-  deleteTree( head->right );
-	delete head;
-  //free(head);
+  if ( node->left)
+	  deleteTree( node->left );
+  if ( node->right)
+    deleteTree( node->right );
+
+	delete node;
 }
 
 // convert 8 bits (int) to char
@@ -92,17 +93,17 @@ int howManyDataLeft ( Data & data, int & pos )
 
 tree * createTree ( vector <bool> & data, int & pos )
 {
-  tree * node = NULL;
-  node = newNode(  );
+  tree * node = newNode(  );
+
   if ( data[pos] == 1 )
   {
+    //cout << getChar( data, pos ) << endl;
+    node->left = node->right = nullptr;
     node->data = getChar( data, pos );
     pos += 8;
   }
   else
   {
-    node->left = newNode(  );
-    node->right = newNode(  );
     node->left = createTree( data, ++pos );
     node->right = createTree( data, ++pos );
   }
@@ -118,29 +119,50 @@ void printDataBin ( const Data & data )
   cout << '\n' << "----------------" << endl;
 }
 
-/*
-  leftData = howManyDataLeft( data, pos );
-
-  if ( ( pos + leftData ) > data.m_size )
-    cout << "aaa";//return false;
-*/
-
-bool saveFile ( Data & data, int & pos, tree * head, const char * outFileName )
+bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
 {
   ofstream ofs( outFileName, ios::out );
   
   if ( !ofs || ofs.fail() )
-    return false;
+    cout << "ofs failt" << endl;//return false;
 
-  for ( int i = pos; i < data.m_size ; i++)
+
+  int leftData = howManyDataLeft( data, pos );
+
+  if ( ( pos + leftData ) > data.m_size )
+    cout << "leftdata + pos" << endl;//return false;
+
+  tree * head = node;
+  cout << "110011101000101000" << endl;
+  for ( int i = pos+1; i < data.m_size ; i++)
   {
     if ( data.m_data[i] == 0 )
     {
-      
+      if ( !node->left )
+        cout << "leva" << endl;//return false;                                       
+      if ( !node->left && !node->right )
+      {
+        cout << node->data;
+        node = head;
+      }
+      else
+      {
+        node = node->left;
+      }
     }
     else
     {
-      
+      if ( !node->right )
+        cout << "prava" << endl;//return false;     
+      if ( !node->left && !node->right )
+      {
+        cout << node->data;
+        node = head;
+      }
+      else
+      {
+        node = node->right;
+      }
     }
   }
   
@@ -176,14 +198,13 @@ bool binDump ( const char * fileName, const char * outFileName )
 
 
   // creates bin tree with coded characters
-  tree * head = NULL;
-  head = newNode(  );
+  tree * head = nullptr;
   int pos = 0;
   head = createTree( data.m_data, pos );
 
   if ( saveFile( data, pos, head, outFileName ) == false )
     return false;
-  
+
   ifs.close();
   return true;
 }
