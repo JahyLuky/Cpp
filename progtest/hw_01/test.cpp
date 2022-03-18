@@ -97,7 +97,7 @@ void printDataBin ( const Data & data )
   {
     cout << data.m_data[i];
   }
-  //cout << '\n' << "----------------" << endl;
+  cout << '\n' << "----------------" << endl;
 }
 
 // convert 12 bits to int
@@ -141,7 +141,6 @@ bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
       if ( data.m_data[i] == 0 )
       {
         leftData = convert12bits( data, pos );
-        cout << endl << leftData << endl;
         if ( leftData == 0 && wasCheckChunk == 1 )
         {
           break;
@@ -236,7 +235,7 @@ bool binDump ( const char * fileName, const char * outFileName )
   }
   data.m_size = data.m_data.size();
   
-  printDataBin( data );
+  //printDataBin( data );
 
   // creates bin tree with coded characters
   tree * head = nullptr;
