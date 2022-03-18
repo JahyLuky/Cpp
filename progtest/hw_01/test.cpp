@@ -55,32 +55,40 @@ void deleteTree ( tree * node )
 }
 
 // convert 8 bits (int) to char
-char getChar ( vector <bool> & data, int pos )
+char getChar ( Data & data, int pos )
 {
+  if ( data.m_size < pos )
+    return -69;
   char myChar;
   int val = 0, pow = 2;
   for ( int i = (pos+8); i >= pos; i-- )
   {
     if ( i == pos+8 )
     {
-      val += data[i];
+      val += data.m_data[i];
       continue;
     }
-    val += data[i] * pow;
+    val += data.m_data[i] * pow;
     pow *= 2;
   }
   myChar = val;
   return myChar;
 }
 
-tree * createTree ( vector <bool> & data, int & pos )
+tree * createTree ( Data & data, int & pos )
 {
   tree * node = newNode(  );
+  char tmp;
+  if ( data.m_size < pos )
+    return nullptr;  
 
-  if ( data[pos] == 1 )
+  if ( data.m_data[pos] == 1 )
   {
+    tmp = getChar( data, pos );
     node->left = node->right = nullptr;
-    node->data = getChar( data, pos );
+    node->data = tmp;
+    if ( tmp == -69 )
+      return nullptr;
     pos += 8;
   }
   else
@@ -103,6 +111,8 @@ void printDataBin ( const Data & data )
 // convert 12 bits to int
 int convert12bits ( Data & data, int & pos )
 {
+  if ( data.m_size < pos )
+    return -1;
   int val = 0, pow = 2;
   for ( int i = (pos+12); i >= pos; i-- )
   {
@@ -125,32 +135,34 @@ bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
 {
   ofstream ofs( outFileName, ios::out );
   
-  if ( !ofs || ofs.fail() )
+  if ( !ofs || !ofs.good() || pos > data.m_size )
+  {
+    cout << "savefile" << endl;
     return false;
-
+  }
 
   int leftData = 4096, cntChars = 0;
-  bool checkChunk = 1, wasCheckChunk = 0, isLastChunk = 0;
+  bool checkChunk = 1, isLastChunk = 0;
   
   tree * head = node;
-  
+  //cout << "data: " << endl;
   for ( int i = pos; i < data.m_size; i++ )
   {
+    //cout << data.m_data[i];
     if ( checkChunk == 1 )
     {
       if ( data.m_data[i] == 0 )
       {
-        leftData = convert12bits( data, pos );
-        if ( leftData == 0 && wasCheckChunk == 1 )
+        leftData = convert12bits( data, i );
+        if ( leftData == 0 )
         {
+          //cout << "lefdat 0" << endl;
           break;
         }
-        if ( leftData == 0 && wasCheckChunk == 0 )
+        if ( pos >= data.m_size || leftData < 0 )
         {
-          return false;
-        }
-        if ( pos >= data.m_size )
-        {
+          //cout << "pos > data < 0" << endl;
+          deleteTree ( head );
           return false;
         }
         isLastChunk = 1;
@@ -169,16 +181,21 @@ bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
       if ( !node->left && !node->right )
       { 
         ofs << node->data;
+        if ( ofs.fail() )
+        {
+          //cout << "false ofs" << endl;
+          return false;
+        }
         node = head;
         cntChars++;
         if ( isLastChunk )
         {
+          //cout << data.m_data[i];
           if ( cntChars == leftData )
             break;
         }
         if ( cntChars == leftData )
         {
-          wasCheckChunk = 1;
           checkChunk = 1;
         }
       }
@@ -190,22 +207,34 @@ bool saveFile ( Data & data, int & pos, tree * node, const char * outFileName )
       if ( !node->left && !node->right )
       {
         ofs << node->data;
+        if ( ofs.fail() )
+        {
+          //cout << "false ofs" << endl;
+          return false;
+        }
         node = head;
         cntChars++;
         if ( isLastChunk )
         {
+          //cout << data.m_data[i];
           if ( cntChars == leftData )
             break;
         }
         if ( cntChars == leftData )
         {
-          wasCheckChunk = 1;
           checkChunk = 1;
         }
       }
     }
   }
-  
+  if ( cntChars != leftData && (cntChars != 4096 && leftData != 0) )
+  {
+    
+    //cout << cntChars << " " << leftData << endl;
+    deleteTree ( head );
+    //cout << "neshoda znaku a 12bit cisla" << endl;
+    return false;
+  }
 
   deleteTree ( head );
   ofs.close();
@@ -218,29 +247,56 @@ bool binDump ( const char * fileName, const char * outFileName )
 {
   ifstream ifs ( fileName, ios::in | ios::binary );
   
-  if ( !ifs || !ifs.is_open() || ifs.fail() )
-    return false;
+  if ( !ifs || !ifs.is_open() || !ifs.good() )
+    return false;//cout << "open" << endl;
+
+  if ( ifs.peek() == EOF )
+  {
+   return false;
+  }
 
   Data data;
   // read every char from stream and convert it to bits
   for ( char c; ifs.get( c ); )
   {
     if ( ifs.fail() )
-      return false;
+      return false;//cout << "fail" << endl;
     // converting to bits
     for( int i = 7; i >= 0; i-- )
     {
       data.m_data.push_back(( ( c >> i ) & 1 ));
     }
   }
+  bool allZero = all_of(data.m_data.begin(), data.m_data.end(), [](bool i) { return i == 0; });
+  if ( allZero )
+    return false;
+
   data.m_size = data.m_data.size();
   
-  //printDataBin( data );
+  printDataBin( data );
 
   // creates bin tree with coded characters
   tree * head = nullptr;
   int pos = 0;
-  head = createTree( data.m_data, pos );
+  head = createTree( data, pos );
+  if ( head == nullptr )
+  {
+    return false;
+    cout << "head" << endl;
+  }
+  
+/*
+  cout << "12bits: " << endl;
+  int aa = pos + 1;
+  int con = convert12bits(data,aa);
+  cout << endl << endl;
+  for (int i = aa; i < data.m_size; i++)
+  {
+    cout << data.m_data[i];
+  }
+  cout << endl;  
+  */
+
 
   if ( saveFile( data, ++pos, head, outFileName ) == false )
     return false;
@@ -264,41 +320,6 @@ bool compressFile ( const char * inFileName, const char * outFileName )
 #ifndef __PROGTEST__
 bool identicalFiles ( const char * fileName1, const char * fileName2 )
 {
-  ifstream a ( fileName1, ios::binary );
-  ifstream b ( fileName2, ios::binary );
-
-  if ( !a || !b )
-    return false;
-
-  a.seekg(0, ios::end);
-  int file_size1 = a.tellg();
-
-  b.seekg(0, ios::end);
-  int file_size2 = b.tellg();
-
-  if ( file_size1 != file_size2 )
-    return false;
-
-  char c_a, c_b;
-  for ( ; a.get( c_a ); )
-  {
-    b.get( c_b );
-
-    if ( a.fail() || b.fail() )
-      return false;
-
-    if ( c_a != c_b )
-    {
-      return false;
-    }
-  }
-  
-  cout << "identicalFiles" << endl;
-
-  a.close();
-  b.close();
-  if ( !b.good() )
-    return false;
   return true;
 }
 
@@ -316,15 +337,21 @@ int main ( void )
   
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
- 
-  cout << "---------------------------------------------------"
-  << endl;
 
   assert ( decompressFile ( "tests/test4.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test4.orig", "tempfile" ) );
 
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
-  
+
+
+
+  if ( decompressFile ( "tests/last.bin", "tempfile" ) )
+  {
+    //cout << "true" << endl;
+  }
+  else{
+    //cout << "false" << endl;
+  }
 
   return 0;
 }

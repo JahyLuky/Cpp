@@ -20,6 +20,20 @@
 using namespace std;
 
 
+/*
+  if ( ! decompressFile ( "helps/in_4529638.bin", "tempfile" ) )
+  {
+    cout << "neni dobre" << endl;
+  }*/
+
+  //assert ( decompressFile ( "helps/in_4530242.bin", "tempfile" ) );
+  //assert ( decompressFile ( "helps/in_4530731.bin", "tempfile" ) );
+  //assert ( decompressFile ( "helps/in_4532162.bin", "tempfile" ) );
+  //assert ( ! decompressFile ( "helps/in_4529638.bin", "tempfile" ) ); // problem!!!
+  //assert ( ! decompressFile ( "helps/broken_ascii.huf", "tempfile" ) );
+  //assert ( ! decompressFile ( "helps/all_zeroes.huf", "tempfile" ) );
+  //assert ( decompressFile ( "helps/test7.huf", "tempfile" ) ); 
+
 
 
 /*

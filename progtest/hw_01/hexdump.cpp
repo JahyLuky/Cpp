@@ -4,6 +4,46 @@
 #include <cstdlib>
 using namespace std;
 
+bool identicalFiles ( const char * fileName1, const char * fileName2 )
+{
+  ifstream a ( fileName1, ios::binary );
+  ifstream b ( fileName2, ios::binary );
+
+  if ( !a || !b )
+    return false;
+
+  a.seekg(0, ios::end);
+  int file_size1 = a.tellg();
+
+  b.seekg(0, ios::end);
+  int file_size2 = b.tellg();
+
+  if ( file_size1 != file_size2 )
+    return false;
+
+  char c_a, c_b;
+  for ( ; a.get( c_a ); )
+  {
+    b.get( c_b );
+
+    if ( a.fail() || b.fail() )
+      return false;
+
+    if ( c_a != c_b )
+    {
+      return false;
+    }
+  }
+  
+  cout << "identicalFiles" << endl;
+
+  a.close();
+  b.close();
+  if ( !b.good() )
+    return false;
+  return true;
+}
+
 
 bool dumpFile ( const char * fileName )
 {
