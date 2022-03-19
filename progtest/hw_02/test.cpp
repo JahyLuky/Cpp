@@ -20,9 +20,10 @@ struct Comp
   string m_name;
   string m_address;
   string m_id;
+  unsigned int m_invoice;
 };
 
-
+// pole pointeru na pole
 class CVATRegister
 {
   public:
@@ -52,15 +53,30 @@ class CVATRegister
 
     bool findComp ( const string & name, const string & addr );
     bool findComp ( const string & taxID );
-    
+    bool compareString ( const string & a, const string & b );
   private:
-    Comp m_comp;
-    
     vector <Comp> m_data;
+    /*
     vector <CVATRegister> m_id_sort;
     vector <CVATRegister> m_name_sort;
     vector <unsigned int> m_invoice;
+    */
 };
+
+bool CVATRegister::compareString ( const string & a, const string & b )
+{
+  size_t a_len = a.size();
+  size_t b_len = b.size();
+  if ( a_len != b_len )
+    return false;
+  
+  for ( size_t i = 0; i < a_len; i++ )
+  {
+    if ( tolower( a[i] ) != tolower( b[i] ) )
+      return false;
+  }
+  return true;
+}
 
 CVATRegister::CVATRegister ( void )
 {}
@@ -72,9 +88,11 @@ bool CVATRegister::findComp ( const string & name, const string & addr )
   size_t count = m_data.size();
   for ( size_t i = 0; i < count; i++ )
   {
-    cout << m_data[i].m_name << endl;
-    if ( name == m_data[i].m_name && addr == m_data[i].m_address )
+    if ( compareString( m_data[i].m_name, name ) 
+    && compareString( m_data[i].m_address, addr ) )
     {
+      cout << m_data[i].m_name << " " << name << endl;
+      cout << m_data[i].m_address << " " << addr << endl;
       return false;
     }
   }
@@ -82,6 +100,7 @@ bool CVATRegister::findComp ( const string & name, const string & addr )
 }
 bool CVATRegister::findComp ( const string & taxID )
 {
+  //binary_search(haystack.begin(), haystack.end(), needle);
   size_t count = m_data.size();
   for ( size_t i = 0; i < count; i++ )
   {
@@ -93,6 +112,34 @@ bool CVATRegister::findComp ( const string & taxID )
   return true;
 }
 
+bool CVATRegister::cancelCompany ( const string & name, const string & addr )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( compareString( m_data[i].m_name, name ) 
+    && compareString( m_data[i].m_address, addr ) )
+    {
+      m_data.erase( m_data.begin() + i );
+      return true;
+    }
+  }
+  return false;
+}
+bool CVATRegister::cancelCompany ( const string & taxID )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( taxID == m_data[i].m_id )
+    {
+      m_data.erase( m_data.begin() + i );
+      return true;
+    }
+  }
+  return false;
+}
+
 bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
 {
   if ( !findComp( name, addr ) || !findComp( taxID ) )
@@ -100,12 +147,92 @@ bool CVATRegister::newCompany ( const string & name, const string & addr, const 
   
   Comp tmp;
   tmp.m_name = name;
-  cout << tmp.m_name << endl;
   tmp.m_address = addr;
   tmp.m_id = taxID;
+  tmp.m_invoice = 0;
   m_data.push_back( tmp );
 
   return true;
+}
+
+bool CVATRegister::invoice ( const string & name, const string & addr, unsigned int amount )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( compareString( m_data[i].m_name, name ) 
+    && compareString( m_data[i].m_address, addr ) )
+    {
+      m_data[i].m_invoice = amount;
+      return true;
+    }
+  }
+  return false;
+}
+bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( taxID == m_data[i].m_id )
+    {
+      m_data[i].m_invoice += amount;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool CVATRegister::audit ( const string & name, const string & addr, unsigned int & sumIncome ) const
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    //if ( compareString( m_data[i].m_name, name ) 
+    //&&   compareString( m_data[i].m_address, addr ) )
+    //if ( m_data[i].m_name == name 
+    if ( m_data[i].m_address == addr )
+    {
+      sumIncome = m_data[i].m_invoice;
+      return true;
+    }
+  }
+  return false;
+}
+bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) const
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( taxID == m_data[i].m_id )
+    {
+      sumIncome = m_data[i].m_invoice;
+      return true;
+    }
+  }
+  return false;
+}
+    
+bool CVATRegister::firstCompany ( string & name, string & addr ) const
+{
+  return false;
+}
+bool CVATRegister::nextCompany ( string & name, string & addr ) const
+{
+  return false;
+}
+
+unsigned int CVATRegister::medianInvoice ( void ) const
+{
+  /*
+  vkládat při invoice
+  sortit pole při median
+  udělat kopii a sortit pole při mediam
+  hledání indexu vždy binsearchem, vkládání do pole lineárně
+  volat qsort při medianu projde
+  */
+ // kopie -> sesortit -> zahodit
+  return -69;
 }
 
 #ifndef __PROGTEST__
@@ -113,28 +240,23 @@ int main ( void )
 {
   string name, addr;
   unsigned int sumIncome;
-
+  
   CVATRegister b1;
-  b1 . newCompany ( "ACME", "Thakurova", "666/666" );
 
-  /*
   assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
-  */
-  
-  
-  /*
   assert ( b1 . invoice ( "666/666", 2000 ) );
-  assert ( b1 . medianInvoice () == 2000 );
+  //assert ( b1 . medianInvoice () == 2000 );
   assert ( b1 . invoice ( "666/666/666", 3000 ) );
-  assert ( b1 . medianInvoice () == 3000 );
+  //assert ( b1 . medianInvoice () == 3000 );
   assert ( b1 . invoice ( "123456", 4000 ) );
-  assert ( b1 . medianInvoice () == 3000 );
+  //assert ( b1 . medianInvoice () == 3000 );
   assert ( b1 . invoice ( "aCmE", "Kolejni", 5000 ) );
-  assert ( b1 . medianInvoice () == 4000 );
+  //assert ( b1 . medianInvoice () == 4000 );
   assert ( b1 . audit ( "ACME", "Kolejni", sumIncome ) && sumIncome == 8000 );
   assert ( b1 . audit ( "123456", sumIncome ) && sumIncome == 4000 );
+  /*
   assert ( b1 . firstCompany ( name, addr ) && name == "ACME" && addr == "Kolejni" );
   assert ( b1 . nextCompany ( name, addr ) && name == "ACME" && addr == "Thakurova" );
   assert ( b1 . nextCompany ( name, addr ) && name == "Dummy" && addr == "Thakurova" );
@@ -165,7 +287,8 @@ int main ( void )
   assert ( ! b1 . nextCompany ( name, addr ) );
   assert ( b1 . cancelCompany ( "123456" ) );
   assert ( ! b1 . firstCompany ( name, addr ) );
-
+  */
+  /*
   CVATRegister b2;
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . newCompany ( "Dummy", "Kolejni", "123456" ) );
@@ -194,6 +317,7 @@ int main ( void )
   assert ( b2 . cancelCompany ( "ACME", "Kolejni" ) );
   assert ( ! b2 . cancelCompany ( "ACME", "Kolejni" ) );
   */
+
   return 0;
 }
 #endif /* __PROGTEST__ */
