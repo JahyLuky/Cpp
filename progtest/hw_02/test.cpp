@@ -15,6 +15,14 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+struct Comp
+{
+  string m_name;
+  string m_address;
+  string m_id;
+};
+
+
 class CVATRegister
 {
   public:
@@ -41,20 +49,82 @@ class CVATRegister
     bool          nextCompany    ( string          & name,
                                    string          & addr ) const;
     unsigned int  medianInvoice  ( void ) const;
+
+    bool findComp ( const string & name, const string & addr );
+    bool findComp ( const string & taxID );
+    
   private:
-    // todo
+    Comp m_comp;
+    
+    vector <Comp> m_data;
+    vector <CVATRegister> m_id_sort;
+    vector <CVATRegister> m_name_sort;
+    vector <unsigned int> m_invoice;
 };
 
+CVATRegister::CVATRegister ( void )
+{}
+CVATRegister::~CVATRegister ( void )
+{}
+
+bool CVATRegister::findComp ( const string & name, const string & addr )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    cout << m_data[i].m_name << endl;
+    if ( name == m_data[i].m_name && addr == m_data[i].m_address )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+bool CVATRegister::findComp ( const string & taxID )
+{
+  size_t count = m_data.size();
+  for ( size_t i = 0; i < count; i++ )
+  {
+    if ( taxID == m_data[i].m_id )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
+{
+  if ( !findComp( name, addr ) || !findComp( taxID ) )
+    return false;
+  
+  Comp tmp;
+  tmp.m_name = name;
+  cout << tmp.m_name << endl;
+  tmp.m_address = addr;
+  tmp.m_id = taxID;
+  m_data.push_back( tmp );
+
+  return true;
+}
+
 #ifndef __PROGTEST__
-int               main           ( void )
+int main ( void )
 {
   string name, addr;
   unsigned int sumIncome;
 
   CVATRegister b1;
+  b1 . newCompany ( "ACME", "Thakurova", "666/666" );
+
+  /*
   assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
+  */
+  
+  
+  /*
   assert ( b1 . invoice ( "666/666", 2000 ) );
   assert ( b1 . medianInvoice () == 2000 );
   assert ( b1 . invoice ( "666/666/666", 3000 ) );
@@ -123,7 +193,7 @@ int               main           ( void )
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . cancelCompany ( "ACME", "Kolejni" ) );
   assert ( ! b2 . cancelCompany ( "ACME", "Kolejni" ) );
-
-  return EXIT_SUCCESS;
+  */
+  return 0;
 }
 #endif /* __PROGTEST__ */
