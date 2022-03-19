@@ -23,6 +23,19 @@ struct Comp
   unsigned int m_invoice;
 };
 
+/*
+  vector <CVATRegister> m_id_sort;
+  vector <CVATRegister> m_name_sort;
+  vector <unsigned int> m_invoice;
+  vkládat při invoice
+  sortit pole při median
+  udělat kopii a sortit pole při mediam
+  hledání indexu vždy binsearchem, vkládání do pole lineárně
+  volat qsort při medianu projde
+  pole pointeru na pole
+  kopie -> sesortit -> zahodit
+  ?? lower bound
+  */
 class CVATRegister
 {
   public:
@@ -55,8 +68,6 @@ class CVATRegister
     bool compareString ( const string & a, const string & b );
   private:
     vector <Comp> m_data;
-    vector <Comp> m_id_sort;
-    vector <Comp> m_name_sort;
     size_t m_cntInvoice = 0;
 };
 
@@ -82,6 +93,10 @@ CVATRegister::~CVATRegister ( void )
 
 bool CVATRegister::findComp ( const string & name, const string & addr )
 {
+  //auto pos == find ( vec.begin, vec.end, hledam)
+  //pos == end() nenaslo se
+  //*pos != hledam
+  //  vec. insert ( pos, hledam )
   size_t count = m_data.size();
   for ( size_t i = 0; i < count; i++ )
   {
@@ -141,12 +156,6 @@ bool CVATRegister::newCompany ( const string & name, const string & addr, const 
   if ( !findComp( name, addr ) || !findComp( taxID ) )
     return false;
   
-  auto pos = lower_bound ( m_id_sort.begin(), m_id_sort.end(), taxID );
-  if ( pos == m_id_sort.end() && *pos != taxID )
-  {
-    m_id_sort.insert ( pos, taxID );
-  }
-
   Comp tmp;
   tmp.m_name = name;
   tmp.m_address = addr;
