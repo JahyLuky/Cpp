@@ -23,19 +23,39 @@ struct Comp
   unsigned int m_invoice;
 };
 
-/*
-  vector <CVATRegister> m_id_sort;
-  vector <CVATRegister> m_name_sort;
-  vector <unsigned int> m_invoice;
-  vkládat při invoice
-  sortit pole při median
-  udělat kopii a sortit pole při mediam
-  hledání indexu vždy binsearchem, vkládání do pole lineárně
-  volat qsort při medianu projde
-  pole pointeru na pole
-  kopie -> sesortit -> zahodit
-  ?? lower bound
-  */
+
+// neni ve tride? progtest?
+bool compareString ( const string & a, const string & b )
+{
+  size_t a_len = a.size();
+  size_t b_len = b.size();
+  if ( a_len != b_len )
+    return false;
+  
+  for ( size_t i = 0; i < a_len; i++ )
+  {
+    if ( tolower( a[i] ) != tolower( b[i] ) )
+      return false;
+  }
+  return true;
+}
+
+struct compare
+{
+  bool operator() ( const Comp & a, const Comp & b ) const
+  {
+    if ( compareString( a.m_name, b.m_name ) )
+      return a.m_address < b.m_address;
+    else
+      return a.m_name < b.m_name;
+  }
+  /*
+  bool operator() ( const Comp & a, const Comp & b ) const
+  {
+    return a.m_id < b.m_id;
+  }*/
+};
+
 class CVATRegister
 {
   public:
@@ -68,7 +88,9 @@ class CVATRegister
     bool compareString ( const string & a, const string & b );
   private:
     vector <Comp> m_data;
-    size_t m_cntInvoice = 0;
+    vector <Comp> m_id_sort;
+    vector <Comp> m_name_sort;
+    vector <unsigned int> m_invoice;
 };
 
 bool CVATRegister::compareString ( const string & a, const string & b )
@@ -93,10 +115,6 @@ CVATRegister::~CVATRegister ( void )
 
 bool CVATRegister::findComp ( const string & name, const string & addr )
 {
-  //auto pos == find ( vec.begin, vec.end, hledam)
-  //pos == end() nenaslo se
-  //*pos != hledam
-  //  vec. insert ( pos, hledam )
   size_t count = m_data.size();
   for ( size_t i = 0; i < count; i++ )
   {
@@ -153,17 +171,26 @@ bool CVATRegister::cancelCompany ( const string & taxID )
 
 bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
 {
-  if ( !findComp( name, addr ) || !findComp( taxID ) )
-    return false;
+  //if ( !findComp( name, addr ) || !findComp( taxID ) )
+  //  return false;
   
-  Comp tmp;
-  tmp.m_name = name;
-  tmp.m_address = addr;
-  tmp.m_id = taxID;
-  tmp.m_invoice = 0;
-  m_data.push_back( tmp );
-
-  return true;
+  Comp isThere;
+  isThere.m_name = name;
+  isThere.m_address = addr;
+  isThere.m_id = taxID;
+  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare() );
+  if ( pos == m_id_sort.end() ) //|| *pos != isThere )
+  {
+    Comp tmp;
+    tmp.m_name = name;
+    tmp.m_address = addr;
+    tmp.m_id = taxID;
+    tmp.m_invoice = 0;
+    m_data.push_back( tmp );
+    //m_id_sort.insert ( pos, taxID );
+    return true;
+  }
+  return false;
 }
 
 bool CVATRegister::invoice ( const string & name, const string & addr, unsigned int amount )
@@ -174,8 +201,8 @@ bool CVATRegister::invoice ( const string & name, const string & addr, unsigned 
     if ( compareString( m_data[i].m_name, name ) 
     && compareString( m_data[i].m_address, addr ) )
     {
+      m_invoice.push_back( amount );
       m_data[i].m_invoice += amount;
-      m_cntInvoice++;
       return true;
     }
   }
@@ -188,8 +215,8 @@ bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
   {
     if ( taxID == m_data[i].m_id )
     {
+      m_invoice.push_back( amount );
       m_data[i].m_invoice += amount;
-      m_cntInvoice++;
       return true;
     }
   }
@@ -235,34 +262,36 @@ bool CVATRegister::nextCompany ( string & name, string & addr ) const
 
 unsigned int CVATRegister::medianInvoice ( void ) const
 {
-  vector <unsigned int> tmp;
-  size_t count = m_data.size();
-
-  if ( m_cntInvoice == 0 )
-  {
+  if ( m_invoice.empty() )
     return 0;
-  }
-  if ( m_cntInvoice == 1 )
-  {
-    return m_data[0].m_invoice;
-  }
-  if ( m_cntInvoice == 2 )
-  {
-    return m_data[1].m_invoice;
-  }
+  
+  vector <unsigned int> tmp;
+  size_t count = m_invoice.size();
 
   for ( size_t i = 0; i < count; i++ )
   {
-    tmp.push_back( m_data[i].m_invoice );
+    tmp.push_back( m_invoice[i] );
   }
 
   sort ( tmp.begin(), tmp.end() );
 
-  int median = count / 2;
+  unsigned int median = count / 2;
+
+  /*
+  for ( size_t i = 0; i < count; i++ )
+  {
+    cout << m_invoice[i] << " ";
+  }
+  cout << endl;
+
+  
+  cout << median << " = " << (count / 2) << endl;
   if ( ( count % 2 ) == 0 )
   {
-    median += 1;
+    //median += 1;
+    cout << "med " << median << endl;
   }
+  */
 
   return tmp[ median ];
 }

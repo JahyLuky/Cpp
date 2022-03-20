@@ -1,0 +1,14 @@
+/*
+  vector <CVATRegister> m_id_sort;
+  vector <CVATRegister> m_name_sort;
+  vector <unsigned int> m_invoice;
+  vkládat při invoice
+  sortit pole při median
+  udělat kopii a sortit pole při mediam
+  hledání indexu vždy binsearchem, vkládání do pole lineárně
+  volat qsort při medianu projde
+  pole pointeru na pole
+  kopie -> sesortit -> zahodit
+  ?? lower bound
+  */
+

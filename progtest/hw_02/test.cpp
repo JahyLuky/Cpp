@@ -15,12 +15,65 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+
+bool compareString ( const string & a, const string & b )
+{
+  size_t a_len = a.size();
+  size_t b_len = b.size();
+  if ( a_len != b_len )
+    return false;
+  
+  for ( size_t i = 0; i < a_len; i++ )
+  {
+    if ( tolower( a[i] ) != tolower( b[i] ) )
+      return false;
+  }
+  return true;
+}
+
 struct Comp
 {
   string m_name;
   string m_address;
   string m_id;
   unsigned int m_invoice;
+  bool operator != ( const Comp & a )
+  {
+    if ( a.m_name == m_name )
+    {
+      if ( a.m_address == m_address )
+      {
+        return false;
+      }
+    }
+    if ( compareString( a.m_id, m_id ) )
+    {
+      return false;
+    }
+    return true;
+  }
+};
+
+struct compare
+{
+  bool operator() ( const Comp & a, const Comp & b ) const
+  {
+    if ( a.m_name == b.m_name )
+      return a.m_address < b.m_address;
+    else
+      return a.m_name < b.m_name;
+  }
+};
+struct compare_id
+{
+  bool operator() ( const Comp & a, const Comp & b ) const
+  {
+    if ( compareString( a.m_id, b.m_id ) )
+    {
+      return false;
+    }
+    return a.m_id < b.m_id;
+  }
 };
 
 class CVATRegister
@@ -50,63 +103,18 @@ class CVATRegister
                                    string          & addr ) const;
     unsigned int  medianInvoice  ( void ) const;
 
-    bool findComp ( const string & name, const string & addr );
-    bool findComp ( const string & taxID );
-    bool compareString ( const string & a, const string & b );
+
   private:
     vector <Comp> m_data;
     vector <Comp> m_id_sort;
     vector <Comp> m_name_sort;
-    size_t m_cntInvoice = 0;
+    vector <unsigned int> m_invoice;
 };
-
-bool CVATRegister::compareString ( const string & a, const string & b )
-{
-  size_t a_len = a.size();
-  size_t b_len = b.size();
-  if ( a_len != b_len )
-    return false;
-  
-  for ( size_t i = 0; i < a_len; i++ )
-  {
-    if ( tolower( a[i] ) != tolower( b[i] ) )
-      return false;
-  }
-  return true;
-}
 
 CVATRegister::CVATRegister ( void )
 {}
 CVATRegister::~CVATRegister ( void )
 {}
-
-bool CVATRegister::findComp ( const string & name, const string & addr )
-{
-  size_t count = m_data.size();
-  for ( size_t i = 0; i < count; i++ )
-  {
-    if ( compareString( m_data[i].m_name, name ) 
-    && compareString( m_data[i].m_address, addr ) )
-    {
-      cout << m_data[i].m_name << " " << name << endl;
-      cout << m_data[i].m_address << " " << addr << endl;
-      return false;
-    }
-  }
-  return true;
-}
-bool CVATRegister::findComp ( const string & taxID )
-{
-  size_t count = m_data.size();
-  for ( size_t i = 0; i < count; i++ )
-  {
-    if ( taxID == m_data[i].m_id )
-    {
-      return false;
-    }
-  }
-  return true;
-}
 
 bool CVATRegister::cancelCompany ( const string & name, const string & addr )
 {
@@ -124,6 +132,7 @@ bool CVATRegister::cancelCompany ( const string & name, const string & addr )
 }
 bool CVATRegister::cancelCompany ( const string & taxID )
 {
+  /*
   size_t count = m_data.size();
   for ( size_t i = 0; i < count; i++ )
   {
@@ -133,28 +142,62 @@ bool CVATRegister::cancelCompany ( const string & taxID )
       return true;
     }
   }
-  return false;
+  */
+  Comp isThere;
+  isThere.m_id = taxID;
+  auto posID = lower_bound ( m_data.begin(), m_data.end(), isThere, compare_id() );
+  if ( posID == m_data.end() || *posID != isThere )
+  {
+    return false;
+  }
+
+  m_data.erase( posID );
+
+  auto pos = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
+  m_id_sort.erase( pos );
+
+  /*
+  for (size_t i = 0; i < (size_t) m_data.size(); i++)
+  {
+    cout << m_data[i].m_id << " ";
+  }
+  cout << endl;
+  */
+  return true;
 }
 
 bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
 {
-  if ( !findComp( name, addr ) || !findComp( taxID ) )
-    return false;
-  
-  auto pos = lower_bound ( m_id_sort.begin(), m_id_sort.end(), taxID );
-  if ( pos == m_id_sort.end() && *pos != taxID )
+  Comp isThere;
+  isThere.m_name = name;
+  isThere.m_address = addr;
+  isThere.m_id = taxID;
+
+  auto pos = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
+  auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
+
+  if ( ( pos == m_name_sort.end() || *pos != isThere )
+  && ( posID == m_id_sort.end() || *posID != isThere ) )
   {
-    m_id_sort.insert ( pos, taxID );
-  }
+    Comp tmp;
+    tmp.m_name = name;
+    tmp.m_address = addr;
+    tmp.m_id = taxID;
+    tmp.m_invoice = 0;
+    m_data.push_back( tmp );
 
-  Comp tmp;
-  tmp.m_name = name;
-  tmp.m_address = addr;
-  tmp.m_id = taxID;
-  tmp.m_invoice = 0;
-  m_data.push_back( tmp );
-
-  return true;
+    m_name_sort.insert( pos, tmp );
+    m_id_sort.insert( posID, tmp );
+    /*
+    for (size_t i = 0; i < (size_t)m_id_sort.size(); i++)    
+    {
+      cout << m_id_sort[i].m_id << "  ";
+    }
+    cout << endl;
+    */
+    return true;
+  } 
+  return false;
 }
 
 bool CVATRegister::invoice ( const string & name, const string & addr, unsigned int amount )
@@ -165,8 +208,8 @@ bool CVATRegister::invoice ( const string & name, const string & addr, unsigned 
     if ( compareString( m_data[i].m_name, name ) 
     && compareString( m_data[i].m_address, addr ) )
     {
+      m_invoice.push_back( amount );
       m_data[i].m_invoice += amount;
-      m_cntInvoice++;
       return true;
     }
   }
@@ -179,8 +222,8 @@ bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
   {
     if ( taxID == m_data[i].m_id )
     {
+      m_invoice.push_back( amount );
       m_data[i].m_invoice += amount;
-      m_cntInvoice++;
       return true;
     }
   }
@@ -217,43 +260,62 @@ bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) cons
     
 bool CVATRegister::firstCompany ( string & name, string & addr ) const
 {
-  return false;
+  if ( m_name_sort.empty() )
+    return false;
+
+  name = m_name_sort[0].m_name;
+  addr = m_name_sort[0].m_address;
+  
+  return true;
 }
 bool CVATRegister::nextCompany ( string & name, string & addr ) const
 {
+  Comp tmp;
+  tmp.m_name = name;
+  tmp.m_address = addr;
+  auto pos = lower_bound( m_name_sort.begin(), m_name_sort.end(), tmp, compare() );
+  if ( pos == m_name_sort.end() )
+  {
+    return false;
+  }
+  name = m_name_sort[1].m_name;
+  addr = m_name_sort[1].m_address;
+  
   return false;
 }
 
 unsigned int CVATRegister::medianInvoice ( void ) const
 {
-  vector <unsigned int> tmp;
-  size_t count = m_data.size();
-
-  if ( m_cntInvoice == 0 )
-  {
+  if ( m_invoice.empty() )
     return 0;
-  }
-  if ( m_cntInvoice == 1 )
-  {
-    return m_data[0].m_invoice;
-  }
-  if ( m_cntInvoice == 2 )
-  {
-    return m_data[1].m_invoice;
-  }
+  
+  vector <unsigned int> tmp;
+  size_t count = m_invoice.size();
 
   for ( size_t i = 0; i < count; i++ )
   {
-    tmp.push_back( m_data[i].m_invoice );
+    tmp.push_back( m_invoice[i] );
   }
 
   sort ( tmp.begin(), tmp.end() );
 
-  int median = count / 2;
+  unsigned int median = count / 2;
+
+  /*
+  for ( size_t i = 0; i < count; i++ )
+  {
+    cout << m_invoice[i] << " ";
+  }
+  cout << endl;
+
+  
+  cout << median << " = " << (count / 2) << endl;
   if ( ( count % 2 ) == 0 )
   {
-    median += 1;
+    //median += 1;
+    cout << "med " << median << endl;
   }
+  */
 
   return tmp[ median ];
 }
@@ -268,7 +330,13 @@ int main ( void )
 
   assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
+  assert ( ! b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
+
+  assert ( b1 . cancelCompany ( "666/666" ) );
+  assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
+  assert ( ! b1 . newCompany ( "a", "b", "666/666" ) );
+  assert ( ! b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
   assert ( b1 . invoice ( "666/666", 2000 ) );
   assert ( b1 . medianInvoice () == 2000 );
   assert ( b1 . invoice ( "666/666/666", 3000 ) );
