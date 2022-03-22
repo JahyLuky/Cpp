@@ -15,38 +15,24 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-
-bool compareString ( const string & a, const string & b )
-{
-  size_t a_len = a.size();
-  size_t b_len = b.size();
-  if ( a_len != b_len )
-    return false;
-  
-  for ( size_t i = 0; i < a_len; i++ )
-  {
-    if ( tolower( a[i] ) != tolower( b[i] ) )
-      return false;
-  }
-  return true;
-}
-
 struct Comp
 {
   string m_name;
   string m_address;
   string m_id;
   unsigned int m_invoice;
+
+  // TRUE = aren't same, FALSE = are same
   bool operator != ( const Comp & a )
   {
-    if ( compareString( a.m_name, m_name ) )
+    if ( ! strcasecmp( a.m_name.c_str(), m_name.c_str() ) )
     {
-      if ( compareString( a.m_address, m_address ) )
+      if ( ! strcasecmp( a.m_address.c_str(), m_address.c_str() ) )
       {
         return false;
       }
     }
-    if ( a.m_id == m_id )
+    if ( ! strcmp( a.m_id.c_str(), m_id.c_str() ) )
     {
       return false;
     }
@@ -56,30 +42,21 @@ struct Comp
 
 struct compare
 {
+  // compare names, if equal, compare addresses
   bool operator() ( const Comp & a, const Comp & b ) const
   {
-    if ( compareString( a.m_name, b.m_name ) )
+    if ( ! strcasecmp( a.m_name.c_str(), b.m_name.c_str() ) )
     {
-      if ( ! compareString( a.m_address, b.m_address ) )
-      {
-        return a.m_address < b.m_address;
-      }
-      return false;
+      return a.m_address < b.m_address;
     }
-    else
-    {
-      return a.m_name < b.m_name;
-    }
+    return a.m_name < b.m_name;
   }
 };
 struct compare_id
 {
+  // compare IDs
   bool operator() ( const Comp & a, const Comp & b ) const
   {
-    if ( a.m_id == b.m_id )
-    {
-      return false;
-    }
     return a.m_id < b.m_id;
   }
 };
@@ -113,7 +90,6 @@ class CVATRegister
 
 
   private:
-    vector <Comp> m_data;
     vector <Comp> m_id_sort;
     vector <Comp> m_name_sort;
     vector <unsigned int> m_invoice;
@@ -126,76 +102,64 @@ CVATRegister::~CVATRegister ( void )
 
 bool CVATRegister::cancelCompany ( const string & name, const string & addr )
 {
-  //cout << "name: \n";
   Comp isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
-  if ( posName == m_name_sort.end() )//|| *posName != isThere )
+  
+  if ( posName == m_name_sort.end() || ( *posName != isThere ) )
   {
     return false;
   }
-  //cout << (*posName).m_name << " " << (*posName).m_address << endl;
   m_name_sort.erase( posName );
 
-  auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare() );
-  //cout << (*posID).m_name << " " << (*posID).m_address << endl;
+  auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), (*posName), compare_id() );
   m_id_sort.erase( posID );
-
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare() );
-  //cout << (*pos).m_name << " " << (*pos).m_address << endl;
-  m_data.erase( pos );
 
   return true;
 }
 bool CVATRegister::cancelCompany ( const string & taxID )
 {
-  //cout << "ID: \n";
   Comp isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
-  if ( posID == m_id_sort.end() || *posID != isThere )
+  
+  if ( posID == m_id_sort.end() )
   {
     return false;
   }
-  //cout << (*posID).m_name << " " << (*posID).m_address << endl;
   m_id_sort.erase( posID );
 
-  auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare_id() );
-  //cout << (*posName).m_name << " " << (*posName).m_address << endl;
-  m_name_sort.erase( posName );
+  auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), (*posID), compare() );
 
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare_id() );
-  //cout << (*pos).m_name << " " << (*pos).m_address << endl;
-  m_data.erase( pos );
+  m_name_sort.erase( posName );
 
   return true;
 }
 
 bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
-{
+{ 
   Comp isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   isThere.m_id = taxID;
-
-  auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
-  auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
-
-  if ( ( posName == m_name_sort.end() || *posName != isThere )
-  && ( posID == m_id_sort.end() || *posID != isThere ) )
+  isThere.m_invoice = 0;
+  auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() ); 
+  
+  //  if posName isnt in vector = 1 ,  if structs aren't same = 1
+  if ( posName == m_name_sort.end() || *posName != isThere )
   {
-    Comp tmp;
-    tmp.m_name = name;
-    tmp.m_address = addr;
-    tmp.m_id = taxID;
-    tmp.m_invoice = 0;
-    m_data.push_back( tmp );
-
-    m_name_sort.insert( posName, tmp );
-    m_id_sort.insert( posID, tmp );
-    return true;
+    auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
+    
+    if ( posID == m_id_sort.end() || ( *posID != isThere ) )
+    {
+      m_name_sort.insert( posName, isThere );
+      m_id_sort.insert( posID, isThere );
+      
+      return true;
+    }
   } 
+
   return false;
 }
 
@@ -205,13 +169,17 @@ bool CVATRegister::invoice ( const string & name, const string & addr, unsigned 
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
-  if ( posName == m_name_sort.end() )//|| *posName != isThere )
+
+  if ( posName == m_name_sort.end() || *posName != isThere )
   {
     return false;
   }
+
   m_invoice.push_back( amount );
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare() );
-  (*pos).m_invoice += amount;
+  auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), (*posName), compare_id() );
+  (*posName).m_invoice += amount;
+  (*posID).m_invoice += amount;
+
   return true;
 }
 bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
@@ -219,13 +187,17 @@ bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
   Comp isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
-  if ( posID == m_id_sort.end() )//|| *posID != isThere )
+  
+  if ( posID == m_id_sort.end() || *posID != isThere )
   {
     return false;
   }
+  
   m_invoice.push_back( amount );
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare_id() );
-  (*pos).m_invoice += amount;
+  auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), (*posID), compare() );
+  (*posName).m_invoice += amount;
+  (*posID).m_invoice += amount;
+  
   return true;
 }
 
@@ -235,12 +207,14 @@ bool CVATRegister::audit ( const string & name, const string & addr, unsigned in
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
-  if ( posName == m_name_sort.end() )//|| *posName != isThere )
+  
+  if ( posName == m_name_sort.end() )
   {
     return false;
   }
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare() );
-  sumIncome = (*pos).m_invoice;
+  
+  sumIncome = (*posName).m_invoice;
+  
   return true;
 }
 bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) const
@@ -248,12 +222,14 @@ bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) cons
   Comp isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
-  if ( posID == m_id_sort.end() )//|| *posID != isThere )
+  
+  if ( posID == m_id_sort.end() )
   {
     return false;
   }
-  auto pos = lower_bound ( m_data.begin(), m_data.end(), isThere, compare_id() );
-  sumIncome = (*pos).m_invoice;
+  
+  sumIncome = (*posID).m_invoice;
+  
   return true;
 }
     
@@ -272,18 +248,20 @@ bool CVATRegister::nextCompany ( string & name, string & addr ) const
   Comp tmp;
   tmp.m_name = name;
   tmp.m_address = addr;
-
   auto pos = lower_bound( m_name_sort.begin(), m_name_sort.end(), tmp, compare() );
+  
   if ( pos == m_name_sort.end() )
   {
     return false;
   }
 
   ++pos;
+
   if ( pos == m_name_sort.end() )
   {
     return false;
   }
+
   name = (*pos).m_name;
   addr = (*pos).m_address;
 
@@ -329,21 +307,16 @@ int main ( void )
   assert ( b1 . medianInvoice () == 3000 );
   assert ( b1 . invoice ( "aCmE", "Kolejni", 5000 ) );
   assert ( b1 . medianInvoice () == 4000 );
-  //assert ( b1 . audit ( "ACME", "Kolejni", sumIncome ) && sumIncome == 8000 );
-  //assert ( b1 . audit ( "123456", sumIncome ) && sumIncome == 4000 );
-
-  
+  assert ( b1 . audit ( "ACME", "Kolejni", sumIncome ) && sumIncome == 8000 );
+  assert ( b1 . audit ( "123456", sumIncome ) && sumIncome == 4000 );
   assert ( b1 . firstCompany ( name, addr ) && name == "ACME" && addr == "Kolejni" );
   assert ( b1 . nextCompany ( name, addr ) && name == "ACME" && addr == "Thakurova" );
   assert ( b1 . nextCompany ( name, addr ) && name == "Dummy" && addr == "Thakurova" );
   assert ( ! b1 . nextCompany ( name, addr ) );
-  //assert ( b1 . cancelCompany ( "666/666/666" ) );
   assert ( b1 . cancelCompany ( "ACME", "KoLeJnI" ) );
   assert ( b1 . medianInvoice () == 4000 );
-  //assert ( b1 . cancelCompany ( "666/666" ) );
-  assert ( b1 . cancelCompany ("ACME", "Thakurova") );
+  assert ( b1 . cancelCompany ( "666/666" ) );
   assert ( b1 . medianInvoice () == 4000 );
-  
   assert ( b1 . invoice ( "123456", 100 ) );
   assert ( b1 . medianInvoice () == 3000 );
   assert ( b1 . invoice ( "123456", 300 ) );
@@ -364,15 +337,12 @@ int main ( void )
   assert ( b1 . medianInvoice () == 2000 );
   assert ( b1 . firstCompany ( name, addr ) && name == "Dummy" && addr == "Thakurova" );
   assert ( ! b1 . nextCompany ( name, addr ) );
-  //assert ( b1 . cancelCompany ( "123456" ) );
-  assert ( b1 . cancelCompany ("Dummy", "Thakurova") );
+  assert ( b1 . cancelCompany ( "123456" ) );
   assert ( ! b1 . firstCompany ( name, addr ) );
-  
-  
+
   CVATRegister b2;
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . newCompany ( "Dummy", "Kolejni", "123456" ) );
-  cout << "---------\n";
   assert ( ! b2 . newCompany ( "AcMe", "kOlEjNi", "1234" ) );
   assert ( b2 . newCompany ( "Dummy", "Thakurova", "ABCDEF" ) );
   assert ( b2 . medianInvoice () == 0 );
