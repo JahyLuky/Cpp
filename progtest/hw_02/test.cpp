@@ -23,7 +23,7 @@ struct Comp
   unsigned int m_invoice;
 
   // TRUE = aren't same, FALSE = are same
-  bool operator != ( const Comp & a )
+  bool operator != ( const Comp & a ) const
   {
     if ( ! strcasecmp( a.m_name.c_str(), m_name.c_str() ) )
     {
@@ -45,11 +45,16 @@ struct compare
   // compare names, if equal, compare addresses
   bool operator() ( const Comp & a, const Comp & b ) const
   {
-    if ( ! strcasecmp( a.m_name.c_str(), b.m_name.c_str() ) )
+    int cmp = strcasecmp( a.m_name.c_str(), b.m_name.c_str() );
+    int addr = strcasecmp( a.m_address.c_str(), b.m_address.c_str() );
+    if ( cmp == 0 )
     {
-      return a.m_address < b.m_address;
+      if ( addr == 0 )
+        return false;
+      else
+        return addr < 0;
     }
-    return a.m_name < b.m_name;
+    return cmp < 0;
   }
 };
 struct compare_id
@@ -57,7 +62,8 @@ struct compare_id
   // compare IDs
   bool operator() ( const Comp & a, const Comp & b ) const
   {
-    return a.m_id < b.m_id;
+    int id = strcmp( a.m_id.c_str(), b.m_id.c_str() );
+    return id < 0;
   }
 };
 
@@ -107,13 +113,13 @@ bool CVATRegister::cancelCompany ( const string & name, const string & addr )
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
   
-  if ( posName == m_name_sort.end() || ( *posName != isThere ) )
+  if ( posName == m_name_sort.end() || *posName != isThere )
   {
     return false;
   }
-  m_name_sort.erase( posName );
-
+  
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), (*posName), compare_id() );
+  m_name_sort.erase( posName );
   m_id_sort.erase( posID );
 
   return true;
@@ -124,14 +130,13 @@ bool CVATRegister::cancelCompany ( const string & taxID )
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
   
-  if ( posID == m_id_sort.end() )
+  if ( posID == m_id_sort.end() || *posID != isThere )
   {
     return false;
   }
-  m_id_sort.erase( posID );
 
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), (*posID), compare() );
-
+  m_id_sort.erase( posID );
   m_name_sort.erase( posName );
 
   return true;
@@ -146,7 +151,6 @@ bool CVATRegister::newCompany ( const string & name, const string & addr, const 
   isThere.m_invoice = 0;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() ); 
   
-  //  if posName isnt in vector = 1 ,  if structs aren't same = 1
   if ( posName == m_name_sort.end() || *posName != isThere )
   {
     auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
@@ -208,7 +212,7 @@ bool CVATRegister::audit ( const string & name, const string & addr, unsigned in
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
   
-  if ( posName == m_name_sort.end() )
+  if ( posName == m_name_sort.end() || *posName != isThere )
   {
     return false;
   }
@@ -223,7 +227,7 @@ bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) cons
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
   
-  if ( posID == m_id_sort.end() )
+  if ( posID == m_id_sort.end() || *posID != isThere )
   {
     return false;
   }
