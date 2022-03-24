@@ -15,89 +15,167 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-struct Comp
-{
-  string m_name;
-  string m_address;
-  string m_id;
-  unsigned int m_invoice;
-
-  // TRUE = aren't same, FALSE = are same
-  bool operator != ( const Comp & a ) const
-  {
-    if ( ! strcasecmp( a.m_name.c_str(), m_name.c_str() ) )
-    {
-      if ( ! strcasecmp( a.m_address.c_str(), m_address.c_str() ) )
-      {
-        return false;
-      }
-    }
-    if ( ! strcmp( a.m_id.c_str(), m_id.c_str() ) )
-    {
-      return false;
-    }
-    return true;
-  }
-};
-
-struct compare
-{
-  // compare names, if equal, compare addresses
-  bool operator() ( const Comp & a, const Comp & b ) const
-  {
-    int cmp = strcasecmp( a.m_name.c_str(), b.m_name.c_str() );
-    int addr = strcasecmp( a.m_address.c_str(), b.m_address.c_str() );
-    if ( cmp == 0 )
-    {
-      if ( addr == 0 )
-        return false;
-      else
-        return addr < 0;
-    }
-    return cmp < 0;
-  }
-};
-struct compare_id
-{
-  // compare IDs
-  bool operator() ( const Comp & a, const Comp & b ) const
-  {
-    int id = strcmp( a.m_id.c_str(), b.m_id.c_str() );
-    return id < 0;
-  }
-};
-
 class CVATRegister
 {
   public:
-                  CVATRegister   ( void );
-                  ~CVATRegister  ( void );
-    bool          newCompany     ( const string    & name,
-                                   const string    & addr,
-                                   const string    & taxID );
-    bool          cancelCompany  ( const string    & name,
-                                   const string    & addr );
-    bool          cancelCompany  ( const string    & taxID );
-    bool          invoice        ( const string    & taxID,
-                                   unsigned int      amount );
-    bool          invoice        ( const string    & name,
-                                   const string    & addr,
-                                   unsigned int      amount );
-    bool          audit          ( const string    & name,
-                                   const string    & addr,
-                                   unsigned int    & sumIncome ) const;
-    bool          audit          ( const string    & taxID,
-                                   unsigned int    & sumIncome ) const;
-    bool          firstCompany   ( string          & name,
-                                   string          & addr ) const;
-    bool          nextCompany    ( string          & name,
-                                   string          & addr ) const;
-    unsigned int  medianInvoice  ( void ) const;
+    // Constructor
+    CVATRegister ( void );
 
-
+    // Destructor
+    ~CVATRegister ( void );
+    
+    /*!
+    * Creates new comapny and adds it to database.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    * \param[in] string_taxID ID of company.
+    *
+    * \return 1 success, 0 otherwise.
+    */
+    bool newCompany ( const string & name, const string & addr, const string & taxID );
+    
+    /*!
+    * Deletes comapny from database.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    *
+    * \return 1 if success, 0 otherwise.
+    */ 
+    bool cancelCompany ( const string & name, const string & addr );
+    
+    /*!
+    * Deletes comapny from database.
+    *
+    * \param[in] string_taxID ID of comapny.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool cancelCompany ( const string & taxID );
+    
+    /*!
+    * Checks comapny's invoice.
+    *
+    * \param[in] string_taxID ID of comapny.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool invoice ( const string & taxID, unsigned int amount );
+    
+    /*!
+    * Checks comapny's invoice.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool invoice ( const string & name, const string & addr, unsigned int amount );
+    
+    /*!
+    * Finds sum of comapny's invoices.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool audit ( const string & name, const string & addr, unsigned int & sumIncome ) const;
+    
+    /*!
+    * Finds sum of comapny's invoices.
+    *
+    * \param[in] string_taxID ID of comapny.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool audit ( const string & taxID, unsigned int & sumIncome ) const;
+    
+    /*!
+    * Finds first comapny in database.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool firstCompany ( string & name, string & addr ) const;
+    
+    /*!
+    * Finds next company that follows the parameters in database.
+    *
+    * \param[in] string_name Name of comapny.
+    * \param[in] string_addr Address of company.
+    *
+    * \return 1 if success, 0 otherwise.
+    */
+    bool nextCompany ( string & name, string & addr ) const;
+    
+    /*!
+    * Finds median of comapny's invoices.
+    *
+    * \return median
+    */
+    unsigned int medianInvoice ( void ) const;
+    
   private:
-    vector <Comp> m_id_sort;
-    vector <Comp> m_name_sort;
+    struct Company
+    {
+      string m_name;
+      string m_address;
+      string m_id;
+      unsigned int m_invoice;
+
+      bool operator != ( const Company & a ) const
+      {
+        int compName = strcasecmp( a.m_name.c_str(), m_name.c_str() );
+        int compAddr = strcasecmp( a.m_address.c_str(), m_address.c_str() );
+        int compID = strcmp( a.m_id.c_str(), m_id.c_str() );
+
+        if ( compName == 0 )
+        {
+          if ( compAddr == 0 )
+          {
+            return false;
+          }
+        }
+        if ( compID == 0 )
+        {
+          return false;
+        }
+        return true;
+      }
+    };
+
+    struct compare
+    {
+      bool operator() ( const Company & a, const Company & b ) const
+      {
+        int cmp = strcasecmp( a.m_name.c_str(), b.m_name.c_str() );
+        int addr = strcasecmp( a.m_address.c_str(), b.m_address.c_str() );
+        
+        if ( cmp == 0 )
+        {
+          if ( addr == 0 )
+            return false;
+          else
+            return addr < 0;
+        }
+        return cmp < 0;
+      }
+    };
+
+    struct compare_id
+    {
+      bool operator() ( const Company & a, const Company & b ) const
+      {
+        return strcmp( a.m_id.c_str(), b.m_id.c_str() ) < 0;
+      }
+    };
+
+    vector <Company> m_id_sort;
+    vector <Company> m_name_sort;
     vector <unsigned int> m_invoice;
 };
 
@@ -108,15 +186,13 @@ CVATRegister::~CVATRegister ( void )
 
 bool CVATRegister::cancelCompany ( const string & name, const string & addr )
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
   
   if ( posName == m_name_sort.end() || *posName != isThere )
-  {
     return false;
-  }
   
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), (*posName), compare_id() );
   m_name_sort.erase( posName );
@@ -126,25 +202,23 @@ bool CVATRegister::cancelCompany ( const string & name, const string & addr )
 }
 bool CVATRegister::cancelCompany ( const string & taxID )
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
   
   if ( posID == m_id_sort.end() || *posID != isThere )
-  {
     return false;
-  }
 
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), (*posID), compare() );
-  m_id_sort.erase( posID );
   m_name_sort.erase( posName );
+  m_id_sort.erase( posID );
 
   return true;
 }
 
 bool CVATRegister::newCompany ( const string & name, const string & addr, const string & taxID )
 { 
-  Comp isThere;
+  Company isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   isThere.m_id = taxID;
@@ -159,7 +233,6 @@ bool CVATRegister::newCompany ( const string & name, const string & addr, const 
     {
       m_name_sort.insert( posName, isThere );
       m_id_sort.insert( posID, isThere );
-      
       return true;
     }
   } 
@@ -169,15 +242,13 @@ bool CVATRegister::newCompany ( const string & name, const string & addr, const 
 
 bool CVATRegister::invoice ( const string & name, const string & addr, unsigned int amount )
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
 
   if ( posName == m_name_sort.end() || *posName != isThere )
-  {
     return false;
-  }
 
   m_invoice.push_back( amount );
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), (*posName), compare_id() );
@@ -188,14 +259,12 @@ bool CVATRegister::invoice ( const string & name, const string & addr, unsigned 
 }
 bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
   
   if ( posID == m_id_sort.end() || *posID != isThere )
-  {
     return false;
-  }
   
   m_invoice.push_back( amount );
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), (*posID), compare() );
@@ -207,15 +276,13 @@ bool CVATRegister::invoice ( const string & taxID, unsigned int amount )
 
 bool CVATRegister::audit ( const string & name, const string & addr, unsigned int & sumIncome ) const
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_name = name;
   isThere.m_address = addr;
   auto posName = lower_bound ( m_name_sort.begin(), m_name_sort.end(), isThere, compare() );
   
   if ( posName == m_name_sort.end() || *posName != isThere )
-  {
     return false;
-  }
   
   sumIncome = (*posName).m_invoice;
   
@@ -223,14 +290,12 @@ bool CVATRegister::audit ( const string & name, const string & addr, unsigned in
 }
 bool CVATRegister::audit ( const string & taxID, unsigned int & sumIncome ) const
 {
-  Comp isThere;
+  Company isThere;
   isThere.m_id = taxID;
   auto posID = lower_bound ( m_id_sort.begin(), m_id_sort.end(), isThere, compare_id() );
   
   if ( posID == m_id_sort.end() || *posID != isThere )
-  {
     return false;
-  }
   
   sumIncome = (*posID).m_invoice;
   
@@ -249,22 +314,18 @@ bool CVATRegister::firstCompany ( string & name, string & addr ) const
 }
 bool CVATRegister::nextCompany ( string & name, string & addr ) const
 {
-  Comp tmp;
+  Company tmp;
   tmp.m_name = name;
   tmp.m_address = addr;
   auto pos = lower_bound( m_name_sort.begin(), m_name_sort.end(), tmp, compare() );
   
   if ( pos == m_name_sort.end() )
-  {
     return false;
-  }
 
-  ++pos;
+  (++pos);
 
   if ( pos == m_name_sort.end() )
-  {
     return false;
-  }
 
   name = (*pos).m_name;
   addr = (*pos).m_address;
@@ -281,9 +342,7 @@ unsigned int CVATRegister::medianInvoice ( void ) const
   size_t count = m_invoice.size();
 
   for ( size_t i = 0; i < count; i++ )
-  {
     tmp.push_back( m_invoice[i] );
-  }
 
   sort ( tmp.begin(), tmp.end() );
 
