@@ -31,21 +31,214 @@ ios_base & ( * date_format ( const char * fmt ) ) ( ios_base & x )
 //=================================================================================================
 
 
-/*
-Pouzij time_t z ctime knihovny
-Tam zadas den, mesic, rok
-Existuje i diff(datum1,datum2) a vypocitani ti rozdíl hned
-Ne prave to dela funkce ctime
-Jen v konstruktoru kontruluju jestli jsou cisla v rozsahu
-A bacha asi jen na unor 28/29
-me to proslo pres CDate + int jenom
-*/
-
-
 class CDate
 {
-  // todo
+  public:
+    tm m_date;
+
+    CDate ( int year, int month, int day )
+    { 
+      tm date = {1};
+      date.tm_mday = day;
+      date.tm_mon = month - 1;
+      date.tm_year = year - 1900;
+
+      //cout << date.tm_year +1900 << " " << date.tm_mon+1 << " " << date.tm_mday << "--1" << endl;
+      time_t time = mktime( &date );
+      //cout << date.tm_year+1900 << " " << date.tm_mon +1<< " " << date.tm_mday << "--2" << endl;
+      if ( time == -1 ||
+           date.tm_mday != day ||
+           (date.tm_mon + 1) != month ||
+           (date.tm_year + 1900) != year )
+      {
+        cout << year << " " << month << " " << day << endl;
+        //cout << date.tm_year + 1900 << " " << date.tm_mon + 1 << " " << date.tm_mday << endl;
+        throw InvalidDateException();
+      }
+      m_date = {1};
+      m_date.tm_mday = day;
+      m_date.tm_mon = month - 1;
+      m_date.tm_year = year - 1900;
+    }
+
+    CDate operator + ( int num )
+    {
+      m_date.tm_mday += num;
+      mktime( &m_date );
+      return *this;
+    }
+    
+    CDate operator - ( int num )
+    {
+      m_date.tm_mday -= num;
+      mktime( &m_date );
+      return *this;
+    }
+    
+    int operator - ( const CDate & date )
+    {
+      tm date_copy = {1};
+      date_copy.tm_mday = date.m_date.tm_mday;
+      date_copy.tm_mon = date.m_date.tm_mon ;
+      date_copy.tm_year = date.m_date.tm_year;
+
+      time_t mkDate = mktime ( &date_copy );
+      time_t class_Date = mktime ( &m_date );
+
+      int tmp = difftime( class_Date, mkDate );
+      if ( tmp < 0 )
+      {
+        tmp *= (-1);
+      }
+
+      tmp /= toSec;
+      return tmp;
+    }
+
+    CDate operator ++ ( int num )
+    {
+      CDate tmp(0,0,0);
+      tmp.m_date = {1};
+      tmp.m_date.tm_mday = m_date.tm_mday;
+      tmp.m_date.tm_mon = m_date.tm_mon;
+      tmp.m_date.tm_year = m_date.tm_year;
+      mktime( &tmp.m_date );
+      m_date.tm_mday += 1;
+      return tmp;
+    }
+    CDate operator ++ ( void )
+    {
+      m_date.tm_mday += 1;
+      mktime( &m_date );
+      return *this;
+    }
+
+    CDate operator -- ( int num )
+    {
+      CDate tmp(0,0,0);
+      tmp.m_date = {1};
+      tmp.m_date.tm_mday = m_date.tm_mday;
+      tmp.m_date.tm_mon = m_date.tm_mon;
+      tmp.m_date.tm_year = m_date.tm_year;
+      mktime( &tmp.m_date );
+      m_date.tm_mday -= 1;
+      return tmp;
+    }
+    CDate operator -- ( void )
+    {
+      m_date.tm_mday -= 1;
+      mktime( &m_date );
+      return *this;
+    }
+    
+    bool operator == ( const CDate & date )
+    {
+      if ( m_date.tm_mday != date.m_date.tm_mday ||
+           m_date.tm_mon != date.m_date.tm_mon ||
+           m_date.tm_year != date.m_date.tm_year )
+      {
+        return false;
+      }
+      return true;
+    }
+
+    bool operator != ( const CDate & date )
+    {
+      if ( *this == date )
+      {
+        return false;
+      }
+      return true;
+    }
+    
+    bool operator > ( const CDate & date )
+    {
+      tm date_copy = {1};
+      date_copy.tm_mday = date.m_date.tm_mday;
+      date_copy.tm_mon = date.m_date.tm_mon;
+      date_copy.tm_year = date.m_date.tm_year;
+          
+      time_t mkDate = mktime ( &date_copy );
+      time_t class_Date = mktime ( &m_date );
+      
+      if ( mkDate == class_Date )
+      {
+        return false;
+      }
+      return true;
+    }
+    
+    bool operator >= ( const CDate & date )
+    {
+      if ( *this == date || *this > date )
+      {
+        return true;
+      }
+      return false;
+    }
+    
+    bool operator < ( const CDate & date )
+    {
+      if ( *this >= date )
+      {
+        return false;
+      }
+      return true;
+    }
+
+    bool operator <= ( const CDate & date )
+    {
+      if ( *this == date || *this < date )
+      {
+        return true;
+      }
+      return false;
+    }
+
+    friend ostream & operator << ( ostream & out, const CDate & date )
+    {
+      out << date.m_date.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
+          << date.m_date.tm_mon + 1 << "-" << setw( 2 ) 
+          << date.m_date.tm_mday << flush;
+      return out;
+    }
+    
+    friend istream & operator >> ( istream & in, CDate & date )
+    {
+      tm date_copy = {};
+      in >> get_time( &date_copy, "%Y-%m-%d" );
+
+      date.m_date.tm_mday = date_copy.tm_mday;
+      date.m_date.tm_mon = date_copy.tm_mon;
+      date.m_date.tm_year = date_copy.tm_year;
+
+      if ( 0 )
+      {
+        in.setstate( ios::failbit );
+      }
+      
+      return in;
+    }
+    
+  private:
+    // 24 * 60 * 60
+    int toSec = 86400;
 };
+
+
+void printTM ( tm & a )
+{
+  cout << a.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
+          << a.tm_mon + 1 << "-" << setw( 2 ) 
+          << a.tm_mday << endl;
+}
+
+void printPLS ( const CDate & a )
+{
+  cout << a.m_date.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
+          << a.m_date.tm_mon + 1 << "-" << setw( 2 ) 
+          << a.m_date.tm_mday << endl;
+}
 
 #ifndef __PROGTEST__
 int main ( void )
@@ -56,6 +249,7 @@ int main ( void )
   CDate a ( 2000, 1, 2 );
   CDate b ( 2010, 2, 3 );
   CDate c ( 2004, 2, 10 );
+  
   oss . str ("");
   oss << a;
   assert ( oss . str () == "2000-01-02" );
@@ -147,133 +341,8 @@ int main ( void )
   oss << d;
   assert ( oss . str () == "2000-02-29" );
 
-  //-----------------------------------------------------------------------------
-  // bonus test examples
-  //-----------------------------------------------------------------------------
-  CDate f ( 2000, 5, 12 );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2000-05-12" );
-  oss . str ("");
-  oss << date_format ( "%Y/%m/%d" ) << f;
-  assert ( oss . str () == "2000/05/12" );
-  oss . str ("");
-  oss << date_format ( "%d.%m.%Y" ) << f;
-  assert ( oss . str () == "12.05.2000" );
-  oss . str ("");
-  oss << date_format ( "%m/%d/%Y" ) << f;
-  assert ( oss . str () == "05/12/2000" );
-  oss . str ("");
-  oss << date_format ( "%Y%m%d" ) << f;
-  assert ( oss . str () == "20000512" );
-  oss . str ("");
-  oss << date_format ( "hello kitty" ) << f;
-  assert ( oss . str () == "hello kitty" );
-  oss . str ("");
-  oss << date_format ( "%d%d%d%d%d%d%m%m%m%Y%Y%Y%%%%%%%%%%" ) << f;
-  assert ( oss . str () == "121212121212050505200020002000%%%%%" );
-  oss . str ("");
-  oss << date_format ( "%Y-%m-%d" ) << f;
-  assert ( oss . str () == "2000-05-12" );
-  iss . clear ();
-  iss . str ( "2001-01-1" );
-  assert ( ! ( iss >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2000-05-12" );
-  iss . clear ();
-  iss . str ( "2001-1-01" );
-  assert ( ! ( iss >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2000-05-12" );
-  iss . clear ();
-  iss . str ( "2001-001-01" );
-  assert ( ! ( iss >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2000-05-12" );
-  iss . clear ();
-  iss . str ( "2001-01-02" );
-  assert ( ( iss >> date_format ( "%Y-%m-%d" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2001-01-02" );
-  iss . clear ();
-  iss . str ( "05.06.2003" );
-  assert ( ( iss >> date_format ( "%d.%m.%Y" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2003-06-05" );
-  iss . clear ();
-  iss . str ( "07/08/2004" );
-  assert ( ( iss >> date_format ( "%m/%d/%Y" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2004-07-08" );
-  iss . clear ();
-  iss . str ( "2002*03*04" );
-  assert ( ( iss >> date_format ( "%Y*%m*%d" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2002-03-04" );
-  iss . clear ();
-  iss . str ( "C++09format10PA22006rulez" );
-  assert ( ( iss >> date_format ( "C++%mformat%dPA2%Yrulez" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2006-09-10" );
-  iss . clear ();
-  iss . str ( "%12%13%2010%" );
-  assert ( ( iss >> date_format ( "%%%m%%%d%%%Y%%" ) >> f ) );
-  oss . str ("");
-  oss << f;
-  assert ( oss . str () == "2010-12-13" );
+  
 
-  CDate g ( 2000, 6, 8 );
-  iss . clear ();
-  iss . str ( "2001-11-33" );
-  assert ( ! ( iss >> date_format ( "%Y-%m-%d" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "29.02.2003" );
-  assert ( ! ( iss >> date_format ( "%d.%m.%Y" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "14/02/2004" );
-  assert ( ! ( iss >> date_format ( "%m/%d/%Y" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "2002-03" );
-  assert ( ! ( iss >> date_format ( "%Y-%m" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "hello kitty" );
-  assert ( ! ( iss >> date_format ( "hello kitty" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "2005-07-12-07" );
-  assert ( ! ( iss >> date_format ( "%Y-%m-%d-%m" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-06-08" );
-  iss . clear ();
-  iss . str ( "20000101" );
-  assert ( ( iss >> date_format ( "%Y%m%d" ) >> g ) );
-  oss . str ("");
-  oss << g;
-  assert ( oss . str () == "2000-01-01" );
-
-  return EXIT_SUCCESS;
+  return 0;
 }
 #endif /* __PROGTEST__ */
