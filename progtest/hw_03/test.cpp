@@ -34,8 +34,6 @@ ios_base & ( * date_format ( const char * fmt ) ) ( ios_base & x )
 class CDate
 {
   public:
-    tm m_date;
-
     CDate ( int year, int month, int day )
     { 
       tm date = {1};
@@ -43,16 +41,15 @@ class CDate
       date.tm_mon = month - 1;
       date.tm_year = year - 1900;
 
-      //cout << date.tm_year +1900 << " " << date.tm_mon+1 << " " << date.tm_mday << "--1" << endl;
-      time_t time = mktime( &date );
-      //cout << date.tm_year+1900 << " " << date.tm_mon +1<< " " << date.tm_mday << "--2" << endl;
+      tm copy_date = date;
+
+      time_t time = mktime( &copy_date );
+      copy_date = *localtime( &time );
       if ( time == -1 ||
-           date.tm_mday != day ||
-           (date.tm_mon + 1) != month ||
-           (date.tm_year + 1900) != year )
+           copy_date.tm_mday != date.tm_mday ||
+           (copy_date.tm_mon) != date.tm_mon ||
+           (copy_date.tm_year) != date.tm_year )
       {
-        cout << year << " " << month << " " << day << endl;
-        //cout << date.tm_year + 1900 << " " << date.tm_mon + 1 << " " << date.tm_mday << endl;
         throw InvalidDateException();
       }
       m_date = {1};
@@ -61,18 +58,30 @@ class CDate
       m_date.tm_year = year - 1900;
     }
 
-    CDate operator + ( int num )
+    CDate operator += ( int num )
     {
       m_date.tm_mday += num;
-      mktime( &m_date );
+
+      time_t time = mktime( &m_date );
+      tm copy_date = *localtime( &time );
+      m_date.tm_mday = copy_date.tm_mday;
+      m_date.tm_mon = copy_date.tm_mon;
+      m_date.tm_year = copy_date.tm_year;
+
       return *this;
+    }
+    
+
+    CDate operator + ( int num )
+    {
+      CDate copy(*this);
+      copy += num;
+      return copy;
     }
     
     CDate operator - ( int num )
     {
-      m_date.tm_mday -= num;
-      mktime( &m_date );
-      return *this;
+        return (*this) + (-num);
     }
     
     int operator - ( const CDate & date )
@@ -88,7 +97,7 @@ class CDate
       int tmp = difftime( class_Date, mkDate );
       if ( tmp < 0 )
       {
-        tmp *= (-1);
+        // tmp *= (-1);
       }
 
       tmp /= toSec;
@@ -97,38 +106,24 @@ class CDate
 
     CDate operator ++ ( int num )
     {
-      CDate tmp(0,0,0);
-      tmp.m_date = {1};
-      tmp.m_date.tm_mday = m_date.tm_mday;
-      tmp.m_date.tm_mon = m_date.tm_mon;
-      tmp.m_date.tm_year = m_date.tm_year;
-      mktime( &tmp.m_date );
-      m_date.tm_mday += 1;
+      CDate tmp(*this);  
+      *this += 1;
       return tmp;
     }
     CDate operator ++ ( void )
     {
-      m_date.tm_mday += 1;
-      mktime( &m_date );
-      return *this;
+      return (*this) += 1;
     }
 
     CDate operator -- ( int num )
     {
-      CDate tmp(0,0,0);
-      tmp.m_date = {1};
-      tmp.m_date.tm_mday = m_date.tm_mday;
-      tmp.m_date.tm_mon = m_date.tm_mon;
-      tmp.m_date.tm_year = m_date.tm_year;
-      mktime( &tmp.m_date );
-      m_date.tm_mday -= 1;
+      CDate tmp(*this);  
+      *this += -1;
       return tmp;
     }
     CDate operator -- ( void )
     {
-      m_date.tm_mday -= 1;
-      mktime( &m_date );
-      return *this;
+      return (*this) += -1;
     }
     
     bool operator == ( const CDate & date )
@@ -161,11 +156,8 @@ class CDate
       time_t mkDate = mktime ( &date_copy );
       time_t class_Date = mktime ( &m_date );
       
-      if ( mkDate == class_Date )
-      {
-        return false;
-      }
-      return true;
+      int tmp = difftime( class_Date, mkDate );
+      return tmp > 0;
     }
     
     bool operator >= ( const CDate & date )
@@ -197,54 +189,53 @@ class CDate
 
     friend ostream & operator << ( ostream & out, const CDate & date )
     {
-      out << date.m_date.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
-          << date.m_date.tm_mon + 1 << "-" << setw( 2 ) 
-          << date.m_date.tm_mday << flush;
+      tm tmp = date.m_date;
+      out << put_time( &tmp, "%Y-%m-%d" );
       return out;
     }
     
     friend istream & operator >> ( istream & in, CDate & date )
     {
-      tm date_copy = {};
+      tm date_copy = {1};
       in >> get_time( &date_copy, "%Y-%m-%d" );
 
-      date.m_date.tm_mday = date_copy.tm_mday;
-      date.m_date.tm_mon = date_copy.tm_mon;
-      date.m_date.tm_year = date_copy.tm_year;
+      tm tmp = date_copy;
 
-      if ( 0 )
+      time_t time = mktime( &tmp );
+      tmp = *localtime( &time );
+
+
+      if ( in.fail() ||
+           time == -1 ||
+           date_copy.tm_mday != tmp.tm_mday ||
+           (date_copy.tm_mon) != tmp.tm_mon ||
+           (date_copy.tm_year) != tmp.tm_year )
       {
         in.setstate( ios::failbit );
       }
-      
+      else
+      {
+        date.m_date = {1};
+        date.m_date.tm_mday = date_copy.tm_mday;
+        date.m_date.tm_mon = date_copy.tm_mon;
+        date.m_date.tm_year = date_copy.tm_year;
+      }
       return in;
     }
     
   private:
+    tm m_date;
     // 24 * 60 * 60
     int toSec = 86400;
+    CDate (const tm & date) : m_date(date) {}
 };
-
-
-void printTM ( tm & a )
-{
-  cout << a.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
-          << a.tm_mon + 1 << "-" << setw( 2 ) 
-          << a.tm_mday << endl;
-}
-
-void printPLS ( const CDate & a )
-{
-  cout << a.m_date.tm_year + 1900 << "-" << setfill( '0' ) << setw( 2 ) 
-          << a.m_date.tm_mon + 1 << "-" << setw( 2 ) 
-          << a.m_date.tm_mday << endl;
-}
 
 #ifndef __PROGTEST__
 int main ( void )
 {
   ostringstream oss;
   istringstream iss;
+
 
   CDate a ( 2000, 1, 2 );
   CDate b ( 2010, 2, 3 );
@@ -341,7 +332,6 @@ int main ( void )
   oss << d;
   assert ( oss . str () == "2000-02-29" );
 
-  
 
   return 0;
 }
