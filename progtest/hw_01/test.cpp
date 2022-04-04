@@ -344,14 +344,14 @@ int main ( void )
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
 
 
-
+/*
   if ( decompressFile ( "tests/last.bin", "tempfile" ) )
   {
-    //cout << "true" << endl;
+    cout << "true" << endl;
   }
   else{
     //cout << "false" << endl;
-  }
+  }*/
 
   return 0;
 }
