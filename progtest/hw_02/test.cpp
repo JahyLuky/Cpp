@@ -21,6 +21,8 @@ class CVATRegister {
 public:
     // Constructor
     CVATRegister(void);
+    CVATRegister( const string & name, const string & addr );
+    CVATRegister( const string & taxID );
 
     // Destructor
     ~CVATRegister(void);
@@ -169,8 +171,18 @@ private:
     vector<Company> m_name_sort;
     vector<unsigned int> m_invoice;
 };
+//CDate (const tm & date) : m_date(date) {}
+CVATRegister::CVATRegister( const string & name, const string & addr )
+{
+    Company tmp;
+    tmp.m_name = name;
+    tmp.m_address = addr;
+}
 
-CVATRegister::CVATRegister(void) {}
+CVATRegister::CVATRegister(const string &taxID) {
+    Company tmp;
+    tmp.m_id = taxID;
+}
 
 CVATRegister::~CVATRegister(void) {}
 
