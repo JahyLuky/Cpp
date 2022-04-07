@@ -17,110 +17,114 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+/** Class represents control report database*/
 class CVATRegister {
 public:
     // Constructor
     CVATRegister(void);
-    CVATRegister( const string & name, const string & addr );
-    CVATRegister( const string & taxID );
+
+    CVATRegister(const string &name, const string &addr);
+
+    CVATRegister(const string &taxID);
 
     // Destructor
     ~CVATRegister(void);
 
-    /*!
+    /**
     * Creates new comapny and adds it to database.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
-    * \param[in] string_taxID ID of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
+    * @param[in] string_taxID ID of company.
     *
-    * \return 1 success, 0 otherwise.
+    * @return 1 success, 0 otherwise.
     */
     bool newCompany(const string &name, const string &addr, const string &taxID);
 
-    /*!
+    /**
     * Deletes comapny from database.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool cancelCompany(const string &name, const string &addr);
 
-    /*!
+    /**
     * Deletes comapny from database.
     *
-    * \param[in] string_taxID ID of comapny.
+    * @param[in] string_taxID ID of comapny.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool cancelCompany(const string &taxID);
 
-    /*!
+    /**
     * Checks comapny's invoice.
     *
-    * \param[in] string_taxID ID of comapny.
+    * @param[in] string_taxID ID of comapny.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool invoice(const string &taxID, unsigned int amount);
 
-    /*!
+    /**
     * Checks comapny's invoice.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool invoice(const string &name, const string &addr, unsigned int amount);
 
-    /*!
+    /**
     * Finds sum of comapny's invoices.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool audit(const string &name, const string &addr, unsigned int &sumIncome) const;
 
-    /*!
+    /**
     * Finds sum of comapny's invoices.
     *
-    * \param[in] string_taxID ID of comapny.
+    * @param[in] string_taxID ID of comapny.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool audit(const string &taxID, unsigned int &sumIncome) const;
 
-    /*!
+    /**
     * Finds first comapny in database.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool firstCompany(string &name, string &addr) const;
 
-    /*!
+    /**
     * Finds next company that follows the parameters in database.
     *
-    * \param[in] string_name Name of comapny.
-    * \param[in] string_addr Address of company.
+    * @param[in] string_name Name of comapny.
+    * @param[in] string_addr Address of company.
     *
-    * \return 1 if success, 0 otherwise.
+    * @return 1 if success, 0 otherwise.
     */
     bool nextCompany(string &name, string &addr) const;
 
-    /*!
+    /**
     * Finds median of comapny's invoices.
     *
-    * \return median
+    * @return median
     */
     unsigned int medianInvoice(void) const;
+
 
 private:
     struct Company {
@@ -171,17 +175,8 @@ private:
     vector<Company> m_name_sort;
     vector<unsigned int> m_invoice;
 };
-//CDate (const tm & date) : m_date(date) {}
-CVATRegister::CVATRegister( const string & name, const string & addr )
-{
-    Company tmp;
-    tmp.m_name = name;
-    tmp.m_address = addr;
-}
 
-CVATRegister::CVATRegister(const string &taxID) {
-    Company tmp;
-    tmp.m_id = taxID;
+CVATRegister::CVATRegister(void) {
 }
 
 CVATRegister::~CVATRegister(void) {}
@@ -315,12 +310,7 @@ bool CVATRegister::nextCompany(string &name, string &addr) const {
     tmp.m_address = addr;
     auto pos = lower_bound(m_name_sort.begin(), m_name_sort.end(), tmp, compare());
 
-    if (pos == m_name_sort.end())
-        return false;
-
-    (++pos);
-
-    if (pos == m_name_sort.end())
+    if (pos == m_name_sort.end() || (++pos) == m_name_sort.end())
         return false;
 
     name = (*pos).m_name;
