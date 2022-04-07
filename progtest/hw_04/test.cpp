@@ -10,29 +10,136 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+class CFile_version {
+public:
+    uint8_t *m_data;
+    uint32_t m_size;
+    uint32_t m_pos;
+    int *m_versions;
+};
+
 class CFile {
 public:
-    CFile(void);
+    CFile(void)
+            : m_data(0), m_size(0), m_pos(0), m_versions(0) {}
 
+    CFile(const CFile & tmp){
+        m_data = (uint8_t*) malloc(tmp.m_size * sizeof(uint8_t));
+        for (uint8_t i = 0; i < tmp.m_size; ++i) {
+            m_data[i] = tmp.m_data[i];
+        }
+        m_size=(tmp.m_size);
+        m_pos=tmp.m_pos;
+        m_versions = tmp.m_versions;
+    }
+
+    ~CFile(void) {
+        free(m_data);
+    }
     // copy cons, dtor, op=
-    bool seek(uint32_t offset);
 
-    uint32_t read(uint8_t *dst,
-                  uint32_t bytes);
+    CFile &operator=(CFile_version &tmp) {
+//        if (&tmp == this) {
+//            return *this;
+//        }
+        free(m_data);
+        m_pos = tmp.m_pos;
+        m_size = tmp.m_size;
+        m_versions = tmp.m_versions;
+        m_data = (uint8_t *) malloc((uint8_t) tmp.m_size * sizeof(uint8_t));
+        for (uint8_t i = 0; i < m_size; i++) {
+            m_data[i] = tmp.m_data[i];
+        }
+        return *this;
+    }
 
-    uint32_t write(const uint8_t *src,
-                   uint32_t bytes);
+    bool seek(uint32_t offset) {
+        if (m_size < offset) {
+            return false;
+        }
+        m_pos = offset;
+        return true;
+    }
 
-    void truncate(void);
+    uint32_t read(uint8_t *dst, uint32_t bytes) {
+        uint8_t getUint8 = (uint8_t) bytes;
+        uint8_t toRead = m_pos + getUint8;
 
-    uint32_t fileSize(void) const;
+        if (toRead >= m_size) {
+            toRead = m_size;
+        }
 
-    void addVersion(void);
+        uint8_t haveRead = 0;
+        for (uint8_t i = m_pos, j = 0; i < toRead; ++i, ++haveRead, ++j) {
+            //cout << (int)m_data[i] << " ";
+            dst[j] = m_data[i];
+        }
+        //cout << endl;
+        m_pos += haveRead;
+        //cout << m_pos << " " << (int)haveRead << endl;
+        return haveRead;
+    }
 
-    bool undoVersion(void);
+    uint32_t write(const uint8_t *src, uint32_t bytes) {
+        uint8_t getUint8 = (uint8_t) bytes;
+
+        if (m_size == 0) {
+            m_data = (uint8_t *) malloc(getUint8 * sizeof(uint8_t));
+        }
+        if ((m_pos + getUint8) > m_size) {
+            uint8_t resize = getUint8 + m_pos + 1;
+            m_data = (uint8_t *) realloc(m_data, resize * sizeof(uint8_t));
+            m_size += (m_pos + getUint8 - m_size);
+        }
+
+        for (uint8_t i = m_pos, j = 0; i < (m_pos + getUint8); ++i, ++j) {
+            m_data[i] = src[j];
+            //cout << (int)m_data[i] << " ";
+        }
+        //cout << endl;
+        m_pos += getUint8;
+        //cout << m_pos << endl;
+        return bytes;
+    }
+
+    void truncate(void) {
+        m_size = m_pos;
+    }
+
+    uint32_t fileSize(void) const {
+        return m_size;
+    }
+
+    //metoda archivuje aktuální obsah souboru a aktuální pozici v souboru (vytvoří verzi).
+    //Tato verze bude uložena v instanci CFile.
+    void addVersion(void) {
+        m_versions++;
+    }
+
+    //metoda vrátí obsah souboru a aktuální pozici v souboru do stavu,
+    //ve kterém byly při odpovídajícím předchozím volání addVersion.
+    //Vracet se k předchozím verzím lze vícenásobně, dokud existují předchozí archivované verze.
+    //Volání undoVersion vrátí true pro úspěch, false pro neúspěch (neexistuje předchozí verze).
+    bool undoVersion(void) {
+        if ((m_versions--) == nullptr) {
+            return false;
+        }
+
+        return true;
+    }
 
 private:
-    // todo
+    uint8_t *m_data;
+    uint32_t m_size;
+    uint32_t m_pos;
+    int *m_versions;
+    CFile_version *arr_versions;
+    /* TODO
+     * alokovat nove pole o vetsi velikosti
+     * vse prekopcit, pak smazat stare
+     * pole <jinyCFile>
+     *
+     */
 };
 
 #ifndef __PROGTEST__
@@ -70,11 +177,13 @@ int main(void) {
     assert (f0.seek(1));
     assert (readTest(f0, {20, 5, 4, 70, 80}, 7));
     assert (f0.seek(3));
+
     f0.addVersion();
     assert (f0.seek(6));
     assert (writeTest(f0, {100, 101, 102, 103}, 4));
     f0.addVersion();
     assert (f0.seek(5));
+    /*
     CFile f1(f0);
     f0.truncate();
     assert (f0.seek(0));
@@ -93,7 +202,9 @@ int main(void) {
     assert (f1.undoVersion());
     assert (readTest(f1, {4, 70, 80}, 20));
     assert (!f1.undoVersion());
-    return EXIT_SUCCESS;
+     */
+
+    return 0;
 }
 
 #endif /* __PROGTEST__ */
