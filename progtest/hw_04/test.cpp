@@ -10,161 +10,173 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-class CFile_version {
-public:
-    uint8_t *m_data;
-    uint32_t m_size;
-    uint32_t m_pos;
-    int *m_versions;
-    CFile_version *arr_versions;
-
-    CFile_version(void)
-            : m_data(0), m_size(0), m_pos(0), m_versions(0), arr_versions(0) {}
-
-    CFile_version(uint8_t *data, uint32_t size, uint32_t pos, int *versions, CFile_version *arr) {
-        uint8_t new_size = (uint8_t) size;
-        m_data = (uint8_t *) malloc(new_size * sizeof(uint8_t));
-        for (uint8_t i = 0; i < new_size; ++i) {
-            m_data[i] = data[i];
-        }
-        m_size = size;
-        m_pos = pos;
-        m_versions = versions;
-        arr_versions = arr;
-    }
-
-    ~CFile_version(void) {
-        //free(m_data);
-    }
-};
+size_t g_id = 0;
 
 class CFile {
 public:
-    CFile(void)
-            : m_data(0), m_size(0), m_pos(0), m_versions(0) {}
+    void printy(const CFile &tmp, const char *label) {
+        cout << label << endl;
+        for (uint32_t i = 0; i < tmp.prev->m_size; ++i) {
+            cout << (int) tmp.prev->m_data[i] << " ";
+        }
+        cout << endl;
+    }
+
+    CFile(void) {
+        prev = new Versions;
+        prev->m_pos = 0;
+        prev->m_size = 0;
+        prev->m_data = nullptr;
+    }
 
     CFile(const CFile &tmp) {
-        m_data = (uint8_t *) malloc(tmp.m_size * sizeof(uint8_t));
-        for (uint8_t i = 0; i < (uint8_t) tmp.m_size; ++i) {
-            m_data[i] = tmp.m_data[i];
+        prev = new Versions;
+        prev->m_pos = tmp.prev->m_pos;
+        prev->m_size = tmp.prev->m_size;
+        prev->m_data = new uint8_t[tmp.prev->m_size];
+        for (uint32_t i = 0; i < tmp.prev->m_size; ++i) {
+            prev->m_data[i] = tmp.prev->m_data[i];
+            //cout << (int)prev->m_data[i] << " ";
         }
-        m_size = (tmp.m_size);
-        m_pos = tmp.m_pos;
-        m_versions = tmp.m_versions;
+        //cout << endl;
     }
 
     ~CFile(void) {
-        free(m_data);
-        //delete(arr_versions);
+        delete[] (prev->m_data);
     }
 
-    CFile &operator=(CFile_version &tmp) {
-//        if (&tmp == this) {
-//            return *this;
-//        }
-        free(m_data);
-        m_pos = tmp.m_pos;
-        m_size = tmp.m_size;
-        m_versions = tmp.m_versions;
-        m_data = (uint8_t *) malloc((uint8_t) tmp.m_size * sizeof(uint8_t));
-        for (uint8_t i = 0; i < (uint8_t) m_size; i++) {
-            m_data[i] = tmp.m_data[i];
+    CFile &operator=(CFile &tmp) {
+        if (&tmp == this) {
+            return *this;
         }
+        delete[] (tmp.prev->m_data);
+        prev->m_data = new uint8_t[tmp.prev->m_size];
+        for (uint32_t i = 0; i < tmp.prev->m_size; i++) {
+            prev->m_data[i] = tmp.prev->m_data[i];
+        }
+        prev->m_pos = tmp.prev->m_pos;
+        prev->m_size = tmp.prev->m_size;
         return *this;
     }
 
     bool seek(uint32_t offset) {
-        if (m_size < offset) {
+        if (prev->m_size < offset) {
             return false;
         }
-        m_pos = offset;
+        prev->m_pos = offset;
         return true;
     }
 
     uint32_t read(uint8_t *dst, uint32_t bytes) {
         uint8_t getUint8 = (uint8_t) bytes;
-        uint8_t toRead = m_pos + getUint8;
+        uint8_t toRead = prev->m_pos + getUint8;
 
-        if (toRead >= m_size) {
-            toRead = m_size;
+        if (toRead >= prev->m_size) {
+            toRead = prev->m_size;
         }
 
         uint8_t haveRead = 0;
-        for (uint8_t i = m_pos, j = 0; i < toRead; ++i, ++haveRead, ++j) {
+        for (uint8_t i = prev->m_pos, j = 0; i < toRead; ++i, ++haveRead, ++j) {
             //cout << (int)m_data[i] << " ";
-            dst[j] = m_data[i];
+            dst[j] = prev->m_data[i];
         }
         //cout << endl;
-        m_pos += haveRead;
+        prev->m_pos += haveRead;
         //cout << m_pos << " " << (int)haveRead << endl;
         return haveRead;
     }
 
     uint32_t write(const uint8_t *src, uint32_t bytes) {
-        uint8_t getUint8 = (uint8_t) bytes;
-
-        if (m_size == 0) {
-            m_data = (uint8_t *) malloc(getUint8 * sizeof(uint8_t));
+        if (prev->m_size == 0) {
+            prev->m_data = new uint8_t[bytes];
         }
-        if ((m_pos + getUint8) > m_size) {
-            uint8_t resize = getUint8 + m_pos + 1;
-            m_data = (uint8_t *) realloc(m_data, resize * sizeof(uint8_t));
-            m_size += (m_pos + getUint8 - m_size);
+        if ((prev->m_pos + bytes) > prev->m_size) {
+            uint8_t *tmp = new uint8_t[bytes + prev->m_size];
+            for (uint32_t i = 0; i < prev->m_size; ++i) {
+                tmp[i] = prev->m_data[i];
+            }
+            delete[] prev->m_data;
+            prev->m_data = new uint8_t[bytes + prev->m_size];
+            for (uint32_t i = 0; i < prev->m_size; ++i) {
+                prev->m_data[i] = tmp[i];
+            }
+            delete[] tmp;
+            prev->m_size += (prev->m_pos + bytes - prev->m_size);
         }
-
-        for (uint8_t i = m_pos, j = 0; i < (m_pos + getUint8); ++i, ++j) {
-            m_data[i] = src[j];
+        for (uint32_t i = prev->m_pos, j = 0; i < (prev->m_pos + bytes); ++i, ++j) {
+            prev->m_data[i] = src[j];
             //cout << (int)m_data[i] << " ";
         }
         //cout << endl;
-        m_pos += getUint8;
+        prev->m_pos += bytes;
         //cout << m_pos << endl;
         return bytes;
     }
 
     void truncate(void) {
-        m_size = m_pos;
+        prev->m_size = prev->m_pos;
     }
 
     uint32_t fileSize(void) const {
-        return m_size;
+        return prev->m_size;
     }
 
     void addVersion(void) {
-        CFile_version *tmp = new CFile_version(m_data, m_size, m_pos, m_versions, arr_versions);
-        arr_versions = tmp;
-        cout << "add: ";
-        for (uint8_t i = 0; i < tmp->m_size; ++i) {
-            cout << (int)tmp->m_data[i] << " ";
-        }
-        cout << endl;
-        m_versions++;
+        verze[g_id].prev = new Versions;
+        g_id++;
+        verze[g_id].prev = prev;
+        printy(verze[g_id], "Add");
     }
 
     bool undoVersion(void) {
-        if ((m_versions) == nullptr) {
+        if (prev == nullptr) {
             return false;
         }
-        m_data = (uint8_t *) realloc(m_data, (uint8_t) arr_versions->m_size * sizeof(uint8_t));
-        cout << "undo: ";
-        for (uint8_t i = 0; i < arr_versions->m_size; ++i) {
-            m_data[i] = arr_versions->m_data[i];
-            cout << (int) m_data[i] << " ";
-        }
-        cout << endl;
-        m_size = arr_versions->m_size;
-        m_pos = arr_versions->m_pos;
-        m_versions = arr_versions->m_versions;
-        arr_versions--;
+        this->prev = verze[g_id].prev;
+        //cout << g_id << endl;
+        printy(verze[g_id], "Undo");
+        --g_id;
         return true;
     }
 
 private:
-    uint8_t *m_data;
-    uint32_t m_size;
-    uint32_t m_pos;
-    int *m_versions;
-    CFile_version *arr_versions;// = (CFile_version *) malloc(0 * sizeof(CFile_version));
+    struct Versions {
+        uint8_t *m_data;
+        uint32_t m_size;
+        uint32_t m_pos;
+
+        Versions(void) {
+            m_data = nullptr;
+            m_size = 0;
+            m_pos = 0;
+        }
+
+        Versions(const Versions &tmp) {
+            m_data = new uint8_t[tmp.m_size];
+            for (uint32_t i = 0; i < tmp.m_size; ++i) {
+                m_data[i] = tmp.m_data[i];
+            }
+            m_size = tmp.m_size;
+            m_pos = tmp.m_pos;
+        }
+
+        Versions &operator=(Versions &tmp) {
+            if (&tmp == this) {
+                return *this;
+            }
+            delete[] (tmp.m_data);
+            m_data = new uint8_t[tmp.m_size];
+            for (uint32_t i = 0; i < tmp.m_size; i++) {
+                m_data[i] = tmp.m_data[i];
+            }
+            m_pos = tmp.m_pos;
+            m_size = tmp.m_size;
+            return *this;
+        }
+    };
+
+    Versions *prev;
+    CFile *verze;
 };
 
 #ifndef __PROGTEST__
