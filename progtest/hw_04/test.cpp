@@ -10,133 +10,111 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-size_t g_id = 0;
-
 class CFile {
 public:
-    void printy(const CFile &tmp, const char *label) {
-        cout << label << endl;
-        for (uint32_t i = 0; i < tmp.prev->m_size; ++i) {
-            cout << (int) tmp.prev->m_data[i] << " ";
-        }
-        cout << endl;
-    }
+//    void printy(const CFile &tmp, const char *label) {
+//        cout << label << endl;
+//        for (uint32_t i = 0; i < tmp.data->m_size; ++i) {
+//            cout << (int) tmp.data->m_data[i] << " ";
+//        }
+//        cout << endl;
+//    }
 
     CFile(void) {
-        prev = new Versions;
-        prev->m_pos = 0;
-        prev->m_size = 0;
-        prev->m_data = nullptr;
+        version_cnt = 0;
+        data.m_pos = 0;
+        data.m_size = 0;
+        data.m_data = nullptr;
     }
 
-    CFile(const CFile &tmp) {
-        prev = new Versions;
-        prev->m_pos = tmp.prev->m_pos;
-        prev->m_size = tmp.prev->m_size;
-        prev->m_data = new uint8_t[tmp.prev->m_size];
-        for (uint32_t i = 0; i < tmp.prev->m_size; ++i) {
-            prev->m_data[i] = tmp.prev->m_data[i];
-            //cout << (int)prev->m_data[i] << " ";
-        }
-        //cout << endl;
+    CFile(const CFile &oldFile) {
+        *this = oldFile; // op = CFile
     }
+
+//    CFile &operator=(const CFile &a) {
+//        if (&a == this) {
+//            return *this;
+//        }
+//        delete[] (this->data[version_cnt].m_data);
+//        //this->data = new Versions[version_cnt];
+//        this->data[version_cnt].m_data = new uint8_t[a.data[version_cnt].m_size];
+//        this->data[version_cnt] = a.data[version_cnt]; // op = Versions
+//        return *this;
+//    }
 
     ~CFile(void) {
-        delete[] (prev->m_data);
-    }
-
-    CFile &operator=(CFile &tmp) {
-        if (&tmp == this) {
-            return *this;
-        }
-        delete[] (tmp.prev->m_data);
-        prev->m_data = new uint8_t[tmp.prev->m_size];
-        for (uint32_t i = 0; i < tmp.prev->m_size; i++) {
-            prev->m_data[i] = tmp.prev->m_data[i];
-        }
-        prev->m_pos = tmp.prev->m_pos;
-        prev->m_size = tmp.prev->m_size;
-        return *this;
+        //delete[] (data.m_data);
     }
 
     bool seek(uint32_t offset) {
-        if (prev->m_size < offset) {
+        if (data.m_size < offset) {
             return false;
         }
-        prev->m_pos = offset;
+        data.m_pos = offset;
         return true;
     }
 
     uint32_t read(uint8_t *dst, uint32_t bytes) {
         uint8_t getUint8 = (uint8_t) bytes;
-        uint8_t toRead = prev->m_pos + getUint8;
+        uint8_t toRead = data.m_pos + getUint8;
 
-        if (toRead >= prev->m_size) {
-            toRead = prev->m_size;
+        if (toRead >= data.m_size) {
+            toRead = data.m_size;
         }
 
         uint8_t haveRead = 0;
-        for (uint8_t i = prev->m_pos, j = 0; i < toRead; ++i, ++haveRead, ++j) {
+        for (uint8_t i = data.m_pos, j = 0; i < toRead; ++i, ++haveRead, ++j) {
             //cout << (int)m_data[i] << " ";
-            dst[j] = prev->m_data[i];
+            dst[j] = data.m_data[i];
         }
         //cout << endl;
-        prev->m_pos += haveRead;
+        data.m_pos += haveRead;
         //cout << m_pos << " " << (int)haveRead << endl;
         return haveRead;
     }
 
     uint32_t write(const uint8_t *src, uint32_t bytes) {
-        if (prev->m_size == 0) {
-            prev->m_data = new uint8_t[bytes];
+        if (data.m_size == 0) {
+            data.m_data = new uint8_t[bytes];
         }
-        if ((prev->m_pos + bytes) > prev->m_size) {
-            uint8_t *tmp = new uint8_t[bytes + prev->m_size];
-            for (uint32_t i = 0; i < prev->m_size; ++i) {
-                tmp[i] = prev->m_data[i];
+        if ((data.m_pos + bytes) > data.m_size) {
+            uint8_t *tmp = new uint8_t[bytes + data.m_size];
+            for (uint32_t i = 0; i < data.m_size; ++i) {
+                tmp[i] = data.m_data[i];
             }
-            delete[] prev->m_data;
-            prev->m_data = new uint8_t[bytes + prev->m_size];
-            for (uint32_t i = 0; i < prev->m_size; ++i) {
-                prev->m_data[i] = tmp[i];
+            delete[] data.m_data;
+            data.m_data = new uint8_t[bytes + data.m_size];
+            for (uint32_t i = 0; i < data.m_size; ++i) {
+                data.m_data[i] = tmp[i];
             }
             delete[] tmp;
-            prev->m_size += (prev->m_pos + bytes - prev->m_size);
+            data.m_size += (data.m_pos + bytes - data.m_size);
         }
-        for (uint32_t i = prev->m_pos, j = 0; i < (prev->m_pos + bytes); ++i, ++j) {
-            prev->m_data[i] = src[j];
+        for (uint32_t i = data.m_pos, j = 0; i < (data.m_pos + bytes); ++i, ++j) {
+            data.m_data[i] = src[j];
             //cout << (int)m_data[i] << " ";
         }
         //cout << endl;
-        prev->m_pos += bytes;
+        data.m_pos += bytes;
         //cout << m_pos << endl;
         return bytes;
     }
 
     void truncate(void) {
-        prev->m_size = prev->m_pos;
+        data.m_size = data.m_pos;
     }
 
     uint32_t fileSize(void) const {
-        return prev->m_size;
+        return data.m_size;
     }
 
     void addVersion(void) {
-        verze[g_id].prev = new Versions;
-        g_id++;
-        verze[g_id].prev = prev;
-        printy(verze[g_id], "Add");
+
+
     }
 
     bool undoVersion(void) {
-        if (prev == nullptr) {
-            return false;
-        }
-        this->prev = verze[g_id].prev;
-        //cout << g_id << endl;
-        printy(verze[g_id], "Undo");
-        --g_id;
-        return true;
+
     }
 
 private:
@@ -145,51 +123,46 @@ private:
         uint32_t m_size;
         uint32_t m_pos;
 
-        Versions(void) {
-            m_data = nullptr;
-            m_size = 0;
-            m_pos = 0;
-        }
+        Versions() = default;
 
-        Versions(const Versions &tmp) {
-            m_data = new uint8_t[tmp.m_size];
-            for (uint32_t i = 0; i < tmp.m_size; ++i) {
-                m_data[i] = tmp.m_data[i];
+        Versions(const Versions &a) {
+            //delete [] m_data;
+            m_data = new uint8_t[a.m_size];
+            for (uint32_t i = 0; i < a.m_size; ++i) {
+                m_data[i] = a.m_data[i];
             }
-            m_size = tmp.m_size;
-            m_pos = tmp.m_pos;
+            m_size = a.m_size;
+            m_pos = a.m_pos;
         }
 
-        Versions &operator=(Versions &tmp) {
-            if (&tmp == this) {
+        Versions &operator=(const Versions &undoVer) {
+            if (&undoVer == this)
                 return *this;
+            delete[] (this->m_data);
+            this->m_data = new uint8_t[undoVer.m_size];
+            for (uint32_t i = 0; i < undoVer.m_size; i++) {
+                this->m_data[i] = undoVer.m_data[i];
             }
-            delete[] (tmp.m_data);
-            m_data = new uint8_t[tmp.m_size];
-            for (uint32_t i = 0; i < tmp.m_size; i++) {
-                m_data[i] = tmp.m_data[i];
-            }
-            m_pos = tmp.m_pos;
-            m_size = tmp.m_size;
+            
             return *this;
         }
-    };
 
-    Versions *prev;
-    CFile *verze;
+        ~Versions(void) {
+            //delete[] (m_data);
+        }
+    };
+    Versions data;
+    size_t version_cnt;
+    Versions *verze;
 };
 
 #ifndef __PROGTEST__
 
-bool writeTest(CFile &x,
-               const initializer_list<uint8_t> &data,
-               uint32_t wrLen) {
+bool writeTest(CFile &x, const initializer_list<uint8_t> &data, uint32_t wrLen) {
     return x.write(data.begin(), data.size()) == wrLen;
 }
 
-bool readTest(CFile &x,
-              const initializer_list<uint8_t> &data,
-              uint32_t rdLen) {
+bool readTest(CFile &x, const initializer_list<uint8_t> &data, uint32_t rdLen) {
     uint8_t tmp[100];
     uint32_t idx = 0;
 
