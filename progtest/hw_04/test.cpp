@@ -10,15 +10,65 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+
+
+
 class CFile {
 public:
-//    void printy(const CFile &tmp, const char *label) {
-//        cout << label << endl;
-//        for (uint32_t i = 0; i < tmp.data->m_size; ++i) {
-//            cout << (int) tmp.data->m_data[i] << " ";
-//        }
-//        cout << endl;
-//    }
+
+    struct Versions {
+        uint8_t *m_data;
+        uint32_t m_size;
+        uint32_t m_pos;
+
+        //Versions() = default;
+
+        Versions(void) {
+            m_pos = 0;
+            m_size = 0;
+            m_data = nullptr;
+        }
+
+        Versions(const Versions &a) {
+            //delete [] this;
+            m_size = a.m_size;
+            m_pos = a.m_pos;
+            m_data = new uint8_t[a.m_size];
+            for (uint32_t i = 0; i < a.m_size; ++i) {
+                m_data[i] = a.m_data[i];
+            }
+        }
+
+        Versions &operator=(const Versions &undoVer) {
+            if (&undoVer == this)
+                return *this;
+            //delete [] (this);
+            m_pos = undoVer.m_pos;
+            m_size = undoVer.m_size;
+            delete[] (m_data);
+            m_data = new uint8_t[undoVer.m_size];
+            for (uint32_t i = 0; i < undoVer.m_size; i++) {
+                m_data[i] = undoVer.m_data[i];
+            }
+            return *this;
+        }
+
+        ~Versions(void) {
+            //delete[] (m_data);
+        }
+    };
+
+    void printy(const Versions &tmp, const char *label) {
+        cout << label << endl;
+        for (uint32_t i = 0; i < tmp.m_size; ++i) {
+            cout << (int) tmp.m_data[i] << " ";
+        }
+        cout << endl;
+    }
+//-----------------------------------------------------------------------------
+    Versions data;
+    size_t version_cnt;
+    CFile *verze;
 
     CFile(void) {
         version_cnt = 0;
@@ -31,19 +81,18 @@ public:
         *this = oldFile; // op = CFile
     }
 
-//    CFile &operator=(const CFile &a) {
-//        if (&a == this) {
-//            return *this;
-//        }
-//        delete[] (this->data[version_cnt].m_data);
-//        //this->data = new Versions[version_cnt];
-//        this->data[version_cnt].m_data = new uint8_t[a.data[version_cnt].m_size];
-//        this->data[version_cnt] = a.data[version_cnt]; // op = Versions
-//        return *this;
-//    }
+    CFile &operator=(const CFile *a) {
+        if (a == this) {
+            return *this;
+        }
+        //delete[] (&data);
+        data = a->data;
+        version_cnt = a->version_cnt;
+        return *this;
+    }
 
     ~CFile(void) {
-        //delete[] (data.m_data);
+        delete[] (data.m_data);
     }
 
     bool seek(uint32_t offset) {
@@ -109,51 +158,29 @@ public:
     }
 
     void addVersion(void) {
-
-
+        version_cnt++;
+        verze[version_cnt] = new CFile(*this);
+        verze[version_cnt].version_cnt = version_cnt;
+        printy(verze[version_cnt].data,"add: ");
+//        verze[version_cnt].m_pos = data.m_pos;
+//        verze[version_cnt].m_size = data.m_size;
+//        verze[version_cnt].m_data = new uint8_t(data.m_size);
+//        for (uint32_t i = 0; i < data.m_size; i++) {
+//            verze[version_cnt].m_data = data.m_data;
+//        }
     }
 
     bool undoVersion(void) {
-
+        if ((version_cnt) == 0)
+            return false;
+        //cout << version_cnt;
+        //delete[] (data.m_data);
+        data = verze[version_cnt].data;
+        //delete [] (&verze[version_cnt]);
+        printy(data,"undo: ");
+        version_cnt--;
+        return true;
     }
-
-private:
-    struct Versions {
-        uint8_t *m_data;
-        uint32_t m_size;
-        uint32_t m_pos;
-
-        Versions() = default;
-
-        Versions(const Versions &a) {
-            //delete [] m_data;
-            m_data = new uint8_t[a.m_size];
-            for (uint32_t i = 0; i < a.m_size; ++i) {
-                m_data[i] = a.m_data[i];
-            }
-            m_size = a.m_size;
-            m_pos = a.m_pos;
-        }
-
-        Versions &operator=(const Versions &undoVer) {
-            if (&undoVer == this)
-                return *this;
-            delete[] (this->m_data);
-            this->m_data = new uint8_t[undoVer.m_size];
-            for (uint32_t i = 0; i < undoVer.m_size; i++) {
-                this->m_data[i] = undoVer.m_data[i];
-            }
-            
-            return *this;
-        }
-
-        ~Versions(void) {
-            //delete[] (m_data);
-        }
-    };
-    Versions data;
-    size_t version_cnt;
-    Versions *verze;
 };
 
 #ifndef __PROGTEST__
