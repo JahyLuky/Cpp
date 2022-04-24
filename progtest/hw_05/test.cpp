@@ -63,7 +63,7 @@ public:
 
     CSupermarket &store(const string &name, const CDate &expiryDate, const int count) {
         if (m_warehouse.find(name) == m_warehouse.end()) {
-            pair tmp = make_pair(expiryDate, count);
+            pair<CDate, int> tmp = make_pair(expiryDate, count);
             m_warehouse[name].insert(tmp);
         } else {
             m_warehouse[name][expiryDate] += count;
@@ -87,94 +87,62 @@ public:
         return true;
     }
 
-    void sell(list<pair<string, int>> &shoppingList) {
-//        cout << "before sell shop size: " << shoppingList.size() << endl;
-//        for (const auto &i: shoppingList) {
-//            cout << i.first << " " << i.second << " ";
-//        }
-//        cout << "\n--------" << endl;
 
-        list<pair<string, int>> toSell_del;
-        list<pair<string, int>> toSell_change;
-/*
- *ja jsem je mazal pres: storage[product].erase(datum) vzdy kdyz
- *jsem z toho datumu "prodal" vsechny a na konci funkce sell jsem prosel produkty a smazal ty bez data pres storage.erase(product)
- */
-        int cnt_names = 0;
+
+    void sell(list<pair<string, int>> &shoppingList) {
+        list<pair<string, int>> seznam_nakupu;
+        int pocet_shod = 0;
+        string co_prodavam;
+        int kolik_prodavam = 0;
+
+        // projedu cely shoplist
         for (auto &itr_list: shoppingList) {
             string list_name = itr_list.first;
-
+            pocet_shod = 0;
+            // projedu celou 1. mapu - jmeno, pair<CDate, int>
             for (const auto &first_map: m_warehouse) {
                 string map_name = first_map.first;
-                if (map_name == list_name) {
+
+                // mam presnou shodu
+                if (list_name == map_name) {
+                    co_prodavam = list_name;
+                    kolik_prodavam = 0;
+
+                    // kouknu jestli muzu prodat vse nebo jen urcity pocet
                     for (const auto &second_map: first_map.second) {
-                        if (itr_list.second > second_map.second) {
-                            toSell_change.emplace_back(map_name, second_map.second);
-                        } else {
-                            toSell_del.emplace_back(map_name, itr_list.second);
-                        }
-                        if (itr_list.second >= second_map.second) {
-                            m_warehouse[map_name].erase(second_map.first);
-                        }
-                        else
-                        {
-                            m_warehouse[map_name][second_map.first] -= itr_list.second;
+                        // mam dost zbozi
+                        if(itr_list.second <= second_map.second) {
+                            kolik_prodavam = itr_list.second;
+                            // uprav sklad
+                            break;
+                        } else { // nemam dost zbozi, prodam co mam a podivam se jestli nemam vic zbozi v jiny datum
+                            kolik_prodavam += second_map.second;
+                            // pokud jsem prodal vse co mam, smaz to ze skladu
+                            // pokud jsem prodal jen cast (dalsi iterace cyklu)
+                            // uprav sklad
                         }
                     }
-                    continue;
+                    seznam_nakupu.emplace_back(make_pair(co_prodavam,kolik_prodavam));
                 }
-                if (find_match(map_name, list_name)) {
-                    cnt_names++;
+                if (find_match(list_name, map_name)) {
+                    pocet_shod++;
                 }
             }
-            if (cnt_names == 1) {
-                for (const auto &first_map: m_warehouse) {
-                    string map_name = first_map.first;
-                    for (const auto &second_map: first_map.second) {
-                        if (itr_list.second > second_map.second) {
-                            toSell_change.emplace_back(list_name, second_map.second);
-                        } else {
-                            toSell_del.emplace_back(list_name, itr_list.second);
-                        }
-                        if (itr_list.second >= second_map.second) {
-                            m_warehouse[map_name].erase(second_map.first);
-                        }
-                        else
-                        {
-                            m_warehouse[map_name][second_map.first] -= itr_list.second;
-                        }
-                    }
-                }
+            if (pocet_shod == 1) {
+                // tady budu muset najit spravny pocet kusu, asi double for
+                // seznam_nakupu.emplace_back(make_pair(co_prodavam,kolik_prodavam));
             }
         }
 
-//        cout << "to sell: " << endl;
-//        for (auto &i: toSell_del) {
-//            cout << i.first << " " << i.second << " ";
-//        }
-//        cout << "\n---------" << endl;
-
-        for (auto &itr: toSell_del) {
-            shoppingList.remove(itr);
+        // co prodavam
+        for (const auto &i: seznam_nakupu) {
+            cout << i.first << "-" << i.second << " ";
         }
-        for (auto &itr: shoppingList) {
-            for (auto &sell: toSell_change) {
-                if (itr.first == sell.first) {
-                    itr.second -= sell.second;
-                    continue;
-                }
-                if(find_match(itr.first,sell.first))
-                {
-                    itr.second -= sell.second;
-                }
-            }
-        }
+        cout << endl;
 
+        // m_warehouse find ( itr_seznam_nakupu.first )
+        //
 
-//        cout << "shop size: " << shoppingList.size() << endl;
-//        for (const auto &i: shoppingList) {
-//            cout << i.first << " " << i.second << endl;
-//        }
     }
 
     list<pair<string, int>> expired(const CDate &date) const {
@@ -233,7 +201,7 @@ int main() {
 
     list<pair<string, int> > l1{{"bread",  2},
                                 {"Coke",   5},
-                                //{"bear",   50},
+            //{"bear",   50},
                                 {"butter", 20}};
     s.sell(l1);
     assert (l1.size() == 2);
