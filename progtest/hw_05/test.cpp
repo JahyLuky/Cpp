@@ -88,61 +88,72 @@ public:
     }
 
 
-
     void sell(list<pair<string, int>> &shoppingList) {
-        list<pair<string, int>> seznam_nakupu;
+        //list<pair<decltype(m_warehouse)::iterator, int>> nakupni_seznam;
+        string list_name;
+        string map_name;
         int pocet_shod = 0;
-        string co_prodavam;
-        int kolik_prodavam = 0;
+        int stejny_jmena = 0;
 
-        // projedu cely shoplist
-        for (auto &itr_list: shoppingList) {
-            string list_name = itr_list.first;
+        // for na nakupni seznam
+        for (auto &list_itr: shoppingList) {
+            list_name = list_itr.first;
             pocet_shod = 0;
-            // projedu celou 1. mapu - jmeno, pair<CDate, int>
-            for (const auto &first_map: m_warehouse) {
-                string map_name = first_map.first;
+            stejny_jmena = 0;
+            // presna shoda jmen
+            if (m_warehouse.count(list_itr.first) == 1) {
+                auto name_warehouse = m_warehouse.find(list_itr.first);
+                cout << "shoda: " << name_warehouse->first << endl;
 
-                // mam presnou shodu
-                if (list_name == map_name) {
-                    co_prodavam = list_name;
-                    kolik_prodavam = 0;
+                // for na ruzne data podle jmena co chceme prodat
+                for (auto &second_map: name_warehouse->second) {
+                    // chceme prodat min nebo stejne co mame na sklade
+                    if (list_itr.second <= second_map.second) {
+                        // smazu polozku ze seznamu
 
-                    // kouknu jestli muzu prodat vse nebo jen urcity pocet
-                    for (const auto &second_map: first_map.second) {
-                        // mam dost zbozi
-                        if(itr_list.second <= second_map.second) {
-                            kolik_prodavam = itr_list.second;
-                            // uprav sklad
+                        list_itr=shoppingList.erase(list_itr);
+                        list_itr--;
+
+                        // odectu pocet polozek ze skladu nebo smazu
+                        if (list_itr.second == second_map.second) {
+                            // smazu polozku
+                            m_warehouse[name_warehouse->first].erase(second_map.first);
                             break;
-                        } else { // nemam dost zbozi, prodam co mam a podivam se jestli nemam vic zbozi v jiny datum
-                            kolik_prodavam += second_map.second;
-                            // pokud jsem prodal vse co mam, smaz to ze skladu
-                            // pokud jsem prodal jen cast (dalsi iterace cyklu)
-                            // uprav sklad
                         }
+                        second_map.second -= list_itr.second;
+                        //m_warehouse[name_warehouse->first][second_map.first] -= list_itr.second;
+                        break;
                     }
-                    seznam_nakupu.emplace_back(make_pair(co_prodavam,kolik_prodavam));
                 }
+                continue;
+            }
+            // for podle jmen skladu
+            for (auto &first_map: m_warehouse) {
+                map_name = first_map.first;
+
+                // shoda v listu a mape s 1 znakem jinym
                 if (find_match(list_name, map_name)) {
                     pocet_shod++;
                 }
+
+                // pokud mame shodu ve jmenech
+                if (pocet_shod == 1) {
+                    stejny_jmena++;
+                }
             }
-            if (pocet_shod == 1) {
-                // tady budu muset najit spravny pocet kusu, asi double for
-                // seznam_nakupu.emplace_back(make_pair(co_prodavam,kolik_prodavam));
+            // mame prave 1 shodu ve jmenech
+            if (stejny_jmena == 1) {
+                // sell
             }
         }
 
-        // co prodavam
-        for (const auto &i: seznam_nakupu) {
-            cout << i.first << "-" << i.second << " ";
-        }
-        cout << endl;
+//        for (auto &i: shoppingList) {
+//            auto &a = i.first;
+//            cout << a->first << " " << i.second << " ";
+//        }
+//        cout << endl;
 
-        // m_warehouse find ( itr_seznam_nakupu.first )
-        //
-
+        printWarehouse(*this);
     }
 
     list<pair<string, int>> expired(const CDate &date) const {
@@ -201,7 +212,6 @@ int main() {
 
     list<pair<string, int> > l1{{"bread",  2},
                                 {"Coke",   5},
-            //{"bear",   50},
                                 {"butter", 20}};
     s.sell(l1);
     assert (l1.size() == 2);
