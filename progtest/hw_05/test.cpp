@@ -88,35 +88,93 @@ public:
     }
 
     void sell(list<pair<string, int>> &shoppingList) {
-        list<pair<string, int>> tmp_list;
-        int cnt = 0;
+//        cout << "before sell shop size: " << shoppingList.size() << endl;
+//        for (const auto &i: shoppingList) {
+//            cout << i.first << " " << i.second << " ";
+//        }
+//        cout << "\n--------" << endl;
 
-        for (const auto &list_itr: shoppingList) {
-            string name_list = list_itr.first;
+        list<pair<string, int>> toSell_del;
+        list<pair<string, int>> toSell_change;
+/*
+ *ja jsem je mazal pres: storage[product].erase(datum) vzdy kdyz
+ *jsem z toho datumu "prodal" vsechny a na konci funkce sell jsem prosel produkty a smazal ty bez data pres storage.erase(product)
+ */
+        int cnt_names = 0;
+        for (auto &itr_list: shoppingList) {
+            string list_name = itr_list.first;
 
             for (const auto &first_map: m_warehouse) {
-                string name_map = first_map.first;
-                //cout << name_map << " - " << name_list << endl;
-
-                if (name_map == name_list) {
-                    tmp_list.emplace_back(name_map, 0);
-                    cout << name_map << " - " << name_list << " pocet: " << cnt << endl;
+                string map_name = first_map.first;
+                if (map_name == list_name) {
+                    for (const auto &second_map: first_map.second) {
+                        if (itr_list.second > second_map.second) {
+                            toSell_change.emplace_back(map_name, second_map.second);
+                        } else {
+                            toSell_del.emplace_back(map_name, itr_list.second);
+                        }
+                        if (itr_list.second >= second_map.second) {
+                            m_warehouse[map_name].erase(second_map.first);
+                        }
+                        else
+                        {
+                            m_warehouse[map_name][second_map.first] -= itr_list.second;
+                        }
+                    }
                     continue;
                 }
-                if (find_match(name_map, name_list)) {
-                    cout << name_map << " - " << name_list << endl;
-                    cnt++;
+                if (find_match(map_name, list_name)) {
+                    cnt_names++;
                 }
             }
-            if (cnt == 1) {
-                tmp_list.emplace_back(name_list, 0);
+            if (cnt_names == 1) {
+                for (const auto &first_map: m_warehouse) {
+                    string map_name = first_map.first;
+                    for (const auto &second_map: first_map.second) {
+                        if (itr_list.second > second_map.second) {
+                            toSell_change.emplace_back(list_name, second_map.second);
+                        } else {
+                            toSell_del.emplace_back(list_name, itr_list.second);
+                        }
+                        if (itr_list.second >= second_map.second) {
+                            m_warehouse[map_name].erase(second_map.first);
+                        }
+                        else
+                        {
+                            m_warehouse[map_name][second_map.first] -= itr_list.second;
+                        }
+                    }
+                }
             }
-            cnt = 0;
-        }
-        for (auto &i: tmp_list) {
-            cout << i.first << " " << i.second << endl;
         }
 
+//        cout << "to sell: " << endl;
+//        for (auto &i: toSell_del) {
+//            cout << i.first << " " << i.second << " ";
+//        }
+//        cout << "\n---------" << endl;
+
+        for (auto &itr: toSell_del) {
+            shoppingList.remove(itr);
+        }
+        for (auto &itr: shoppingList) {
+            for (auto &sell: toSell_change) {
+                if (itr.first == sell.first) {
+                    itr.second -= sell.second;
+                    continue;
+                }
+                if(find_match(itr.first,sell.first))
+                {
+                    itr.second -= sell.second;
+                }
+            }
+        }
+
+
+//        cout << "shop size: " << shoppingList.size() << endl;
+//        for (const auto &i: shoppingList) {
+//            cout << i.first << " " << i.second << endl;
+//        }
     }
 
     list<pair<string, int>> expired(const CDate &date) const {
@@ -175,6 +233,7 @@ int main() {
 
     list<pair<string, int> > l1{{"bread",  2},
                                 {"Coke",   5},
+                                //{"bear",   50},
                                 {"butter", 20}};
     s.sell(l1);
     assert (l1.size() == 2);
@@ -182,6 +241,7 @@ int main() {
                                             {"butter", 10}}));
 
     list<pair<string, int> > l2 = s.expired(CDate(2016, 4, 30));
+    CSupermarket::printWarehouse(s);
     assert (l2.size() == 1);
     assert ((l2 == list<pair<string, int> >{{"bread", 98}}));
 /*
