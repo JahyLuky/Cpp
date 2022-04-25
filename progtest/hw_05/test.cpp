@@ -27,7 +27,7 @@ public:
     CDate(int y, int m, int d)
             : year(y), month(m), day(d) {}
 
-            // clion created :)
+    // clion created :)
     bool operator<(const CDate &rhs) const {
         return std::tie(year, month, day) < std::tie(rhs.year, rhs.month, rhs.day);
     }
