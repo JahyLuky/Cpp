@@ -10,12 +10,12 @@ struct MyArray {
 
 bool array_init ( MyArray & arr, unsigned int capacity )
 {
-	MyArray newArray = { 0, capacity, new int [capacity] }; 
-	
+	MyArray newArray = { 0, capacity, new int [capacity] };
+
 	if ( newArray.m_arr == nullptr )
 		return false;
-	
-	arr = newArray; 
+
+	arr = newArray;
 	return true;
 }
 
