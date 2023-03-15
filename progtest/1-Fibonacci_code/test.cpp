@@ -13,12 +13,36 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-void print_data (const vector<int> &data) {
+void print_data(const vector<int> &data) {
     cout << "bin data: ";
-    for (int i : data) {
-        cout << i;
+    for (size_t i = 0; i < data.size(); ++i) {
+        if (i % 8 == 0 and i != 0) {
+            cout << " ";
+        }
+        cout << data[i];
     }
     cout << endl;
+}
+
+int nearest_fib(int dec) {
+    int f1 = 0, f2 = 1, f3 = 1;
+    if (dec == f1)
+        return f1;
+    if (dec == f2)
+        return f2;
+    while (dec >= f3) {
+        f1 = f2;
+        f2 = f3;
+        f3 = f1 + f2;
+    }
+    if (dec == f3)
+        return f3;
+    return f2;
+}
+
+void fib_code(int dec) {
+    vector<int> mem;
+    cout << "fib(" << dec << ") = " << nearest_fib(dec) << endl;
 }
 
 bool save_file(const vector<int> &data1, const char *outFile) {
@@ -62,32 +86,60 @@ bool save_file(const vector<int> &data1, const char *outFile) {
     return true;
 }
 
-int UTF8_to_bin(vector<int> &data, char &c) {
-    int bin = 0, pow = 128, dec = 0, byte_cnt = 0;
+void UTF8_to_bin(vector<int> &data, char &c, int flag, int &pause, int a) {
+    int bin = 0;
     //cout << "data: " << c << endl;
     //cout << "bin: ";
     // converting byte into bits
-    for (int i = 7; i >= 0; --i) {
+    for (int i = a; i >= 0; --i) {
         // bitshift right
         bin = c >> i;
         // bit AND
         bin &= 1;
-        // check every first bit
-        if (i == 7 && bin == 1) {
-            byte_cnt++;
+
+        switch (flag) {
+            case 1:
+                data.push_back(bin);
+                break;
+            case 2:
+                if (pause == 0 || pause == 1 || pause == 2
+                    || pause == 8 || pause == 9) {
+                    break;
+                }
+                data.push_back(bin);
+                break;
+            case 3:
+                if (pause == 0 || pause == 1 || pause == 2 || pause == 3
+                    || pause == 8 || pause == 9 || pause == 16 || pause == 17) {
+                    break;
+                }
+                data.push_back(bin);
+                break;
+            case 4:
+                if (pause == 0 || pause == 1 || pause == 2 || pause == 3
+                    || pause == 4 || pause == 8 || pause == 9 || pause == 16
+                    || pause == 17 || pause == 24 || pause == 25) {
+                    break;
+                }
+                data.push_back(bin);
+                break;
+            default:
+                cout << "necof " << flag << endl;
+                break;
         }
-
-        //cout << bin;
-        data.push_back(bin);
-        // get decimal representation
-        dec += bin * pow;
-        pow /= 2;
-
-        //cnt++;
+        pause++;
     }
-    print_data(data);
-    //cout << "\nDec: " << dec << endl;
-    return byte_cnt;
+}
+
+int get_dec(const vector<int> &data) {
+    //                   2^(size-1)
+    int dec = 0, pow = 1 << int(data.size() - 1);
+    for (const auto &item: data) {
+        dec += item * pow;
+        //cout << dec << " = " << item << " * "<< pow <<  endl;
+        pow /= 2;
+    }
+    return dec;
 }
 
 // (c>>7) & 1 = first bit in 'c'
@@ -98,73 +150,86 @@ int UTF8_to_bin(vector<int> &data, char &c) {
 // -> value of first bit
 bool read_UTF8(ifstream &ifs, const char *outFile) {
     vector<int> data;
-    int byte_cnt = 0;
+    int pause = 0, dec = 0;
+    // TODO: static cast unsinged char
     // get each char/byte from file
     for (char c; ifs.get(c);) {
-        byte_cnt = UTF8_to_bin(data, c);
-        // 0xxxxxxx
-        if (byte_cnt == 0) {
-            // TODO: to_fib
-            data = {};
-        } else {
-            byte_cnt = 0;
-            // 110xxxxx 10xxxxxx
-            if ((c & 0b11000000) == 0b11000000) {
+        data = {};
+        pause = 0;
+
+        // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        if ((c & 0b11110000) == 0b11110000) {
+            UTF8_to_bin(data, c, 4, pause, 7);
+            ifs.get(c);
+            if ((c & 0b10000000) == 0b10000000) {
+                UTF8_to_bin(data, c, 4, pause, 7);
                 ifs.get(c);
-                byte_cnt = UTF8_to_bin(data, c);
                 if ((c & 0b10000000) == 0b10000000) {
-                    cout << "case 2" << endl;
-                    data = {};
-                } else {
-                    cout << "error" << endl;
-                }
-            }
-                // 1110xxxx 10xxxxxx 10xxxxxx
-            else if ((c & 0b11100000) == 0b11100000) {
-                ifs.get(c);
-                byte_cnt = UTF8_to_bin(data, c);
-                if ((c & 0b10000000) == 0b10000000) {
+                    UTF8_to_bin(data, c, 4, pause, 7);
                     ifs.get(c);
-                    byte_cnt = UTF8_to_bin(data, c);
                     if ((c & 0b10000000) == 0b10000000) {
-                        cout << "case 3" << endl;
-                        data = {};
+                        UTF8_to_bin(data, c, 4, pause, 7);
                     } else {
                         cout << "error" << endl;
+                        return false;
                     }
                 } else {
                     cout << "error" << endl;
+                    return false;
                 }
-            }
-                // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-            else if ((c & 0b11110000) == 0b11110000) {
-                ifs.get(c);
-                byte_cnt = UTF8_to_bin(data, c);
-                if ((c & 0b10000000) == 0b10000000) {
-                    ifs.get(c);
-                    byte_cnt = UTF8_to_bin(data, c);
-                    if ((c & 0b10000000) == 0b10000000) {
-                        ifs.get(c);
-                        byte_cnt = UTF8_to_bin(data, c);
-                        if ((c & 0b10000000) == 0b10000000) {
-                            cout << "case 4" << endl;
-                            data = {};
-                        } else {
-                            cout << "error" << endl;
-                        }
-                    } else {
-                        cout << "error" << endl;
-                    }
-                } else {
-                    cout << "error" << endl;
-                }
-                // UTF-8 out of range
             } else {
-                cout << "UTF-8 out of range" << endl;
+                cout << "error" << endl;
+                return false;
+            }
+            // 1110xxxx 10xxxxxx 10xxxxxx
+        } else if ((c & 0b11100000) == 0b11100000) {
+            UTF8_to_bin(data, c, 3, pause, 7);
+            ifs.get(c);
+            if ((c & 0b10000000) == 0b10000000) {
+                UTF8_to_bin(data, c, 3, pause, 7);
+                ifs.get(c);
+                if ((c & 0b10000000) == 0b10000000) {
+                    UTF8_to_bin(data, c, 3, pause, 7);
+                } else {
+                    cout << "error" << endl;
+                    return false;
+                }
+            } else {
+                cout << "error" << endl;
+                return false;
             }
         }
-    }
+            // 110xxxxx 10xxxxxx
+        else if ((c & 0b11000000) == 0b11000000) {
+            UTF8_to_bin(data, c, 2, pause, 7);
+            ifs.get(c);
+            if ((c & 0b10000000) == 0b10000000) {
+                UTF8_to_bin(data, c, 2, pause, 7);
 
+            } else {
+                cout << "error" << endl;
+                return false;
+            }
+        }
+            // UTF-8 out of range
+        else {
+            if ((c >> 7) == 1) {
+                cout << "error c>>7" << endl;
+                return false;
+            }
+            /*
+            if (ifs.peek() == EOF) {
+                cout << "EOF\n";
+                //break;
+            }*/
+            UTF8_to_bin(data, c, 1, pause, 7);
+        }
+        print_data(data);
+        dec = get_dec(data);
+        cout << "dec = " << dec << endl;
+
+        fib_code(dec);
+    }
     if (!save_file(data, outFile)) {
         cout << "chyba ulozeni" << endl;
         return false;
@@ -251,7 +316,8 @@ int main() {
 
     cout << "-------------\ninput: " << endl;
     utf8ToFibonacci("example/src_2.utf8", "output.fib");
-
+    //cout << "b.txt" << endl;
+    //utf8ToFibonacci("b.txt", "output.fib");
     /*
      *
     if (identicalFiles("output.fib", "example/dst_0.fib")) {
