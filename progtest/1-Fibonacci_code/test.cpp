@@ -61,6 +61,12 @@ bool save_file(const vector<bool> &data, const char *outFile) {
 
 void fill_data(vector<bool> &data, vector<size_t> &pos) {
     size_t j = pos.size() - 1;
+    cout << "pos " << pos[0] << " j " << j << endl;
+    if (pos[0] == 1 && j == 0) {
+        data.push_back(1);
+        data.push_back(1);
+        return;
+    }
     for (size_t i = 0; i <= pos[0]; ++i) {
         if (pos[j] == i) {
             j--;
@@ -70,6 +76,7 @@ void fill_data(vector<bool> &data, vector<size_t> &pos) {
         }
     }
     data.push_back(1);
+    //print_data(data);
 }
 
 int nearest_fib(int dec, size_t &n) {
@@ -174,6 +181,13 @@ void fill_zeros(vector<bool> &data) {
         data.push_back(0);
 }
 
+void fill_zeros_front(vector<bool> &data) {
+    if ((data.size() % 8) == 0)
+        return;
+    while ((data.size() % 8) != 0)
+        data.insert(data.begin(), 0);
+}
+
 bool UTF8_encode(char a, unsigned char c, ifstream &ifs, int &pause, vector<bool> &data) {
     // wrong mask
     if ((c & 0b11111000) == 0b11111000 ||
@@ -245,12 +259,29 @@ bool UTF8_encode(char a, unsigned char c, ifstream &ifs, int &pause, vector<bool
         // 0xxxxxxx
     else if ((c & 0b10000000) == 0b00000000) {
         UTF8_to_bin(data, c, 1, pause, 7);
+        //print_data(data);
+
         // char is out of range {0 - 0x10ffff}
     } else {
         cout << "out of range" << endl;
         return false;
     }
     return true;
+}
+
+void swap(bool &x, bool &y) {
+    bool tmp = x;
+    x = y;
+    y = tmp;
+}
+
+void split_data(vector<bool> &data) {
+    for (size_t i = 0; i < data.size(); i += 8) {
+        for (size_t j = i; j < i + 4; ++j) {
+            swap(data[j], data[i + 7 - (j - i)]);
+        }
+    }
+    print_data(data);
 }
 
 // (c>>7) & 1 = first bit in 'c'
@@ -264,7 +295,6 @@ bool read_UTF8(ifstream &ifs, const char *outFile) {
     vector<bool> to_save;
     int pause = 0, dec = 0;
     unsigned char c;
-    // TODO: unsinged char
     // get each char/byte from file
     for (char a; ifs.get(a);) {
         c = (unsigned char) a;
@@ -277,10 +307,16 @@ bool read_UTF8(ifstream &ifs, const char *outFile) {
         }
 
         dec = get_dec(data);
+        cout << "dec " << dec << endl;
         fib_code(to_save, dec);
+        print_data(to_save);
+
     }
 
     fill_zeros(to_save);
+    print_data(to_save);
+    split_data(to_save);
+
 
     if (!save_file(to_save, outFile)) {
         cout << "chyba ulozeni" << endl;
@@ -306,7 +342,7 @@ bool utf8ToFibonacci(const char *inFile, const char *outFile) {
 }
 
 // 00000000 00000101 00001010
-void get_dec(size_t data, vector<bool> &to_save) {
+void dec_to_bin_8bit(size_t data, vector<bool> &to_save) {
     size_t bin = 0;
     vector<bool> tmp = {};
     if (data == 0) {
@@ -318,36 +354,119 @@ void get_dec(size_t data, vector<bool> &to_save) {
         tmp.insert(tmp.begin(), bin);
         data /= 2;
     }
-    fill_zeros(tmp);
+    cout << "tmp ";
+    fill_zeros_front(tmp);
+    print_data(tmp);
     for (const auto &item: tmp) {
         to_save.push_back(item);
     }
 }
 
+void dec_to_bin(size_t data, vector<bool> &tmp) {
+    size_t bin = 0;
+    while (data > 0) {
+        bin = data % 2;
+        tmp.insert(tmp.begin(), bin);
+        //tmp.push_back(bin);
+        data /= 2;
+    }
+}
+
 bool fib_encode(size_t data, vector<bool> &to_save) {
+    vector<bool> tmp = {};
     // 0xxxxxxx
     if (data < 128) {
-        get_dec(data, to_save);
+        if (data == 0) {
+            tmp.push_back(0);
+            fill_zeros(tmp);
+        } else {
+            dec_to_bin(data, tmp);
+            if ((tmp.size() % 8) != 0) {
+                while ((tmp.size() % 8) != 0) {
+                    tmp.insert(tmp.begin(), 0);
+                    //tmp.push_back(0);
+                }
+            }
+        }
+        print_data(tmp);
+        split_data(tmp);
+        for (const auto &item: tmp) {
+            to_save.push_back(item);
+        }
 
-
+        cout << "final\n";
+        print_data(to_save);
         // 110xxxxx 10xxxxxx
     } else if (data < 2048) {
-        get_dec(data, to_save);
-        //print_data(to_save);
+        dec_to_bin(data, tmp);
+        if ((tmp.size() % 11) != 0) {
+            while ((tmp.size() % 11) != 0) {
+                //tmp.push_back(0);
+                tmp.insert(tmp.begin(), 0);
+            }
+        }
+        tmp.insert(tmp.begin(), 1);
+        tmp.insert(tmp.begin() + 1, 1);
+        tmp.insert(tmp.begin() + 2, 0);
+        tmp.insert(tmp.begin() + 8, 1);
+        tmp.insert(tmp.begin() + 9, 0);
+        split_data(tmp);
+
+        for (const auto &item: tmp) {
+            to_save.push_back(item);
+        }
 
         // 1110xxxx 10xxxxxx 10xxxxxx
     } else if (data < 65536) {
+        dec_to_bin(data, tmp);
+        if ((tmp.size() % 16) != 0) {
+            while ((tmp.size() % 16) != 0)
+                tmp.insert(tmp.begin(), 0);
+        }
+        tmp.insert(tmp.begin(), 1);
+        tmp.insert(tmp.begin() + 1, 1);
+        tmp.insert(tmp.begin() + 2, 1);
+        tmp.insert(tmp.begin() + 3, 0);
+        tmp.insert(tmp.begin() + 8, 1);
+        tmp.insert(tmp.begin() + 9, 0);
+        tmp.insert(tmp.begin() + 16, 1);
+        tmp.insert(tmp.begin() + 17, 0);
+        split_data(tmp);
 
+        for (const auto &item: tmp) {
+            to_save.push_back(item);
+        }
 
         // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     } else if (data < 1114112) {
+        dec_to_bin(data, tmp);
+        if ((tmp.size() % 21) != 0) {
+            while ((tmp.size() % 21) != 0)
+                tmp.insert(tmp.begin(), 0);
+        }
+        tmp.insert(tmp.begin(), 1);
+        tmp.insert(tmp.begin() + 1, 1);
+        tmp.insert(tmp.begin() + 2, 1);
+        tmp.insert(tmp.begin() + 3, 1);
+        tmp.insert(tmp.begin() + 4, 0);
+        tmp.insert(tmp.begin() + 8, 1);
+        tmp.insert(tmp.begin() + 9, 0);
+        tmp.insert(tmp.begin() + 16, 1);
+        tmp.insert(tmp.begin() + 17, 0);
+        tmp.insert(tmp.begin() + 24, 1);
+        tmp.insert(tmp.begin() + 25, 0);
+        split_data(tmp);
 
+        for (const auto &item: tmp) {
+            to_save.push_back(item);
+        }
 
         // char is out of range {0 - 0x10ffff}
     } else {
+        //cout << "out of range" << endl;
         return false;
     }
-
+    print_data(tmp);
     //get_dec(data, to_save, i);
     return true;
 }
@@ -356,13 +475,13 @@ bool dec_to_bin(vector<size_t> &data, const char *outFile) {
     vector<bool> to_save;
     for (size_t &item: data) {
         if (!fib_encode(item, to_save)) {
-            cout << "fib_encode" << endl;
+            // << "fib_encode" << endl;
             return false;
         }
     }
-
+    split_data(to_save);
     if (!save_file(to_save, outFile)) {
-        cout << "chyba ulozeni" << endl;
+        //cout << "chyba ulozeni" << endl;
         return false;
     }
     return true;
@@ -371,27 +490,33 @@ bool dec_to_bin(vector<size_t> &data, const char *outFile) {
 bool fib_decode(vector<bool> &data, const char *outFile) {
     vector<size_t> to_save;
     size_t f1 = 0, f2 = 1, f3 = 1;
-    size_t dec = 0, last = 0;
+    size_t dec = 0, last = 0, flag = 0;
     for (size_t i = 0; i < data.size(); ++i) {
-        if (data[i] == 1 && last == 1) {
+        if (data[i] == 1 && last == 1 && data[i - 1] == 1) {
             last = 0;
             f1 = 0;
             f2 = 1;
             f3 = 1;
             to_save.push_back(dec - 1);
             dec = 0;
+            flag = 1;
         } else if (data[i] == 1 && last == 0) {
             dec += f3;
             f1 = f2;
             f2 = f3;
             f3 = f1 + f2;
             last = 1;
+            flag = 0;
         } else {
             last = 0;
             f1 = f2;
             f2 = f3;
             f3 = f1 + f2;
         }
+    }
+    if (flag == 0) {
+        //cout << "missing ending 1" << endl;
+        return false;
     }
 
     cout << "to decode ";
@@ -400,8 +525,9 @@ bool fib_decode(vector<bool> &data, const char *outFile) {
     }
     cout << endl;
 
+
     if (!dec_to_bin(to_save, outFile)) {
-        cout << "dec_to_bin" << endl;
+        //cout << "dec_to_bin" << endl;
         return false;
     }
 
@@ -413,6 +539,8 @@ bool read_fib(ifstream &ifs, const char *outFile) {
     int bin = 0;
     unsigned char c;
     for (char a; ifs.get(a);) {
+        if (ifs.fail())
+            return false;
         c = (unsigned char) a;
         // converting byte into bits
         for (int i = 0; i < 8; ++i) {
@@ -425,7 +553,7 @@ bool read_fib(ifstream &ifs, const char *outFile) {
     }
 
     if (!fib_decode(data, outFile)) {
-        cout << "!decode" << endl;
+        //cout << "!decode" << endl;
         return false;
     }
 
@@ -435,15 +563,18 @@ bool read_fib(ifstream &ifs, const char *outFile) {
 bool fibonacciToUtf8(const char *inFile, const char *outFile) {
     ifstream ifs(inFile, ios::binary);
     if (!ifs || !ifs.is_open() || !ifs.good()) {
-        cout << "!file" << endl;
+        //cout << "!file" << endl;
         return false;
     }
 
     if (!read_fib(ifs, outFile)) {
-        cout << "read_fib\n";
+        //cout << "read_fib\n";
         return false;
     }
 
+    if (ifs.bad()) {
+        return false;
+    }
     ifs.close();
     return true;
 }
@@ -451,47 +582,14 @@ bool fibonacciToUtf8(const char *inFile, const char *outFile) {
 #ifndef __PROGTEST__
 
 bool identicalFiles(const char *file1, const char *file2) {
-    ifstream a(file1, ios::binary);
-    ifstream b(file2, ios::binary);
 
-    if (!a || !b) {
-        cout << "!a\n";
-        return false;
-    }
-
-    // get size of files
-    a.seekg(0, ios::end);
-    long file_size1 = a.tellg();
-    b.seekg(0, ios::end);
-    long file_size2 = b.tellg();
-    if (file_size1 != file_size2) {
-        cout << "SIZE\nout = " << file_size1 << " == " << file_size2 << " = dst" << endl;
-        return false;
-    }
-
-    // compare each char in files
-    char c_a, c_b;
-    int bin = 0;
-    for (; a.get(c_a);) {
-        b.get(c_b);
-        cout << c_a << " == " << c_b << endl;
-        if (a.fail() || b.fail() || c_a != c_b) {
-            cout << "a!=b\n";
-            return false;
-        }
-
-        for (int i = 7; i >= 0; --i) {
-            bin = (c_a >> i) & 1;
-            cout << bin;
-        }
-    }
-
-    a.close();
-    b.close();
     return true;
 }
 
 int main() {
+    utf8ToFibonacci("example/src_0.utf8", "output.fib");
+    utf8ToFibonacci("example/src_1.utf8", "output.fib");
+
     assert (utf8ToFibonacci("example/src_0.utf8", "output.fib") && identicalFiles("output.fib", "example/dst_0.fib"));
 
     assert (utf8ToFibonacci("example/src_1.utf8", "output.fib")
@@ -505,6 +603,9 @@ int main() {
     assert (!utf8ToFibonacci("example/src_5.utf8", "output.fib"));
 
     cout << "\n\n\n";
+
+    fibonacciToUtf8("example/src_6.fib", "output.utf8");
+
     assert (fibonacciToUtf8("example/src_6.fib", "output.utf8")
             && identicalFiles("output.utf8", "example/dst_6.utf8"));
 
