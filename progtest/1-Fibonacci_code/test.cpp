@@ -24,7 +24,7 @@ void print_data(const vector<bool> &data) {
     cout << endl;
 }
 
-void save_8bits(ofstream &ofs, const vector<bool> &data) {
+bool save_8bits(ofstream &ofs, const vector<bool> &data) {
     char byte = 0;
 
     for (size_t i = 0; i < 8 && i < data.size(); ++i) {
@@ -35,6 +35,11 @@ void save_8bits(ofstream &ofs, const vector<bool> &data) {
     }
     // write byte to file
     ofs.write(&byte, 1);
+    if (!ofs.good()) {
+        //cout << "ofs.good\n";
+        return false;
+    }
+    return true;
 }
 
 // byte = 0000 0000
@@ -61,7 +66,6 @@ bool save_file(const vector<bool> &data, ofstream &ofs) {
     }
     // write byte to file
     ofs.write(&byte, 1);
-
     if (!ofs.good()) {
         //cout << "ofs.good\n";
         return false;
@@ -119,7 +123,7 @@ void split_data_8bits(vector<bool> &data) {
     //print_data(data);
 }
 
-void fib_code(vector<bool> &data, int dec, ofstream &ofs) {
+bool fib_code(vector<bool> &data, int dec, ofstream &ofs) {
     vector<int> pos;
     size_t n = 0;
     int near_fib = 0;
@@ -142,7 +146,9 @@ void fib_code(vector<bool> &data, int dec, ofstream &ofs) {
     if (cnt >= 8) {
         while (cnt >= 8) {
             split_data_8bits(data);
-            save_8bits(ofs, data);
+            if (!save_8bits(ofs, data)){
+                return false;
+            }
             for (int j = 0; j < 8; ++j) {
                 data.erase(data.begin());
             }
@@ -150,6 +156,7 @@ void fib_code(vector<bool> &data, int dec, ofstream &ofs) {
         }
     }
     pos.clear();
+    return true;
 }
 
 void UTF8_to_bin(vector<bool> &data, unsigned char &c, int flag, int &pause, int a) {
@@ -362,7 +369,7 @@ bool read_UTF8(ifstream &ifs, const char *outFile) {
     for (char a; ifs.get(a);) {
         if (ifs.fail()) {
             //cout << "fail" << endl;
-            ofs.close();
+            //ofs.close();
             return false;
         }
         c = (unsigned char) a;
@@ -371,14 +378,15 @@ bool read_UTF8(ifstream &ifs, const char *outFile) {
 
         if (!UTF8_encode(a, c, ifs, pause, data)) {
             //cout << "UTF8_encode" << endl;
-            ofs.close();
+            //ofs.close();
             return false;
         }
 
         dec = get_dec(data);
         //cout << "dec " << dec << endl;
         data.clear();
-        fib_code(to_save, dec, ofs);
+        if (!fib_code(to_save, dec, ofs))
+            return false;
         //print_data(to_save);
 
     }
@@ -449,7 +457,9 @@ bool fib_encode(size_t data, vector<bool> &to_save, ofstream &ofs) {
         }
         //print_data(to_save);
 
-        save_8bits(ofs, to_save);
+        if (!save_8bits(ofs, to_save)){
+            return false;
+        }
         for (int j = 0; j < 8; ++j) {
             to_save.erase(to_save.begin());
         }
@@ -478,7 +488,9 @@ bool fib_encode(size_t data, vector<bool> &to_save, ofstream &ofs) {
         }
 
         for (int i = 0; i < 2; ++i) {
-            save_8bits(ofs, to_save);
+            if (!save_8bits(ofs, to_save)){
+                return false;
+            }
             for (int j = 0; j < 8; ++j) {
                 to_save.erase(to_save.begin());
             }
@@ -505,7 +517,9 @@ bool fib_encode(size_t data, vector<bool> &to_save, ofstream &ofs) {
             to_save.push_back(item);
         }
         for (int i = 0; i < 3; ++i) {
-            save_8bits(ofs, to_save);
+            if (!save_8bits(ofs, to_save)){
+                return false;
+            }
             for (int j = 0; j < 8; ++j) {
                 to_save.erase(to_save.begin());
             }
@@ -536,7 +550,9 @@ bool fib_encode(size_t data, vector<bool> &to_save, ofstream &ofs) {
         }
 
         for (int i = 0; i < 4; ++i) {
-            save_8bits(ofs, to_save);
+            if (!save_8bits(ofs, to_save)){
+                return false;
+            }
             for (int j = 0; j < 8; ++j) {
                 to_save.erase(to_save.begin());
             }
@@ -555,72 +571,12 @@ bool fib_encode(size_t data, vector<bool> &to_save, ofstream &ofs) {
     return true;
 }
 
-bool get_out(vector<int> &data, const char *outFile) {
+bool get_out(int item, ofstream &ofs) {
     vector<bool> to_save;
 
-    ofstream ofs(outFile, ios::out | ios::binary);
-    if (!ofs || !ofs.good() || !ofs.is_open()) {
-        cout << "savefile" << endl;
-        return false;
-    }
-
-    for (int &item: data) {
-        if (!fib_encode(item, to_save, ofs)) {
-            // << "fib_encode" << endl;
-            ofs.close();
-            return false;
-        }
-    }
-    ofs.close();
-    return true;
-}
-
-bool fib_decode(vector<bool> &data, const char *outFile) {
-    vector<int> to_save;
-    size_t f1 = 0, f2 = 1, f3 = 1;
-    size_t dec = 0, last = 0, flag = 0, last_one = 0;
-    for (size_t i = 0; i < data.size(); ++i) {
-        if (data[i] == 1 && last == 1 && data[i - 1] == 1) {
-            //cout << ",1,";
-            last = 0;
-            f1 = 0;
-            f2 = 1;
-            f3 = 1;
-            to_save.push_back(dec - 1);
-            dec = 0;
-            last_one = 0;
-            flag = 1;
-        } else if (data[i] == 1 && last == 0) {
-            //cout << "1";
-            dec += f3;
-            f1 = f2;
-            f2 = f3;
-            f3 = f1 + f2;
-            last = 1;
-            last_one = 1;
-            flag = 0;
-        } else {
-            //cout << "0";
-            last = 0;
-            f1 = f2;
-            f2 = f3;
-            f3 = f1 + f2;
-        }
-    }
-    if (flag == 0 && last_one == 1) {
-        //cout << "missing ending 1" << endl;
-        return false;
-    }
-/*
-    cout << "to decode ";
-    for (const auto &item: to_save) {
-        cout << item << ", ";
-    }
-    cout << endl;
-*/
-
-    if (!get_out(to_save, outFile)) {
-        cout << "dec_to_bin" << endl;
+    if (!fib_encode(item, to_save, ofs)) {
+        // << "fib_encode" << endl;
+        //ofs.close();
         return false;
     }
 
@@ -628,12 +584,21 @@ bool fib_decode(vector<bool> &data, const char *outFile) {
 }
 
 bool read_fib(ifstream &ifs, const char *outFile) {
-    vector<bool> data;
-    int bin = 0, cnt = 0, last = 0;
+    vector<int> to_save;
+    ofstream ofs(outFile, ios::out | ios::binary);
+    if (!ofs || !ofs.good() || !ofs.is_open()) {
+        cout << "savefile" << endl;
+        return false;
+    }
+    int bin = 0, cnt = 0, last1 = 0, last_bin = 0;
+    size_t f1 = 0, f2 = 1, f3 = 1;
+    size_t dec = 0, last = 0, flag = 0, last_one = 0;
     unsigned char c;
     for (char a; ifs.get(a);) {
-        if (ifs.fail())
+        if (ifs.fail()) {
+            cout << "fail\n";
             return false;
+        }
         c = (unsigned char) a;
         // converting byte into bits
         for (int i = 0; i < 8; ++i) {
@@ -643,29 +608,66 @@ bool read_fib(ifstream &ifs, const char *outFile) {
             bin &= 1;
             // more than 32bits
             if (cnt > 32) {
+                cout << "cnt>32\n";
                 return false;
             }
-            if (last == 1 && bin == 1) {
+            if (last1 == 1 && bin == 1) {
                 cnt = 0;
             } else {
                 cnt++;
             }
             if (bin == 1) {
-                last = 1;
+                last1 = 1;
             } else {
-                last = 0;
+                last1 = 0;
             }
-
             //cout << bin;
-            data.push_back(bin);
+
+
+
+            if (bin == 1 && last == 1 && last_bin == 1) {
+                //cout << ",1,";
+                last = 0;
+                f1 = 0;
+                f2 = 1;
+                f3 = 1;
+                cout << "dec " << dec-1 << endl;
+                if (!get_out(dec - 1, ofs)) {
+                    cout << "dec_to_bin" << endl;
+                    return false;
+                }
+                dec = 0;
+                last_one = 0;
+                flag = 1;
+            } else if (bin == 1 && last == 0) {
+                //cout << "1";
+                dec += f3;
+                f1 = f2;
+                f2 = f3;
+                f3 = f1 + f2;
+                last = 1;
+                last_one = 1;
+                flag = 0;
+            } else {
+                //cout << "0";
+                last = 0;
+                f1 = f2;
+                f2 = f3;
+                f3 = f1 + f2;
+            }
+            last_bin = bin;
         }
+
     }
-    //cout << endl;
-    if (!fib_decode(data, outFile)) {
-        cout << "!decode" << endl;
+    if (flag == 0 && last_one == 1) {
+        cout << "\nmissing ending 1" << endl;
         return false;
     }
-
+    if (!ofs.good()) {
+        //cout << "ofs.good\n";
+        return false;
+    }
+    ofs.close();
     return true;
 }
 
