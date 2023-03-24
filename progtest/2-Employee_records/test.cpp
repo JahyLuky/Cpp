@@ -188,7 +188,17 @@ public:
 
         name_sur_sort_.erase(itr_ns);
         email_sort_.erase(itr_e);
-        add(newName, newSurname, newEmail, newSalary);
+
+        auto itr_tmp1 = lower_bound(name_sur_sort_.begin(),
+                                   name_sur_sort_.end(),
+                                   tmp, compare_name_sur());
+
+        auto itr_tmp2 = lower_bound(email_sort_.begin(),
+                                    email_sort_.end(),
+                                    tmp, compare_email());
+
+        name_sur_sort_.insert(itr_tmp1, tmp);
+        email_sort_.insert(itr_tmp2, tmp);
 
         return true;
     }
@@ -217,13 +227,25 @@ public:
                                    email_sort_.end(),
                                    tmp, compare_email());
 
+
         // newEmail already exists
         if (findPerson_email(itr_tmp, email_sort_, tmp))
             return false;
 
+
         name_sur_sort_.erase(itr_ns);
         email_sort_.erase(itr_e);
-        add(newName, newSurname, newEmail, newSalary);
+
+        auto itr_tmp1 = lower_bound(email_sort_.begin(),
+                                   email_sort_.end(),
+                                   tmp, compare_email());
+
+        auto itr_tmp2 = lower_bound(name_sur_sort_.begin(),
+                                    name_sur_sort_.end(),
+                                    tmp, compare_name_sur());
+
+        email_sort_.insert(itr_tmp1, tmp);
+        name_sur_sort_.insert(itr_tmp2, tmp);
 
         return true;
     }
