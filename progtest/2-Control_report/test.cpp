@@ -30,12 +30,8 @@ private:
         string m_id;
         unsigned int m_invoice;
 
-        Company(const string &mName, const string &mAddress, const string &mId, unsigned int mInvoice) : m_name(mName),
-                                                                                                         m_address(
-                                                                                                                 mAddress),
-                                                                                                         m_id(mId),
-                                                                                                         m_invoice(
-                                                                                                                 mInvoice) {}
+        Company(const string &mName, const string &mAddress, const string &mId, unsigned int mInvoice) :
+        m_name(mName),m_address(mAddress),m_id(mId),m_invoice(mInvoice) {}
 
         bool operator!=(const Company &a) const {
             int compName = strcasecmp(a.m_name.c_str(), m_name.c_str());
@@ -189,7 +185,8 @@ public:
     *
     * @return true if company is found
     */
-    static bool findCompany_name(const vector<Company>::iterator &pos_Name, const Company &toFind,
+    static bool findCompany_name(const vector<Company>::iterator &pos_Name,
+                                 const Company &toFind,
                                  const vector<Company> &name_sort);
 
     /**
@@ -206,7 +203,8 @@ CVATRegister::CVATRegister() = default;
 
 CVATRegister::~CVATRegister() = default;
 
-bool CVATRegister::findCompany_name(const vector<Company>::iterator &pos_Name, const Company &toFind,
+bool CVATRegister::findCompany_name(const vector<Company>::iterator &pos_Name,
+                                    const Company &toFind,
                                     const vector<Company> &name_sort) {
     if (pos_Name == name_sort.end() || *pos_Name != toFind)
         return false;

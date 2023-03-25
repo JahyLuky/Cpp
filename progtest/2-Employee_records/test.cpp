@@ -80,18 +80,22 @@ public:
 
     ~CPersonalAgenda(void) = default;
 
-    static bool findPerson_name_sur(const vector<Person>::iterator &itr_ns,
+    bool findPerson_name_sur(const vector<Person>::iterator &itr_ns,
                                     const vector<Person> &name_sur_sort,
-                                    const Person &emp) {
-        if (itr_ns == name_sur_sort.end() || (*itr_ns) != emp)
+                                    const Person &emp) const {
+        if (itr_ns == name_sur_sort.end())
+            return false;
+        if ((*itr_ns) != emp)
             return false;
         return true;
     }
 
-    static bool findPerson_email(const vector<Person>::iterator &itr_e,
+    bool findPerson_email(const vector<Person>::iterator &itr_e,
                                  const vector<Person> &email_sort,
-                                 const Person &emp) {
-        if (itr_e == email_sort.end() || (*itr_e) != emp)
+                                 const Person &emp) const {
+        if (itr_e == email_sort.end())
+            return false;
+        if ((*itr_e) != emp)
             return false;
         return true;
     }
@@ -113,8 +117,8 @@ public:
         if (findPerson_email(itr_e, email_sort_, emp))
             return false;
 
-        name_sur_sort_.insert(itr_ns, emp);
-        email_sort_.insert(itr_e, emp);
+        name_sur_sort_.emplace(itr_ns, emp);
+        email_sort_.emplace(itr_e, emp);
 
         return true;
     }
@@ -143,15 +147,15 @@ public:
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
                                  email_sort_.end(),
-                                 emp, compare_name_sur());
+                                 emp, compare_email());
 
         // email not found
-        if (!findPerson_name_sur(itr_e, email_sort_, emp))
+        if (!findPerson_email(itr_e, email_sort_, emp))
             return false;
 
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
                                   name_sur_sort_.end(),
-                                  (*itr_e), compare_email());
+                                  (*itr_e), compare_name_sur());
 
         name_sur_sort_.erase(itr_ns);
         email_sort_.erase(itr_e);
@@ -189,16 +193,17 @@ public:
         name_sur_sort_.erase(itr_ns);
         email_sort_.erase(itr_e);
 
+        // find new positions after erase person with old name and surname
         auto itr_tmp1 = lower_bound(name_sur_sort_.begin(),
-                                   name_sur_sort_.end(),
-                                   tmp, compare_name_sur());
+                                    name_sur_sort_.end(),
+                                    tmp, compare_name_sur());
 
         auto itr_tmp2 = lower_bound(email_sort_.begin(),
                                     email_sort_.end(),
                                     tmp, compare_email());
 
-        name_sur_sort_.insert(itr_tmp1, tmp);
-        email_sort_.insert(itr_tmp2, tmp);
+        name_sur_sort_.emplace(itr_tmp1, tmp);
+        email_sort_.emplace(itr_tmp2, tmp);
 
         return true;
     }
@@ -232,20 +237,20 @@ public:
         if (findPerson_email(itr_tmp, email_sort_, tmp))
             return false;
 
-
         name_sur_sort_.erase(itr_ns);
         email_sort_.erase(itr_e);
 
+        // find new positions after erase person with old email
         auto itr_tmp1 = lower_bound(email_sort_.begin(),
-                                   email_sort_.end(),
-                                   tmp, compare_email());
+                                    email_sort_.end(),
+                                    tmp, compare_email());
 
         auto itr_tmp2 = lower_bound(name_sur_sort_.begin(),
                                     name_sur_sort_.end(),
                                     tmp, compare_name_sur());
 
-        email_sort_.insert(itr_tmp1, tmp);
-        name_sur_sort_.insert(itr_tmp2, tmp);
+        email_sort_.emplace(itr_tmp1, tmp);
+        name_sur_sort_.emplace(itr_tmp2, tmp);
 
         return true;
     }
@@ -276,7 +281,7 @@ public:
                                  emp, compare_email());
 
         // email not found
-        if (!findPerson_name_sur(itr_e, email_sort_, emp))
+        if (!findPerson_email(itr_e, email_sort_, emp))
             return false;
 
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -312,7 +317,6 @@ public:
             return false;
 
         return (*itr_e).salary_;
-        return true;
     }
 
     bool getRank(const string &name, const string &surname, int &rankMin, int &rankMax) const {
@@ -378,7 +382,10 @@ public:
                                emp, compare_name_sur());
 
         // name and surname not found
-        if (itr == name_sur_sort_.end() || (++itr) == name_sur_sort_.end())
+        if (itr == name_sur_sort_.end() || ((*itr) != emp) )
+            return false;
+        itr++;
+        if (itr == name_sur_sort_.end())
             return false;
 
         outName = (*itr).name_;
@@ -397,7 +404,6 @@ int main(void) {
     // custom tests
     CPersonalAgenda b0;
     assert (b0.add("John", "Smith", "john", 3));
-
     assert (!b0.getNext("John", "Smith", outName, outSurname));
 
     assert (b0.add("aA", "a", "dD", 3));
@@ -410,6 +416,8 @@ int main(void) {
     assert (!b0.add("John", "Smith", "a", 30001));
     assert (!b0.add("b", "a", "john", 30001));
     assert (!b0.add("a", "b", "john", 30001));
+
+    //assert (b0.changeEmail("John", "Smith", "john"));
 
     CPersonalAgenda b3;
     // diff sur
