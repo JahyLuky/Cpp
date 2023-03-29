@@ -67,10 +67,6 @@ public:
         ranges_.push_back(other);
     }
 
-    static void print_interval(const CRange &a) {
-        cout << a.from_ << ", " << a.to_ << endl;
-    }
-
     void merge(const CRange &a) {
         CRange other = a;
         bool inserted = false;
@@ -78,63 +74,35 @@ public:
         for (size_t i = 0; i < ranges_.size();) {
             if (ranges_[i].from_ <= other.from_ && ranges_[i].to_ <= other.to_ &&
                 ranges_[i].to_ >= other.from_) {
-                cout << "---1---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
                 other.from_ = ranges_[i].from_;
                 ranges_.erase(itr);
             } else if (other.from_ <= ranges_[i].from_ && other.to_ <= ranges_[i].to_ &&
                        other.to_ >= ranges_[i].from_) {
-                cout << "---2---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
                 other.to_ = ranges_[i].to_;
                 ranges_.erase(itr);
-            } else if (ranges_[i].to_ < other.from_ && (ranges_[i].to_ + 1) != other.from_) {
-                cout << "---3---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (ranges_[i].to_ < other.from_ && (ranges_[i].to_ + 1) != other.from_
+            && ranges_[i].to_ != LLONG_MAX) {
                 itr++;
                 i++;
-            } else if (other.to_ < ranges_[i].from_ && (other.to_ + 1) != ranges_[i].from_) {
-                cout << "---4---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (other.to_ < ranges_[i].from_ && (other.to_ + 1) != ranges_[i].from_
+            && other.to_ != LLONG_MAX) {
                 ranges_.emplace(itr, other);
                 inserted = true;
                 break;
             } else if (ranges_[i].from_ <= other.from_ && other.to_ <= ranges_[i].to_) {
-                cout << "---5---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
                 inserted = true;
                 break;
             } else if (other.from_ <= ranges_[i].from_ && other.to_ >= ranges_[i].to_) {
-                cout << "---6---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
                 ranges_.erase(itr);
-            } else if (ranges_[i].to_ == other.from_ || (ranges_[i].to_ + 1) == other.from_) {
-                cout << "---7---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (ranges_[i].to_ == other.from_ ||
+                       (ranges_[i].to_ != LLONG_MAX && (ranges_[i].to_ + 1) == other.from_)) {
                 other.from_ = ranges_[i].from_;
-                cout << "erase: " << (*itr).from_ << ", " << (*itr).to_ << endl;
                 ranges_.erase(itr);
-
-                cout << "after erase: " << (*itr).from_ << ", " << (*itr).to_ << endl;
-                cout << "new: " << other.from_ << ", " << other.to_ << endl;
-            } else if (other.to_ == ranges_[i].from_ || (other.to_ + 1) == ranges_[i].from_) {
-                cout << "---8---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (other.to_ == ranges_[i].from_ ||
+                       (other.to_ != LLONG_MAX && (other.to_ + 1) == ranges_[i].from_)) {
                 other.to_ = ranges_[i].to_;
                 ranges_.erase(itr);
-            } else {
-                cout << "---else---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
-            }
+            } else { i++; }
         }
 
         if (!inserted)
@@ -142,6 +110,21 @@ public:
     }
 
     // includes long long / range
+    bool includes(const long long find) const {
+        for (const auto &range: ranges_) {
+            if (range.from_ <= find && range.to_ >= find)
+                return true;
+        }
+        return false;
+    }
+
+    bool includes(const CRange &other) const {
+        for (const auto &range: ranges_) {
+            if (range.from_ <= other.from_ && range.to_ >= other.to_)
+                return true;
+        }
+        return false;
+    }
 
     // += range / range list
     CRangeList &operator+=(const CRange &other) {
@@ -172,78 +155,69 @@ public:
         return result;
     }
 
+    // - range
+    CRangeList operator-(const CRange &other) const {
+        CRangeList result(*this);
+        result -= other;
+        return result;
+    }
+
+    // - range list
+    CRangeList operator-(const CRangeList &other) const {
+        CRangeList result(*this);
+        result -= other;
+        return result;
+    }
+
     void unmerge(const CRange &a) {
         CRange other = a;
         auto itr = ranges_.begin();
         for (size_t i = 0; i < ranges_.size();) {
-            if (ranges_[i].from_ <= other.from_ && ranges_[i].to_ <= other.to_ &&
-                ranges_[i].to_ >= other.from_) {
-                cout << "---1---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            if (ranges_[i].from_ == other.from_ && ranges_[i].to_ == other.to_) {
+                ranges_.erase(itr);
+                break;
+            } else if ((ranges_[i].from_ <= other.from_ && ranges_[i].to_ <= other.to_ &&
+                        ranges_[i].to_ >= other.from_) && other.from_ != LLONG_MIN) {
                 long long tmp = other.from_;
                 other.from_ = ranges_[i].to_;
                 ranges_[i].to_ = tmp - 1;
                 itr++;
                 i++;
-            } else if (other.from_ <= ranges_[i].from_ && other.to_ <= ranges_[i].to_ &&
-                       other.to_ >= ranges_[i].from_) {
-                cout << "---2---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if ((other.from_ <= ranges_[i].from_ && other.to_ <= ranges_[i].to_ &&
+                        other.to_ >= ranges_[i].from_) && other.to_ != LLONG_MAX) {
                 ranges_[i].from_ = other.to_ + 1;
                 break;
-            } else if (ranges_[i].to_ < other.from_ && (ranges_[i].to_ + 1) != other.from_) {
-                cout << "---3---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (ranges_[i].to_ < other.from_ && (ranges_[i].to_ + 1) != other.from_
+                       && ranges_[i].to_ != LLONG_MAX) {
                 itr++;
                 i++;
-            } else if (other.to_ < ranges_[i].from_ && (other.to_ + 1) != ranges_[i].from_) {
-                cout << "---4---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (other.to_ < ranges_[i].from_ &&
+                       (other.to_ != LLONG_MAX && (other.to_ + 1) != ranges_[i].from_)
+                       && other.to_ != LLONG_MAX) {
                 break;
-            } else if (ranges_[i].from_ <= other.from_ && other.to_ <= ranges_[i].to_) {
-                cout << "---5---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if ((ranges_[i].from_ <= other.from_ && other.to_ <= ranges_[i].to_)
+                       && other.from_ != LLONG_MIN && other.to_ != LLONG_MAX) {
                 long long old_to = ranges_[i].to_;
                 ranges_[i].to_ = other.from_ - 1;
                 CRange tmp(other.to_ + 1, old_to);
-                cout << "before: " << (*itr).from_ << ", " << (*itr).to_ << endl;
-                // TODO: maybe itr++ lost somewhere
                 ++itr;
                 ranges_.emplace(itr, tmp);
-                cout << "emplace: " << tmp.from_ << ", " << tmp.to_ << endl;
-                cout << "after: " << (*itr).from_ << ", " << (*itr).to_ << endl;
                 break;
             } else if (other.from_ <= ranges_[i].from_ && other.to_ >= ranges_[i].to_) {
-                cout << "---6---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
                 other.from_ = ranges_[i].to_;
                 ranges_.erase(itr);
-            } else if (ranges_[i].to_ == other.from_ || (ranges_[i].to_ + 1) == other.from_) {
-                cout << "---7---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (ranges_[i].to_ == other.from_ ||
+                       (ranges_[i].to_ != LLONG_MAX && (ranges_[i].to_ + 1) == other.from_)) {
                 if (ranges_[i].to_ == other.from_) {
                     ranges_[i].to_ = other.from_ - 1;
                 }
                 itr++;
                 i++;
-            } else if (other.to_ == ranges_[i].from_ || (other.to_ + 1) == ranges_[i].from_) {
-                cout << "---8---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
+            } else if (other.to_ == ranges_[i].from_ ||
+                       (other.to_ != LLONG_MAX && (other.to_ + 1) == ranges_[i].from_)) {
                 ranges_[i].from_ = other.to_ + 1;
                 break;
-            } else {
-                cout << "---else---\n";
-                print_interval(ranges_[i]);
-                print_interval(other);
-            }
+            } else { i++; }
         }
     }
 
@@ -253,6 +227,7 @@ public:
 
         return *this;
     }
+
     // -= range list
     CRangeList &operator-=(const CRangeList &other_list) {
         for (const auto &range: other_list.ranges_)
@@ -260,40 +235,61 @@ public:
 
         return *this;
     }
-    // = range / range list
 
     // operator ==
+    bool operator==(const CRangeList &other_list) const {
+        if (ranges_.size() != other_list.ranges_.size())
+            return false;
+
+        auto itr = other_list.ranges_.begin();
+        for (const auto &range: ranges_) {
+            if (range.from_ != (*itr).from_ || range.to_ != (*itr).to_)
+                return false;
+            else
+                itr++;
+        }
+        return true;
+    }
 
     // operator !=
-
+    bool operator!=(const CRangeList &other_list) const {
+        auto itr = other_list.ranges_.begin();
+        for (const auto &range: ranges_) {
+            if (range.from_ != (*itr).from_ || range.to_ != (*itr).to_)
+                return true;
+            else
+                itr++;
+        }
+        return false;
+    }
 
     // operator <<
-    friend ostream &operator<<(ostream &out, const CRangeList &a) {
+    const friend ostream &operator<<(ostream &out, const CRangeList &a) {
         out << "{";
         for (size_t i = 0; i < a.ranges_.size(); ++i) {
-            out << "<" << a.ranges_[i].from_ << ".." << a.ranges_[i].to_ << ">";
+            if (a.ranges_[i].from_ != a.ranges_[i].to_)
+                out << "<" << a.ranges_[i].from_ << ".." << a.ranges_[i].to_ << ">";
+            else
+                out << a.ranges_[i].from_;
             if ((i + 1) != a.ranges_.size())
                 out << ",";
         }
         out << "}";
         return out;
     }
-
-    void printRange() {
-        cout << "{";
-        for (size_t i = 0; i < ranges_.size(); ++i) {
-            cout << "<" << ranges_[i].from_ << ".." << ranges_[i].to_ << ">";
-            if ((i + 1) != ranges_.size())
-                cout << ",";
-        }
-        cout << "}" << endl;
-    }
 };
 
-CRangeList operator+(const CRange &a, const CRange &b) {
+const CRangeList operator+(const CRange &a, const CRange &b) {
     CRangeList tmp;
     tmp += a;
     tmp += b;
+    return tmp;
+}
+
+const CRangeList operator-(const CRange &a, const CRange &b) {
+    CRangeList tmp;
+    tmp = a;
+    tmp -= b;
     return tmp;
 }
 
@@ -332,7 +328,6 @@ int main() {
     assert (toString(a) == "{<-500..-300>,<-30..1001>,<2000..3000>}");
 
     a -= CRange(-400, -400);
-    a.printRange();
     assert (toString(a) == "{<-500..-401>,<-399..-300>,<-30..1001>,<2000..3000>}");
 
     a -= CRange(10, 20) + CRange(900, 2500) + CRange(30, 40) + CRange(10000, 20000);
@@ -347,10 +342,10 @@ int main() {
         assert ("Invalid exception thrown" == nullptr);
     }
     assert (toString(a) == "{<-500..-401>,<-399..-300>,<-30..9>,<21..29>,<41..899>,<2501..3000>}");
-    //b = a;
 
-    //assert (a == b);
-    /*
+    b = a;
+    assert (a == b);
+
     assert (!(a != b));
     b += CRange(2600, 2700);
     assert (toString(b) == "{<-500..-401>,<-399..-300>,<-30..9>,<21..29>,<41..899>,<2501..3000>}");
@@ -360,6 +355,7 @@ int main() {
     assert (toString(b) == "{<-500..-401>,<-399..-300>,<-30..9>,15,<21..29>,<41..899>,<2501..3000>}");
     assert (!(a == b));
     assert (a != b);
+
     assert (b.includes(15));
     assert (b.includes(2900));
     assert (b.includes(CRange(15, 15)));
@@ -378,8 +374,6 @@ int main() {
     assert (toString(b) == "{<0..100>,<160..169>,<171..180>,<251..300>}");
     b -= CRange(10, 90) - CRange(20, 30) - CRange(40, 50) - CRange(60, 90) + CRange(70, 80);
     assert (toString(b) == "{<0..9>,<20..30>,<40..50>,<60..69>,<81..100>,<160..169>,<171..180>,<251..300>}");
-
-     */
 
 
 #ifdef EXTENDED_SYNTAX
