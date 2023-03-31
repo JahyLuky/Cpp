@@ -42,7 +42,7 @@ struct Set {
     // return std::binary_search(_data.begin(), _data.end(), t);
   }
 
-  
+
   // Existence metod begin() a end() umožní použít
   // Set s range-for. Zde stačí vrátit const_iterátor
   // vektoru.

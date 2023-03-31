@@ -111,6 +111,7 @@ public:
 
     // includes long long / range
     bool includes(const long long find) const {
+        CRange(find, find);
         for (const auto &range: ranges_) {
             if (range.from_ <= find && range.to_ >= find)
                 return true;

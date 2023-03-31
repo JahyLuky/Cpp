@@ -80,9 +80,9 @@ public:
 
     ~CPersonalAgenda(void) = default;
 
-    bool findPerson_name_sur(const vector<Person>::iterator &itr_ns,
+    static bool findPerson_name_sur(const vector<Person>::iterator &itr_ns,
                                     const vector<Person> &name_sur_sort,
-                                    const Person &emp) const {
+                                    const Person &emp) {
         if (itr_ns == name_sur_sort.end())
             return false;
         if ((*itr_ns) != emp)
@@ -90,9 +90,9 @@ public:
         return true;
     }
 
-    bool findPerson_email(const vector<Person>::iterator &itr_e,
+    static bool findPerson_email(const vector<Person>::iterator &itr_e,
                                  const vector<Person> &email_sort,
-                                 const Person &emp) const {
+                                 const Person &emp) {
         if (itr_e == email_sort.end())
             return false;
         if ((*itr_e) != emp)

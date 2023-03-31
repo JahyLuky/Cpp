@@ -150,8 +150,7 @@ public:
     }
 
     uint32_t read(uint8_t *dst, uint32_t bytes) {
-        if (m_pos == 0 && m_data == nullptr)
-        {
+        if (m_pos == 0 && m_data == nullptr) {
             return 0;
         }
         uint32_t toRead = m_pos + bytes;
@@ -274,7 +273,7 @@ bool readTest(CFile &x, const initializer_list<uint8_t> &data, uint32_t rdLen) {
             return false;
     return true;
 }
-/*
+
 int main(void) {
     CFile f0;
 
@@ -314,6 +313,6 @@ int main(void) {
 
     return 0;
 }
-*/
+
 
 #endif /* __PROGTEST__ */
