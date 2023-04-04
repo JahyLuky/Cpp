@@ -24,6 +24,8 @@ public:
 
     String &operator=(const char *src);
 
+    String &operator=(const String &src);
+
     bool operator==(const String &src) const;
 
     bool operator!=(const String &src) const;
@@ -38,8 +40,7 @@ String::String() {
 
 String::String(const String &src) {
     size_t len = strlen(src.str);
-    //str = new char[len + 1];
-    str = (char *) malloc((len + 1) * sizeof(char));
+    str = new char[len + 1];
     for (size_t i = 0; i < len; ++i) {
         str[i] = src.str[i];
     }
@@ -47,22 +48,40 @@ String::String(const String &src) {
 }
 
 String::~String() {
-    //free(str);
+    delete[] str;
 }
 
 String &String::operator=(const char *src) {
-    if (str != nullptr)
-        //delete[] str;
-
-        if (src == nullptr) {
-            return *this;
-        }
+    if (src == nullptr) {
+        return *this;
+    }
 
     size_t len = strlen(src);
-    //str = new char[len + 1];
-    str = (char *) malloc((len + 1) * sizeof(char));
+    str = new char[len + 1];
     for (size_t i = 0; i < len; ++i) {
         str[i] = src[i];
+    }
+    str[len] = '\0';
+    return *this;
+}
+
+String &String::operator=(const String &src) {
+    if (this == &src) {
+        return *this;
+    }
+
+    if (src.str == nullptr) {
+        if (str == nullptr) {
+            return *this;
+        }
+        delete[] str;
+        str = nullptr;
+    }
+
+    size_t len = strlen(src.str);
+    str = new char[len + 1];
+    for (size_t i = 0; i < len; ++i) {
+        str[i] = src.str[i];
     }
     str[len] = '\0';
     return *this;
@@ -93,8 +112,6 @@ public:
 
     CMail(const char *from, const char *to, const char *body);
 
-    ~CMail();
-
     bool operator==(const CMail &x) const;
 
     friend ostream &operator<<(ostream &os, const CMail &m) {
@@ -120,14 +137,6 @@ CMail::CMail(const char *from, const char *to, const char *body) {
     body_ = body;
 }
 
-CMail::~CMail() {
-    /*
-    free(from_.str);
-    free(to_.str);
-    free(body_.str);
-     */
-}
-
 bool CMail::operator==(const CMail &x) const {
     if (from_ != x.from_
         || to_ != x.to_
@@ -148,12 +157,11 @@ public:
 
     CMailIterator &operator++();
 
-    ~CMailIterator() = default;
+    ~CMailIterator();
 
     CMail *data_;
     int itr_;
     int pos_;
-    int size_;
 private:
 };
 
@@ -176,6 +184,10 @@ const CMail &CMailIterator::operator*() const {
 CMailIterator &CMailIterator::operator++() {
     itr_++;
     return *this;
+}
+
+CMailIterator::~CMailIterator() {
+    delete[] data_;
 }
 
 //----------------------------------------------
@@ -215,19 +227,21 @@ CMailServer::CMailServer(const CMailServer &src) {
     size_ = src.size_;
     pos_ = src.pos_;
 
-    //if (size_ > 0)
-    //    data_ = (CMail*) malloc(size_ * sizeof(CMail));
+    if (size_ > 0) {
+        data_ = new CMail[src.size_];
+    } else {
+        data_ = nullptr;
+    }
 
-    data_ = src.data_;
+    for (int i = 0; i < src.pos_; ++i) {
+        data_[i].from_ = src.data_[i].from_;
+        data_[i].to_ = src.data_[i].to_;
+        data_[i].body_ = src.data_[i].body_;
+    }
 }
 
 void CMailServer::DeleteCMailServer() {
-    for (int i = 0; i < pos_; ++i) {
-        free(data_[i].from_.str);
-        free(data_[i].to_.str);
-        free(data_[i].body_.str);
-    }
-    free(data_);
+    delete[](data_);
 }
 
 CMailServer &CMailServer::operator=(const CMailServer &src) {
@@ -237,10 +251,16 @@ CMailServer &CMailServer::operator=(const CMailServer &src) {
     if (data_ != nullptr)
         DeleteCMailServer();
 
-    size_ = src.size_;
     pos_ = src.pos_;
-    //data_ = new CMail[src.size_];
-    data_ = (CMail *) malloc(src.size_ * sizeof(CMail));
+    data_ = src.data_;
+    size_ = src.size_;
+
+    if (src.size_ != 0) {
+        data_ = new CMail[src.size_];
+    } else {
+        data_ = nullptr;
+    }
+
     for (int i = 0; i < src.pos_; ++i) {
         data_[i].from_ = src.data_[i].from_;
         data_[i].to_ = src.data_[i].to_;
@@ -251,90 +271,41 @@ CMailServer &CMailServer::operator=(const CMailServer &src) {
 }
 
 CMailServer::~CMailServer() {
-    for (int i = 0; i < pos_; ++i) {
-        free(data_[i].from_.str);
-        free(data_[i].to_.str);
-        free(data_[i].body_.str);
+    if (data_ != nullptr) {
+        delete[] data_;
     }
-    free(data_);
-    //        delete[] data_;
 }
 
 void CMailServer::ResizeMailServer() {
-    int old_pos = pos_;
-    CMail *tmp = (CMail *) malloc(pos_ * sizeof(CMail));
-
-    for (int i = 0; i < old_pos; ++i) {
-        //data_[i].from_.str = new char[strlen(tmp[i].from_.str)];
-        //data_[i].from_.str = (char *) malloc(strlen(tmp[i].from_.str) * sizeof(char));
+    size_ *= 2;
+    CMail *tmp = new CMail[size_];
+    for (int i = 0; i < pos_; ++i) {
         tmp[i].from_ = data_[i].from_;
-
-        //data_[i].to_.str = new char[strlen(tmp[i].to_.str)];
-        //data_[i].to_.str = (char *) malloc(strlen(tmp[i].to_.str) * sizeof(char));
         tmp[i].to_ = data_[i].to_;
-
-        //data_[i].body_.str = new char[strlen(tmp[i].body_.str)];
-        //data_[i].body_.str = (char *) malloc(strlen(tmp[i].body_.str) * sizeof(char));
         tmp[i].body_ = data_[i].body_;
     }
-
-
-    size_ *= 2;
-    //delete[] data_;
-    //data_ = new CMail[size_];
-    //DeleteCMailServer();
-    data_ = (CMail *) malloc(size_ * sizeof(CMail));
-
-    for (int i = 0; i < old_pos; ++i) {
-        //data_[i].from_.str = new char[strlen(tmp[i].from_.str)];
-        //data_[i].from_.str = (char *) malloc(strlen(tmp[i].from_.str) * sizeof(char));
-        data_[i].from_ = tmp[i].from_;
-
-        //data_[i].to_.str = new char[strlen(tmp[i].to_.str)];
-        //data_[i].to_.str = (char *) malloc(strlen(tmp[i].to_.str) * sizeof(char));
-        data_[i].to_ = tmp[i].to_;
-
-        //data_[i].body_.str = new char[strlen(tmp[i].body_.str)];
-        //data_[i].body_.str = (char *) malloc(strlen(tmp[i].body_.str) * sizeof(char));
-        data_[i].body_ = tmp[i].body_;
-    }
-/*
-    for (int i = 0; i < pos_; ++i) {
-        free(tmp[i].from_.str);
-        free(tmp[i].to_.str);
-        free(tmp[i].body_.str);
-    }
-    free(tmp);
-    */
+    delete[] data_;
+    data_ = tmp;
 }
 
 void CMailServer::sendMail(const CMail &m) {
     if (size_ == 0) {
-        data_ = (CMail *) malloc(sizeof(CMail));
-        //data_ = new CMail[1];
+        data_ = new CMail[1];
         size_ = 1;
     }
 
     if (pos_ == size_)
         ResizeMailServer();
 
-    //data_[pos_].from_.str = new char[strlen(m.from_.str)];
-    //data_[pos_].from_.str = (char *) malloc(strlen(m.from_.str) * sizeof(char));
     data_[pos_].from_ = m.from_;
-    //data_[pos_].to_.str = new char[strlen(m.to_.str)];
-    //data_[pos_].to_.str = (char *) malloc(strlen(m.to_.str) * sizeof(char));
     data_[pos_].to_ = m.to_;
-    //data_[pos_].body_.str = new char[strlen(m.body_.str)];
-    //data_[pos_].body_.str = (char *) malloc(strlen(m.body_.str) * sizeof(char));
     data_[pos_].body_ = m.body_;
     pos_++;
 }
 
 CMailIterator CMailServer::outbox(const char *email) const {
     CMailIterator tmp;
-    //tmp.data_ = new CMail[size_];
-    tmp.data_ = (CMail *) malloc(size_ * sizeof(CMail));
-    tmp.size_ = size_;
+    tmp.data_ = new CMail[size_];
     tmp.pos_ = 0;
     bool flag = true;
     for (int i = 0; i < pos_; ++i) {
@@ -343,18 +314,9 @@ CMailIterator CMailServer::outbox(const char *email) const {
                 tmp.itr_ = tmp.pos_;
                 flag = false;
             }
-            //tmp.data_[i].from_.str = new char[strlen(data_[i].from_.str)];
-            //tmp.data_[tmp.pos_].from_.str = (char *) malloc(strlen(data_[i].from_.str) * sizeof(char));
             tmp.data_[tmp.pos_].from_ = data_[i].from_;
-
-            //tmp.data_[i].to_.str = new char[strlen(data_[i].to_.str)];
-            //tmp.data_[tmp.pos_].to_.str = (char *) malloc(strlen(data_[i].to_.str) * sizeof(char));
             tmp.data_[tmp.pos_].to_ = data_[i].to_;
-
-            //tmp.data_[i].body_.str = new char[strlen(data_[i].body_.str)];
-            //tmp.data_[tmp.pos_].body_.str = (char *) malloc(strlen(data_[i].body_.str) * sizeof(char));
             tmp.data_[tmp.pos_].body_ = data_[i].body_;
-
             tmp.pos_++;
         }
     }
@@ -365,9 +327,7 @@ CMailIterator CMailServer::outbox(const char *email) const {
 
 CMailIterator CMailServer::inbox(const char *email) const {
     CMailIterator tmp;
-    //tmp.data_ = new CMail[size_];
-    tmp.data_ = (CMail *) malloc(size_ * sizeof(CMail));
-    tmp.size_ = size_;
+    tmp.data_ = new CMail[size_];
     tmp.pos_ = 0;
     bool flag = true;
     for (int i = 0; i < pos_; ++i) {
@@ -376,18 +336,9 @@ CMailIterator CMailServer::inbox(const char *email) const {
                 tmp.itr_ = tmp.pos_;
                 flag = false;
             }
-            //tmp.data_[i].from_.str = new char[strlen(data_[i].from_.str)];
-            //tmp.data_[tmp.pos_].from_.str = (char *) malloc(strlen(data_[i].from_.str) * sizeof(char));
             tmp.data_[tmp.pos_].from_ = data_[i].from_;
-
-            //tmp.data_[i].to_.str = new char[strlen(data_[i].to_.str)];
-            //tmp.data_[tmp.pos_].to_.str = (char *) malloc(strlen(data_[i].to_.str) * sizeof(char));
             tmp.data_[tmp.pos_].to_ = data_[i].to_;
-
-            //tmp.data_[i].body_.str = new char[strlen(data_[i].body_.str)];
-            //tmp.data_[tmp.pos_].body_.str = (char *) malloc(strlen(data_[i].body_.str) * sizeof(char));
             tmp.data_[tmp.pos_].body_ = data_[i].body_;
-
             tmp.pos_++;
         }
     }
@@ -488,6 +439,7 @@ int main() {
     CMailServer s1(s0);
     s0.sendMail(CMail("joe", "alice", "delivery details"));
     s1.sendMail(CMail("sam", "alice", "order confirmation"));
+    //cout << "--------------\n";
     CMailIterator i9 = s0.inbox("alice");
     assert (i9 && *i9 == CMail("john", "alice", "deadline notice"));
     assert (matchOutput(*i9, "From: john, To: alice, Body: deadline notice"));
@@ -497,7 +449,7 @@ int main() {
     assert (matchOutput(*i9, "From: thomas, To: alice, Body: meeting details"));
     assert (++i9 && *i9 == CMail("joe", "alice", "delivery details"));
 
-    /*
+
     assert (matchOutput(*i9, "From: joe, To: alice, Body: delivery details"));
     assert (!++i9);
 
@@ -548,7 +500,6 @@ int main() {
     assert (matchOutput(*i13, "From: paul, To: alice, Body: invalid invoice"));
     assert (!++i13);
 
-    */
 
     return EXIT_SUCCESS;
 }
