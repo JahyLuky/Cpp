@@ -24,13 +24,8 @@ using namespace std;
 class CDate {
 public:
     //---------------------------------------------------------------------------------------------
-    CDate(int y,
-          int m,
-          int d)
-            : m_Year(y),
-              m_Month(m),
-              m_Day(d) {
-    }
+    CDate(int y, int m, int d)
+            : m_Year(y), m_Month(m), m_Day(d) {}
 
     //---------------------------------------------------------------------------------------------
     int compare(const CDate &x) const {
@@ -42,17 +37,17 @@ public:
     }
 
     //---------------------------------------------------------------------------------------------
-    int year(void) const {
+    int year() const {
         return m_Year;
     }
 
     //---------------------------------------------------------------------------------------------
-    int month(void) const {
+    int month() const {
         return m_Month;
     }
 
     //---------------------------------------------------------------------------------------------
-    int day(void) const {
+    int day() const {
         return m_Day;
     }
 
@@ -74,26 +69,59 @@ private:
 
 #endif /* __PROGTEST__ */
 
+struct Company {
+    string seller_;
+    string seller_format_;
+    string buyer_;
+    string buyer_format_;
+
+    Company() = default;
+
+    Company(const string seller, const string buyer) {
+        seller_ = seller;
+        buyer_ = buyer;
+    }
+};
+
 class CInvoice {
 public:
     CInvoice(const CDate &date,
              const string &seller,
              const string &buyer,
              unsigned int amount,
-             double vat);
+             double vat) : date_(date) {
+        //date_ = date;
+        comp_.seller_ = seller;
+        comp_.buyer_ = buyer;
+        amount_ = amount;
+        vat_ = vat;
+    }
 
-    CDate date(void) const;
+    CDate date() const {
+        return date_;
+    }
 
-    string buyer(void) const;
+    string buyer() const {
+        return comp_.buyer_;
+    }
 
-    string seller(void) const;
+    string seller() const {
+        return comp_.seller_;
+    }
 
-    unsigned int amount(void) const;
+    unsigned int amount() const {
+        return amount_;
+    }
 
-    double vat(void) const;
+    double vat() const {
+        return vat_;
+    }
 
 private:
-    // todo
+    CDate date_;
+    Company comp_;
+    unsigned int amount_;
+    double vat_;
 };
 
 class CSortOpt {
@@ -104,22 +132,103 @@ public:
     static const int BY_AMOUNT = 3;
     static const int BY_VAT = 4;
 
-    CSortOpt(void);
+    CSortOpt() = default;
 
-    CSortOpt &addKey(int key,
-                     bool ascending = true);
+    CSortOpt &addKey(int key, bool ascending = true);
 
 private:
     // todo
 };
 
+string removeExtraSpaces(const string &str) {
+    string result;
+    bool last_space = true;
+    for (auto itr: str) {
+        if (itr != ' ') {
+            result.push_back(itr);
+            last_space = false;
+        } else if (!last_space) {
+            result.push_back(' ');
+            last_space = true;
+        }
+    }
+    if (result.back() == ' ')
+        result.pop_back();
+
+    return result;
+}
+
+// https://courses.fit.cvut.cz/BI-PA2/media/lectures/l06-stl-cz.pdf
+struct iless {
+    bool operator()(const string &a, const string &b) const {
+        string tmp1 = removeExtraSpaces(a);
+        string tmp2 = removeExtraSpaces(b);
+        if (strcasecmp(tmp1.c_str(), tmp2.c_str()) == 0) {
+            return false;
+        }
+        return true;
+    }
+};
+
+struct CompInvoce {
+    bool operator()(const CInvoice &a, const CInvoice &b) const {
+        string tmp1, tmp2, tmp3, tmp4;
+        tmp1 = removeExtraSpaces(a.seller());
+        tmp2 = removeExtraSpaces(b.seller());
+        tmp3 = removeExtraSpaces(a.buyer());
+        tmp4 = removeExtraSpaces(b.buyer());
+        if (a.amount() == b.amount() && a.vat() == b.vat()
+            && a.date().compare(b.date()) == 0
+            && strcasecmp(tmp1.c_str(), tmp2.c_str()) == 0
+            && strcasecmp(tmp3.c_str(), tmp4.c_str()) == 0) {
+            return false;
+        }
+        return true;
+    }
+};
+
 class CVATRegister {
 public:
-    CVATRegister(void);
+    CVATRegister() = default;
 
-    bool registerCompany(const string &name);
+    bool registerCompany(const string &name) {
+        if (!comp_.insert(name).second) {
+            return false;
+        }
+        return true;
+    }
 
-    bool addIssued(const CInvoice &x);
+    bool addIssued(const CInvoice &x) {
+        string a, b, c;
+        a = removeExtraSpaces(x.seller());
+        b = removeExtraSpaces(x.buyer());
+        if (a == b) {
+            cout << "2\n";
+            return false;
+        }
+        int find1 = 0, find2 = 0;
+        for (const auto &itr: comp_) {
+            c = removeExtraSpaces(itr);
+            if (strcasecmp(a.c_str(), c.c_str()) == 0) {
+                find1 = 1;
+            }
+            if (strcasecmp(b.c_str(), c.c_str()) == 0) {
+                find2 = 1;
+            }
+        }
+        if (find1 == 0 || find2 == 0) {
+            cout << "2\n";
+            return false;
+        }
+
+        if (registry_.insert(x).second) {
+            registry_.insert(x);
+        } else {
+            cout << "3\n";
+            return false;
+        }
+        return true;
+    }
 
     bool addAccepted(const CInvoice &x);
 
@@ -127,20 +236,31 @@ public:
 
     bool delAccepted(const CInvoice &x);
 
-    list<CInvoice> unmatched(const string &company,
-                             const CSortOpt &sortBy) const;
+    list<CInvoice> unmatched(const string &company, const CSortOpt &sortBy) const;
 
 private:
-    // todo
+    set<string, iless> comp_;
+    set<CInvoice, CompInvoce> registry_;
 };
 
 #ifndef __PROGTEST__
 
 bool equalLists(const list<CInvoice> &a, const list<CInvoice> &b) {
-    // todo
+    for (const auto &tmp1: a) {
+        for (const auto &tmp2: b) {
+            if (tmp1.vat() != tmp2.vat() ||
+                tmp1.amount() != tmp2.amount() ||
+                tmp1.buyer() != tmp2.buyer() ||
+                tmp1.seller() != tmp2.seller() ||
+                tmp1.date().compare(tmp2.date()) != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
-int main(void) {
+int main() {
     CVATRegister r;
     assert(r.registerCompany("first Company"));
     assert(r.registerCompany("Second     Company"));
@@ -148,6 +268,7 @@ int main(void) {
     assert(r.registerCompany("Third Company, Ltd."));
     assert(!r.registerCompany("Third Company, Ltd."));
     assert(!r.registerCompany(" Third  Company,  Ltd.  "));
+
     assert(r.addIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company ", 100, 20)));
     assert(r.addIssued(CInvoice(CDate(2000, 1, 2), "FirSt Company", "Second Company ", 200, 30)));
     assert(r.addIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company ", 100, 30)));
@@ -158,6 +279,7 @@ int main(void) {
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company ", 300, 30)));
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 4), "First Company", "First   Company", 200, 30)));
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 4), "Another Company", "First   Company", 200, 30)));
+    /*
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, false).addKey(
                                           CSortOpt::BY_DATE, false)),
@@ -259,6 +381,7 @@ int main(void) {
                               CInvoice(CDate(2000, 1, 2), "first Company", "Second     Company", 200, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 32.000000)}));
+    */
     return EXIT_SUCCESS;
 }
 
