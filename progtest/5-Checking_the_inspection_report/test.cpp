@@ -170,11 +170,19 @@ public:
     CSortOpt() = default;
 
     CSortOpt &addKey(int key, bool ascending = true) {
+        if (ascending)
+            asc_ = true;
+        else
+            asc_ = false;
         return *this;
     }
 
+    bool isAsc() const {
+        return asc_;
+    }
+
 private:
-    // todo
+    bool asc_;
 };
 
 // https://courses.fit.cvut.cz/BI-PA2/media/lectures/l06-stl-cz.pdf
@@ -216,9 +224,10 @@ public:
     bool registerCompany(const string &name) {
         string tmp = removeExtraSpaces(name);
         auto res = comp_.insert(tmp);
-        if (!res.second) {
+
+        if (!res.second)
             return false;
-        }
+
         return true;
     }
 
@@ -253,9 +262,10 @@ public:
             return false;
 
         auto res = sell_registry_.insert(x);
-        if (!res.second) {
+
+        if (!res.second)
             return false;
-        }
+
         return true;
     }
 
@@ -264,9 +274,10 @@ public:
             return false;
 
         auto res = buy_registry_.insert(x);
-        if (!res.second) {
+
+        if (!res.second)
             return false;
-        }
+
         return true;
     }
 
@@ -274,15 +285,9 @@ public:
         if (!checkRegistr(x))
             return false;
 
-        auto itr = sell_registry_.find(x);
-        if (itr != sell_registry_.end())
-            cout << "nasel jsem\n";
-        else
-            cout << "smula\n";
-
-        if (sell_registry_.erase(x) == 0) {
+        if (sell_registry_.erase(x) == 0)
             return false;
-        }
+
         return true;
     }
 
@@ -300,20 +305,13 @@ public:
         list<CInvoice> sorted;
         string company_format = removeExtraSpaces(company);
 
-        auto itr_sell = lower_bound(sell_registry_.begin(),
-                                    sell_registry_.end(),
-                                    company_format, CompareInvoices());
+        //set_symmetric_difference(sell_registry_.begin(), sell_registry_.end(),
+        //                         buy_registry_.begin(), buy_registry_.end(),
+        //                         back_inserter(sorted), CompareInvoices());
 
-        auto itr_buy = lower_bound(buy_registry_.begin(),
-                                   buy_registry_.end(),
-                                   company_format, CompareInvoices());
-
-        if (itr_sell == sell_registry_.end() || (*itr_sell).seller_formated() != company_format)
-            cout << "sell end\n";
-
-        if (itr_buy == buy_registry_.end() || (*itr_buy).buyer_formated() != company_format)
-            cout << "buy end\n";
-
+        set_difference(sell_registry_.begin(), sell_registry_.end(),
+                       buy_registry_.begin(), buy_registry_.end(),
+                       back_inserter(sorted), CompareInvoices());
 
         return sorted;
     }
@@ -364,9 +362,10 @@ int main() {
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company ", 300, 30)));
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 4), "First Company", "First   Company", 200, 30)));
     assert(!r.addIssued(CInvoice(CDate(2000, 1, 4), "Another Company", "First   Company", 200, 30)));
-/*
+
     assert(equalLists(r.unmatched("First Company",
-                                  CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, false).addKey(
+                                  CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER,
+                                                                                      false).addKey(
                                           CSortOpt::BY_DATE, false)),
                       list<CInvoice>{
                               CInvoice(CDate(2000, 1, 1), "first Company", "Third Company, Ltd.", 200, 30.000000),
@@ -375,7 +374,7 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Second     Company", 100, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "first Company", "Second     Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000)}));
-    */
+
     /*
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_DATE, true).addKey(CSortOpt::BY_SELLER, true).addKey(
