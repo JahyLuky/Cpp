@@ -92,14 +92,16 @@ struct Company {
     string buyer_;
     string seller_format_;
     string buyer_format_;
-    int register_order_;
+    int seller_order_;
+    int buyer_order_;
 
     Company() = default;
 
-    Company(const string &seller, const string &buyer, int order)
+    Company(const string &seller, const string &buyer, int seller_order, int buyer_order)
             : seller_(seller), buyer_(buyer),
               seller_format_(removeExtraSpaces(seller)),
-              buyer_format_(removeExtraSpaces(buyer)), register_order_(order) {}
+              buyer_format_(removeExtraSpaces(buyer)),
+              seller_order_(seller_order), buyer_order_(buyer_order) {}
 };
 
 class CInvoice {
@@ -108,7 +110,7 @@ public:
 
     CInvoice(const CDate &date, const string &seller,
              const string &buyer, unsigned int amount, double vat)
-            : date_(date), comp_(seller, buyer, 0),
+            : date_(date), comp_(seller, buyer, 0, 0),
               amount_(amount), vat_(vat) {}
 
     CDate date() const {
@@ -139,8 +141,12 @@ public:
         return vat_;
     }
 
-    int order() const {
-        return comp_.register_order_;
+    int sell_order() const {
+        return comp_.seller_order_;
+    }
+
+    int buy_order() const {
+        return comp_.buyer_order_;
     }
 
     bool operator==(const CInvoice &a) const {
@@ -231,7 +237,10 @@ public:
                     break;
             }
         }
-        return true;
+        if (left.sell_order() != right.sell_order())
+            return left.sell_order() < right.sell_order();
+        return left.buy_order() < right.buy_order();
+        //return true;
     }
 
 private:
@@ -243,6 +252,12 @@ struct CompareInvoices {
     bool operator()(const string &a, const string &b) const {
         string tmp1 = removeExtraSpaces(a);
         string tmp2 = removeExtraSpaces(b);
+        return strcasecmp(tmp1.c_str(), tmp2.c_str()) < 0;
+    }
+
+    bool operator()(const pair<string, int> &a, const pair<string, int> &b) const {
+        string tmp1 = removeExtraSpaces(a.first);
+        string tmp2 = removeExtraSpaces(b.first);
         return strcasecmp(tmp1.c_str(), tmp2.c_str()) < 0;
     }
 
@@ -272,57 +287,47 @@ struct CompareInvoices {
 
 };
 
+int order66 = 0;
+
 class CVATRegister {
 public:
     CVATRegister() = default;
 
     bool registerCompany(const string &name) {
-        auto res = comp_.insert(name);
-
+        auto res = comp_.insert(make_pair(name, order66));
+        order66++;
         if (!res.second)
             return false;
 
         return true;
     }
 
-    bool checkRegister1(CInvoice &x) {
+    bool checkRegister(CInvoice &x) {
         if (strcasecmp(x.seller_formated().c_str(), x.buyer_formated().c_str()) == 0) {
             return false;
         }
 
-        auto sell_itr = comp_.find(x.seller_formated());
+        auto sell_itr = comp_.find(make_pair(x.seller_formated(), 0));
         if (sell_itr == comp_.end())
             return false;
 
-        auto buy_itr = comp_.find(x.buyer_formated());
+        auto buy_itr = comp_.find(make_pair(x.buyer_formated(), 0));
         if (buy_itr == comp_.end())
             return false;
 
-        x.comp_.seller_ = *sell_itr;
-        x.comp_.buyer_ = *buy_itr;
-
-        return true;
-    }
-
-    bool checkRegister(const CInvoice &x) const {
-        if (strcasecmp(x.seller_formated().c_str(), x.buyer_formated().c_str()) == 0) {
-            return false;
-        }
-
-        auto sell_itr = comp_.find(x.seller_formated());
-        if (sell_itr == comp_.end())
-            return false;
-
-        if (comp_.find(x.buyer_formated()) == comp_.end())
-            return false;
+        x.comp_.seller_ = (*sell_itr).first;
+        x.comp_.seller_order_ = (*sell_itr).second;
+        x.comp_.buyer_ = (*buy_itr).first;
+        x.comp_.buyer_order_ = (*buy_itr).second;
 
         return true;
     }
 
     bool addIssued(const CInvoice &x) {
-        CInvoice tmp(CDate(x.date_.year(), x.date_.month(), x.date_.day()), x.comp_.seller_, x.comp_.buyer_, x.amount_,
-                     x.vat_);
-        if (!checkRegister1(tmp))
+        CInvoice tmp(CDate(x.date_.year(), x.date_.month(), x.date_.day()),
+                     x.comp_.seller_, x.comp_.buyer_, x.amount_, x.vat_);
+
+        if (!checkRegister(tmp))
             return false;
 
         auto res = sell_register_.insert(tmp);
@@ -334,10 +339,13 @@ public:
     }
 
     bool addAccepted(const CInvoice &x) {
-        if (!checkRegister(x))
+        CInvoice tmp(CDate(x.date_.year(), x.date_.month(), x.date_.day()),
+                     x.comp_.seller_, x.comp_.buyer_, x.amount_, x.vat_);
+
+        if (!checkRegister(tmp))
             return false;
 
-        auto res = buy_register_.insert(x);
+        auto res = buy_register_.insert(tmp);
 
         if (!res.second)
             return false;
@@ -346,20 +354,26 @@ public:
     }
 
     bool delIssued(const CInvoice &x) {
-        if (!checkRegister(x))
+        CInvoice tmp(CDate(x.date_.year(), x.date_.month(), x.date_.day()),
+                     x.comp_.seller_, x.comp_.buyer_, x.amount_, x.vat_);
+
+        if (!checkRegister(tmp))
             return false;
 
-        if (sell_register_.erase(x) == 0)
+        if (sell_register_.erase(tmp) == 0)
             return false;
 
         return true;
     }
 
     bool delAccepted(const CInvoice &x) {
-        if (!checkRegister(x))
+        CInvoice tmp(CDate(x.date_.year(), x.date_.month(), x.date_.day()),
+                     x.comp_.seller_, x.comp_.buyer_, x.amount_, x.vat_);
+
+        if (!checkRegister(tmp))
             return false;
 
-        if (buy_register_.erase(x) == 0) {
+        if (buy_register_.erase(tmp) == 0) {
             return false;
         }
         return true;
@@ -396,7 +410,7 @@ public:
     }
 
 private:
-    set<string, CompareInvoices> comp_;
+    set<pair<string, int>, CompareInvoices> comp_;
     set<CInvoice, CompareInvoices> sell_register_;
     set<CInvoice, CompareInvoices> buy_register_;
 };
@@ -458,7 +472,7 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Second     Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000)}));
 
-    /*
+
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_DATE, true).addKey(CSortOpt::BY_SELLER, true).addKey(
                                           CSortOpt::BY_BUYER, true)),
@@ -469,6 +483,7 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Third Company, Ltd.", 200, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 2), "first Company", "Second     Company", 200, 30.000000)}));
+
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_VAT, true).addKey(CSortOpt::BY_AMOUNT, true).addKey(
                                           CSortOpt::BY_DATE, true).addKey(CSortOpt::BY_SELLER, true).addKey(
@@ -499,7 +514,7 @@ int main() {
                                        34.000000)}));
     assert(equalLists(r.unmatched("last company", CSortOpt().addKey(CSortOpt::BY_VAT, true)),
                       list<CInvoice>{}));
-    */
+
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 2), "First Company", "Second Company ", 200, 30)));
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 1), "First Company", " Third  Company,  Ltd.   ", 200, 30)));
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 1), "Second company ", "First Company", 300, 32)));
