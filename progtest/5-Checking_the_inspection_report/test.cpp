@@ -103,6 +103,8 @@ struct Company {
 
 class CInvoice {
 public:
+    CInvoice();
+
     CInvoice(const CDate &date, const string &seller,
              const string &buyer, unsigned int amount, double vat)
             : date_(date), comp_(seller, buyer),
@@ -152,12 +154,14 @@ public:
         return true;
     }
 
-private:
     CDate date_;
     Company comp_;
     unsigned int amount_;
     double vat_;
+private:
 };
+
+vector<pair<int, bool>> Sort_level;
 
 class CSortOpt {
 public:
@@ -170,19 +174,11 @@ public:
     CSortOpt() = default;
 
     CSortOpt &addKey(int key, bool ascending = true) {
-        if (ascending)
-            asc_ = true;
-        else
-            asc_ = false;
+        Sort_level.emplace_back(key, ascending);
         return *this;
     }
 
-    bool isAsc() const {
-        return asc_;
-    }
-
 private:
-    bool asc_;
 };
 
 // https://courses.fit.cvut.cz/BI-PA2/media/lectures/l06-stl-cz.pdf
@@ -236,6 +232,7 @@ public:
             return false;
         }
 
+        //TODO: find()
         auto itr1 = lower_bound(comp_.begin(),
                                 comp_.end(),
                                 x.seller_formated(), CompareInvoices());
@@ -253,6 +250,7 @@ public:
             strcasecmp((*itr2).c_str(), x.buyer_formated().c_str()) != 0) {
             return false;
         }
+
 
         return true;
     }
@@ -305,13 +303,29 @@ public:
         list<CInvoice> sorted;
         string company_format = removeExtraSpaces(company);
 
-        //set_symmetric_difference(sell_registry_.begin(), sell_registry_.end(),
-        //                         buy_registry_.begin(), buy_registry_.end(),
-        //                         back_inserter(sorted), CompareInvoices());
+        bool isFoundSell = false;
+        bool isFoundBuy = false;
+        for (const auto &sell: sell_registry_) {
+            if (strcasecmp(sell.seller_formated().c_str(), company_format.c_str()) == 0) {
+                isFoundSell = true;
+            }
+            for (const auto &buy: buy_registry_) {
+                if (strcasecmp(buy.buyer_formated().c_str(), company_format.c_str()) == 0) {
+                    if (!isFoundSell) {
+                        sorted.emplace_back(buy);
+                    } else {
+                        isFoundBuy = true;
+                    }
+                    continue;
+                }
+            }
+            if (isFoundSell && !isFoundBuy) {
+                sorted.emplace_back(sell);
+            }
+            isFoundSell = false;
+        }
 
-        set_difference(sell_registry_.begin(), sell_registry_.end(),
-                       buy_registry_.begin(), buy_registry_.end(),
-                       back_inserter(sorted), CompareInvoices());
+        Sort_level.clear();
 
         return sorted;
     }
