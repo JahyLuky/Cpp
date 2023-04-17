@@ -92,16 +92,16 @@ struct Company {
     string buyer_;
     string seller_format_;
     string buyer_format_;
-    int seller_order_;
-    int buyer_order_;
+    int order_;
+
 
     Company() = default;
 
-    Company(const string &seller, const string &buyer, int seller_order, int buyer_order)
+    Company(const string &seller, const string &buyer, int order)
             : seller_(seller), buyer_(buyer),
               seller_format_(removeExtraSpaces(seller)),
               buyer_format_(removeExtraSpaces(buyer)),
-              seller_order_(seller_order), buyer_order_(buyer_order) {}
+              order_(order) {}
 };
 
 class CInvoice {
@@ -110,7 +110,7 @@ public:
 
     CInvoice(const CDate &date, const string &seller,
              const string &buyer, unsigned int amount, double vat)
-            : date_(date), comp_(seller, buyer, 0, 0),
+            : date_(date), comp_(seller, buyer, 0),
               amount_(amount), vat_(vat) {}
 
     CDate date() const {
@@ -141,12 +141,8 @@ public:
         return vat_;
     }
 
-    int sell_order() const {
-        return comp_.seller_order_;
-    }
-
-    int buy_order() const {
-        return comp_.buyer_order_;
+    int order() const {
+        return comp_.order_;
     }
 
     bool operator==(const CInvoice &a) const {
@@ -219,7 +215,7 @@ public:
                     break;
                 case BY_AMOUNT:
                     if (left.amount() != right.amount()) {
-                        if (left.vat() != right.vat()) {
+                        if (key.second) {
                             return left.amount() < right.amount();
                         } else {
                             return left.amount() > right.amount();
@@ -237,10 +233,7 @@ public:
                     break;
             }
         }
-        if (left.sell_order() != right.sell_order())
-            return left.sell_order() < right.sell_order();
-        return left.buy_order() < right.buy_order();
-        //return true;
+        return left.order() < right.order();
     }
 
 private:
@@ -252,12 +245,6 @@ struct CompareInvoices {
     bool operator()(const string &a, const string &b) const {
         string tmp1 = removeExtraSpaces(a);
         string tmp2 = removeExtraSpaces(b);
-        return strcasecmp(tmp1.c_str(), tmp2.c_str()) < 0;
-    }
-
-    bool operator()(const pair<string, int> &a, const pair<string, int> &b) const {
-        string tmp1 = removeExtraSpaces(a.first);
-        string tmp2 = removeExtraSpaces(b.first);
         return strcasecmp(tmp1.c_str(), tmp2.c_str()) < 0;
     }
 
@@ -287,15 +274,13 @@ struct CompareInvoices {
 
 };
 
-int order66 = 0;
-
 class CVATRegister {
 public:
     CVATRegister() = default;
 
     bool registerCompany(const string &name) {
-        auto res = comp_.insert(make_pair(name, order66));
-        order66++;
+        auto res = comp_.insert(name);
+
         if (!res.second)
             return false;
 
@@ -307,18 +292,18 @@ public:
             return false;
         }
 
-        auto sell_itr = comp_.find(make_pair(x.seller_formated(), 0));
+        auto sell_itr = comp_.find(x.seller_formated());
         if (sell_itr == comp_.end())
             return false;
 
-        auto buy_itr = comp_.find(make_pair(x.buyer_formated(), 0));
+        auto buy_itr = comp_.find(x.buyer_formated());
         if (buy_itr == comp_.end())
             return false;
 
-        x.comp_.seller_ = (*sell_itr).first;
-        x.comp_.seller_order_ = (*sell_itr).second;
-        x.comp_.buyer_ = (*buy_itr).first;
-        x.comp_.buyer_order_ = (*buy_itr).second;
+        x.comp_.seller_ = *sell_itr;
+        x.comp_.buyer_ = *buy_itr;
+        x.comp_.order_ = register_order_;
+        register_order_++;
 
         return true;
     }
@@ -410,9 +395,10 @@ public:
     }
 
 private:
-    set<pair<string, int>, CompareInvoices> comp_;
+    set<string, CompareInvoices> comp_;
     set<CInvoice, CompareInvoices> sell_register_;
     set<CInvoice, CompareInvoices> buy_register_;
+    int register_order_;
 };
 
 #ifndef __PROGTEST__
@@ -483,7 +469,6 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Third Company, Ltd.", 200, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 2), "first Company", "Second     Company", 200, 30.000000)}));
-
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_VAT, true).addKey(CSortOpt::BY_AMOUNT, true).addKey(
                                           CSortOpt::BY_DATE, true).addKey(CSortOpt::BY_SELLER, true).addKey(
@@ -518,7 +503,9 @@ int main() {
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 2), "First Company", "Second Company ", 200, 30)));
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 1), "First Company", " Third  Company,  Ltd.   ", 200, 30)));
     assert(r.addAccepted(CInvoice(CDate(2000, 1, 1), "Second company ", "First Company", 300, 32)));
-    /*
+
+    cout << "\n\n\n";
+
     assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, true).addKey(
                                           CSortOpt::BY_DATE, true)),
@@ -528,14 +515,14 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Second     Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 32.000000)}));
-    */
+
     assert(!r.delIssued(CInvoice(CDate(2001, 1, 1), "First Company", "Second Company ", 200, 30)));
     assert(!r.delIssued(CInvoice(CDate(2000, 1, 1), "A First Company", "Second Company ", 200, 30)));
     assert(!r.delIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Hand", 200, 30)));
     assert(!r.delIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company", 1200, 30)));
     assert(!r.delIssued(CInvoice(CDate(2000, 1, 1), "First Company", "Second Company", 200, 130)));
     assert(r.delIssued(CInvoice(CDate(2000, 1, 2), "First Company", "Second Company", 200, 30)));
-    /*
+
      assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, true).addKey(
                                           CSortOpt::BY_DATE, true)),
@@ -546,9 +533,9 @@ int main() {
                               CInvoice(CDate(2000, 1, 2), "first Company", "Second     Company", 200, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 32.000000)}));
-    */
+
     assert(r.delAccepted(CInvoice(CDate(2000, 1, 1), "First Company", " Third  Company,  Ltd.   ", 200, 30)));
-    /*
+
      assert(equalLists(r.unmatched("First Company",
                                   CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, true).addKey(
                                           CSortOpt::BY_DATE, true)),
@@ -560,9 +547,9 @@ int main() {
                               CInvoice(CDate(2000, 1, 1), "first Company", "Third Company, Ltd.", 200, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                               CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 32.000000)}));
-    */
+
     assert(r.delIssued(CInvoice(CDate(2000, 1, 1), "First Company", " Third  Company,  Ltd.   ", 200, 30)));
-    /*
+
      assert(equalLists(r.unmatched("First Company",
                                    CSortOpt().addKey(CSortOpt::BY_SELLER, true).addKey(CSortOpt::BY_BUYER, true).addKey(
                                            CSortOpt::BY_DATE, true)),
@@ -573,7 +560,7 @@ int main() {
                                CInvoice(CDate(2000, 1, 2), "first Company", "Second     Company", 200, 30.000000),
                                CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 30.000000),
                                CInvoice(CDate(2000, 1, 1), "Second     Company", "first Company", 300, 32.000000)}));
-     */
+
     return EXIT_SUCCESS;
 }
 
