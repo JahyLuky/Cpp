@@ -69,6 +69,9 @@ private:
 
 #endif /* __PROGTEST__ */
 
+// global variable for ranking criterion in sorting
+vector<pair<int, bool>> Sort_level;
+
 string removeExtraSpaces(const string &str) {
     string result;
     bool last_space = true;
@@ -161,8 +164,6 @@ public:
 private:
 };
 
-vector<pair<int, bool>> Sort_level;
-
 class CSortOpt {
 public:
     static const int BY_DATE = 0;
@@ -213,6 +214,65 @@ struct CompareInvoices {
 
 };
 
+bool compareSellAsc(const CInvoice &a, const CInvoice &b) {
+    if (strcasecmp(a.seller_formated().c_str(), b.seller_formated().c_str()) > 0) {
+        return true;
+
+    } else if (strcasecmp(a.seller_formated().c_str(), b.seller_formated().c_str()) == 0
+               && strcasecmp(a.seller_formated().c_str(), b.seller_formated().c_str()) < 0) {
+        return true;
+    }
+    return false;
+}
+
+void sortCInvoices(list<CInvoice> &sorted) {
+    for (size_t i = 0; i < Sort_level.size(); ++i) {
+        switch (Sort_level[i].first) {
+            // DATE
+            case 0:
+                if (Sort_level[i].second) {
+                    cout << "ahoj 1\n";
+                } else {
+                    cout << "ahoj 2\n";
+                }
+                break;
+                // BUYER
+            case 1:
+                if (Sort_level[i].second) {
+                    cout << "ahoj 1\n";
+                } else {
+                    cout << "ahoj 2\n";
+                }
+                break;
+                // SELL
+            case 2:
+                if (Sort_level[i].second) {
+                    cout << "ahoj 1\n";
+                    sorted.sort(compareSellAsc);
+                } else {
+                    cout << "ahoj 2\n";
+                }
+                break;
+                // AMOUNT
+            case 4:
+                if (Sort_level[i].second) {
+                    cout << "ahoj 1\n";
+                } else {
+                    cout << "ahoj 2\n";
+                }
+                break;
+                // VAT
+            case 5:
+                if (Sort_level[i].second) {
+                    cout << "ahoj 1\n";
+                } else {
+                    cout << "ahoj 2\n";
+                }
+                break;
+        }
+    }
+}
+
 class CVATRegister {
 public:
     CVATRegister() = default;
@@ -232,7 +292,7 @@ public:
             return false;
         }
 
-        //TODO: find()
+        /*
         auto itr1 = lower_bound(comp_.begin(),
                                 comp_.end(),
                                 x.seller_formated(), CompareInvoices());
@@ -241,16 +301,25 @@ public:
             strcasecmp((*itr1).c_str(), x.seller_formated().c_str()) != 0) {
             return false;
         }
+        */
 
+        if (comp_.find(x.seller_formated()) == comp_.end())
+            return false;
+
+        /*
         auto itr2 = lower_bound(comp_.begin(),
                                 comp_.end(),
                                 x.buyer_formated(), CompareInvoices());
+
 
         if (itr2 == comp_.end() ||
             strcasecmp((*itr2).c_str(), x.buyer_formated().c_str()) != 0) {
             return false;
         }
+        */
 
+        if (comp_.find(x.buyer_formated()) == comp_.end())
+            return false;
 
         return true;
     }
@@ -324,6 +393,9 @@ public:
             }
             isFoundSell = false;
         }
+
+        sortCInvoices(sorted);
+
 
         Sort_level.clear();
 
