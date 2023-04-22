@@ -61,6 +61,8 @@ public:
 
     virtual Component *clone() const = 0;
 
+    virtual void changeRel(const CRect &abs) = 0;
+
     virtual void print(ostream &out, const Component &item) const = 0;
 
     //friend ostream &operator<<(ostream &out, const Component &item) = 0;
@@ -121,21 +123,43 @@ public:
         return new CWindow(*this);
     }
 
+    void changeRel(const CRect &abs) {
+        this->rect_.m_X = abs.m_X;
+        this->rect_.m_Y = abs.m_Y;
+        this->rect_.m_W = abs.m_W;
+        this->rect_.m_H = abs.m_H;
+    }
+
+
     void print(ostream &out, const Component &item) const override {
         out << "[" << namedComponent::getID() << "] "
             << this->getType() << " \""
             << namedComponent::getName() << "\" "
             << namedComponent::getRect() << endl;
         for (const auto &i: components_) {
-
+            i->changeRel(this->rect_);
             i->print(out, *i);
         }
     }
 
     // search
+    Component *search(int id) {
+        for (auto &i: components_) {
+            if (i->getID() == id) {
+                return i.get();
+            }
+        }
+        return nullptr;
+    }
+
 
     // setPosition
-
+    void setPosition(const CRect &absPos) {
+        this->changeRel(absPos);
+        for (const auto &i: components_) {
+            i->changeRel(this->rect_);
+        }
+    }
 
 private:
     vector<shared_ptr<Component>> components_;
@@ -163,6 +187,13 @@ public:
 
     Component *clone() const {
         return new CButton(*this);
+    }
+
+    virtual void changeRel(const CRect &abs) {
+        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
     string getName() const {
@@ -199,6 +230,13 @@ public:
 
     Component *clone() const {
         return new CInput(*this);
+    }
+
+    virtual void changeRel(const CRect &abs) {
+        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
     void print(ostream &out, const Component &item) const {
@@ -242,6 +280,13 @@ public:
         return new CLabel(*this);
     }
 
+    virtual void changeRel(const CRect &abs) {
+        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+    }
+
     void print(ostream &out, const Component &item) const {
         out << "+- [" << item.getID() << "] "
             << item.getType()
@@ -274,6 +319,13 @@ public:
         return Component::getRect();
     }
 
+    virtual void changeRel(const CRect &abs) {
+        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+    }
+
     Component *clone() const {
         return new CComboBox(*this);
     }
@@ -283,7 +335,7 @@ public:
             << item.getType() << " "
             << item.getRect() << endl;
         int count = 0;
-        for (const auto&i: combobox_) {
+        for (const auto &i: combobox_) {
             if (count == 0) {
                 count++;
                 out << "   +->" << i << "<" << endl;
@@ -312,7 +364,8 @@ private:
 
 // output operators
 ostream &operator<<(ostream &out, const Component &item) {
-    item.print(cout, item);
+    item.print(out, item);
+    //item.print(cout, item);
     return out;
 }
 
@@ -322,6 +375,7 @@ template<typename _T>
 string toString(const _T &x) {
     ostringstream oss;
     oss << x;
+    //cout << x;
     return oss.str();
 }
 
@@ -350,14 +404,16 @@ int main() {
             "   +- Judo\n"
             "   +- Box\n"
             "   +- Progtest\n");
-    /*
+
     CWindow b = a;
+    *b.search(20);
     assert (toString(*b.search(20)) ==
             "[20] ComboBox (70,154,480,48)\n"
             "+->Karate<\n"
             "+- Judo\n"
             "+- Box\n"
             "+- Progtest\n");
+    /*
     assert (dynamic_cast<CComboBox &> ( *b.search(20)).getSelected() == 0);
     dynamic_cast<CComboBox &> ( *b.search(20)).setSelected(3);
     assert (dynamic_cast<CInput &> ( *b.search(11)).getValue() == "chucknorris");
