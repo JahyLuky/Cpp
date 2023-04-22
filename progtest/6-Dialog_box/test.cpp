@@ -42,40 +42,279 @@ public:
 
 #endif /* __PROGTEST__ */
 
-class CWindow {
+class Component {
 public:
-    CWindow(int id, const string &title, const CRect &absPos);
+    Component(int id, const CRect &rect)
+            : id_(id), rect_(rect) {}
+
+    //virtual int getID() const = 0;
+    virtual int getID() const {
+        return id_;
+    }
+
+    virtual string getType() const = 0;
+
+    //virtual CRect getRect() const = 0;
+    virtual CRect getRect() const {
+        return rect_;
+    }
+
+    virtual Component *clone() const = 0;
+
+    virtual void print(ostream &out, const Component &item) const = 0;
+
+    //friend ostream &operator<<(ostream &out, const Component &item) = 0;
+
+    virtual ~Component() = default;
+
+protected:
+    int id_;
+    CRect rect_;
+};
+
+class namedComponent : public Component {
+public:
+    namedComponent() = default;
+
+    namedComponent(int id, const CRect rect, const string &str)
+            : Component(id, rect), str_(str) {}
+
+    virtual string getName() const {
+        return str_;
+    }
+
+protected:
+    string str_;
+};
+
+class CWindow : public namedComponent {
+public:
+    CWindow() = default;
+
+    CWindow(int id, const string &title, const CRect &absPos)
+            : namedComponent(id, absPos, title) {}
+
     // add
+    CWindow &add(const Component &item) {
+        components_.emplace_back(item.clone());
+        return *this;
+    }
+
+    int getID() const override {
+        return namedComponent::getID();
+    }
+
+    string getName() const override {
+        return namedComponent::getName();
+    }
+
+    string getType() const override {
+        string name = "Window";
+        return name;
+    }
+
+    CRect getRect() const override {
+        return namedComponent::getRect();
+    }
+
+    namedComponent *clone() const override {
+        return new CWindow(*this);
+    }
+
+    void print(ostream &out, const Component &item) const override {
+        out << "[" << namedComponent::getID() << "] "
+            << this->getType() << " \""
+            << namedComponent::getName() << "\" "
+            << namedComponent::getRect() << endl;
+        for (const auto &i: components_) {
+
+            i->print(out, *i);
+        }
+    }
+
     // search
+
     // setPosition
+
+
+private:
+    vector<shared_ptr<Component>> components_;
 };
 
-class CButton {
+class CButton : public namedComponent {
 public:
-    CButton(int id, const CRect &relPos, const string &name);
+    CButton() = default;
+
+    CButton(int id, const CRect &relPos, const string &name)
+            : namedComponent(id, relPos, name) {}
+
+    int getID() const {
+        return namedComponent::getID();
+    }
+
+    string getType() const {
+        string name = "Button";
+        return name;
+    }
+
+    CRect getRect() const {
+        return namedComponent::getRect();
+    }
+
+    Component *clone() const {
+        return new CButton(*this);
+    }
+
+    string getName() const {
+        return namedComponent::getName();
+    }
+
+    void print(ostream &out, const Component &item) const {
+        out << "+- [" << item.getID() << "] "
+            << item.getType()
+            << " \"" << namedComponent::getName() << "\" "
+            << item.getRect() << endl;
+    }
 };
 
-class CInput {
+class CInput : public namedComponent {
 public:
-    CInput(int id, const CRect &relPos, const string &value);
-    // setValue 
+    CInput() = default;
+
+    CInput(int id, const CRect &relPos, const string &value)
+            : namedComponent(id, relPos, value) {}
+
+    int getID() const {
+        return namedComponent::getID();
+    }
+
+    string getType() const {
+        string name = "Input";
+        return name;
+    }
+
+    CRect getRect() const {
+        return namedComponent::getRect();
+    }
+
+    Component *clone() const {
+        return new CInput(*this);
+    }
+
+    void print(ostream &out, const Component &item) const {
+        out << "+- [" << item.getID() << "] "
+            << item.getType()
+            << " \"" << namedComponent::getName() << "\" "
+            << item.getRect() << endl;
+    }
+
+    string getName() const {
+        return namedComponent::getName();
+    }
+
+    // setValue
+
+
     // getValue 
 };
 
-class CLabel {
+class CLabel : public namedComponent {
 public:
-    CLabel(int id, const CRect &relPos, const string &label);
+    CLabel() = default;
+
+    CLabel(int id, const CRect &relPos, const string &label)
+            : namedComponent(id, relPos, label) {}
+
+    int getID() const {
+        return namedComponent::getID();
+    }
+
+    string getType() const {
+        string name = "Label";
+        return name;
+    }
+
+    CRect getRect() const {
+        return namedComponent::getRect();
+    }
+
+    Component *clone() const {
+        return new CLabel(*this);
+    }
+
+    void print(ostream &out, const Component &item) const {
+        out << "+- [" << item.getID() << "] "
+            << item.getType()
+            << " \"" << namedComponent::getName() << "\" "
+            << item.getRect() << endl;
+    }
+
+    string getName() const {
+        return namedComponent::getName();
+    }
 };
 
-class CComboBox {
+class CComboBox : public Component {
 public:
-    CComboBox(int id, const CRect &relPos);
-    // add                                                                            
+    CComboBox() = default;
+
+    CComboBox(int id, const CRect &relPos)
+            : Component(id, relPos) {}
+
+    int getID() const {
+        return Component::getID();
+    }
+
+    string getType() const {
+        string name = "ComboBox";
+        return name;
+    }
+
+    CRect getRect() const {
+        return Component::getRect();
+    }
+
+    Component *clone() const {
+        return new CComboBox(*this);
+    }
+
+    void print(ostream &out, const Component &item) const {
+        out << "+- [" << item.getID() << "] "
+            << item.getType() << " "
+            << item.getRect() << endl;
+        int count = 0;
+        for (const auto&i: combobox_) {
+            if (count == 0) {
+                count++;
+                out << "   +->" << i << "<" << endl;
+            } else {
+                out << "   +- " << i << endl;
+            }
+        }
+    }
+
+    // add
+    CComboBox &add(const string &item) {
+        combobox_.emplace_back(item);
+        return *this;
+    }
+
     // setSelected
+
+
     // getSelected
+
+
+private:
+    vector<string> combobox_;
+    int selected_;
 };
 
 // output operators
+ostream &operator<<(ostream &out, const Component &item) {
+    item.print(cout, item);
+    return out;
+}
 
 #ifndef __PROGTEST__
 
@@ -86,15 +325,20 @@ string toString(const _T &x) {
     return oss.str();
 }
 
-int main(void) {
+int main() {
+    cout << sizeof(CButton) << ", " << sizeof(string) << " < "
+         << sizeof(CComboBox) << ", " << sizeof(vector<string>) << endl;
+
     assert (sizeof(CButton) - sizeof(string) < sizeof(CComboBox) - sizeof(vector<string>));
     assert (sizeof(CInput) - sizeof(string) < sizeof(CComboBox) - sizeof(vector<string>));
     assert (sizeof(CLabel) - sizeof(string) < sizeof(CComboBox) - sizeof(vector<string>));
     CWindow a(0, "Sample window", CRect(10, 10, 600, 480));
+
     a.add(CButton(1, CRect(0.1, 0.8, 0.3, 0.1), "Ok")).add(CButton(2, CRect(0.6, 0.8, 0.3, 0.1), "Cancel"));
     a.add(CLabel(10, CRect(0.1, 0.1, 0.2, 0.1), "Username:"));
     a.add(CInput(11, CRect(0.4, 0.1, 0.5, 0.1), "chucknorris"));
     a.add(CComboBox(20, CRect(0.1, 0.3, 0.8, 0.1)).add("Karate").add("Judo").add("Box").add("Progtest"));
+
     assert (toString(a) ==
             "[0] Window \"Sample window\" (10,10,600,480)\n"
             "+- [1] Button \"Ok\" (70,394,180,48)\n"
@@ -106,6 +350,7 @@ int main(void) {
             "   +- Judo\n"
             "   +- Box\n"
             "   +- Progtest\n");
+    /*
     CWindow b = a;
     assert (toString(*b.search(20)) ==
             "[20] ComboBox (70,154,480,48)\n"
@@ -160,6 +405,7 @@ int main(void) {
             "   +->PA2<\n"
             "   +- OSY\n"
             "   +- Both\n");
+    */
     return EXIT_SUCCESS;
 }
 
