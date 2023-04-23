@@ -65,7 +65,7 @@ public:
 
     virtual void print(ostream &out, const Component &item) const = 0;
 
-    //friend ostream &operator<<(ostream &out, const Component &item) = 0;
+    friend ostream &operator<<(ostream &out, const Component &item);
 
     virtual ~Component() = default;
 
@@ -99,6 +99,7 @@ public:
     // add
     CWindow &add(const Component &item) {
         components_.emplace_back(item.clone());
+        components_.back()->changeRel(this->rect_);
         return *this;
     }
 
@@ -123,13 +124,12 @@ public:
         return new CWindow(*this);
     }
 
-    void changeRel(const CRect &abs) {
+    void changeRel(const CRect &abs) override {
         this->rect_.m_X = abs.m_X;
         this->rect_.m_Y = abs.m_Y;
         this->rect_.m_W = abs.m_W;
         this->rect_.m_H = abs.m_H;
     }
-
 
     void print(ostream &out, const Component &item) const override {
         out << "[" << namedComponent::getID() << "] "
@@ -137,7 +137,7 @@ public:
             << namedComponent::getName() << "\" "
             << namedComponent::getRect() << endl;
         for (const auto &i: components_) {
-            i->changeRel(this->rect_);
+            out << "+- ";
             i->print(out, *i);
         }
     }
@@ -172,36 +172,36 @@ public:
     CButton(int id, const CRect &relPos, const string &name)
             : namedComponent(id, relPos, name) {}
 
-    int getID() const {
+    int getID() const override {
         return namedComponent::getID();
     }
 
-    string getType() const {
+    string getType() const override {
         string name = "Button";
         return name;
     }
 
-    CRect getRect() const {
+    CRect getRect() const override {
         return namedComponent::getRect();
     }
 
-    Component *clone() const {
+    Component *clone() const override {
         return new CButton(*this);
     }
 
-    virtual void changeRel(const CRect &abs) {
+    void changeRel(const CRect &abs) override {
         this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
         this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
         this->rect_.m_W = abs.m_W * this->rect_.m_W;
         this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
-    string getName() const {
+    string getName() const override {
         return namedComponent::getName();
     }
 
-    void print(ostream &out, const Component &item) const {
-        out << "+- [" << item.getID() << "] "
+    void print(ostream &out, const Component &item) const override {
+        out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
             << item.getRect() << endl;
@@ -215,38 +215,38 @@ public:
     CInput(int id, const CRect &relPos, const string &value)
             : namedComponent(id, relPos, value) {}
 
-    int getID() const {
+    int getID() const override {
         return namedComponent::getID();
     }
 
-    string getType() const {
+    string getType() const override {
         string name = "Input";
         return name;
     }
 
-    CRect getRect() const {
+    CRect getRect() const override {
         return namedComponent::getRect();
     }
 
-    Component *clone() const {
+    Component *clone() const override {
         return new CInput(*this);
     }
 
-    virtual void changeRel(const CRect &abs) {
+    void changeRel(const CRect &abs) override {
         this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
         this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
         this->rect_.m_W = abs.m_W * this->rect_.m_W;
         this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
-    void print(ostream &out, const Component &item) const {
-        out << "+- [" << item.getID() << "] "
+    void print(ostream &out, const Component &item) const override {
+        out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
             << item.getRect() << endl;
     }
 
-    string getName() const {
+    string getName() const override {
         return namedComponent::getName();
     }
 
@@ -263,38 +263,38 @@ public:
     CLabel(int id, const CRect &relPos, const string &label)
             : namedComponent(id, relPos, label) {}
 
-    int getID() const {
+    int getID() const override {
         return namedComponent::getID();
     }
 
-    string getType() const {
+    string getType() const override {
         string name = "Label";
         return name;
     }
 
-    CRect getRect() const {
+    CRect getRect() const override {
         return namedComponent::getRect();
     }
 
-    Component *clone() const {
+    Component *clone() const override {
         return new CLabel(*this);
     }
 
-    virtual void changeRel(const CRect &abs) {
+    void changeRel(const CRect &abs) override {
         this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
         this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
         this->rect_.m_W = abs.m_W * this->rect_.m_W;
         this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
-    void print(ostream &out, const Component &item) const {
-        out << "+- [" << item.getID() << "] "
+    void print(ostream &out, const Component &item) const override {
+        out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
             << item.getRect() << endl;
     }
 
-    string getName() const {
+    string getName() const override {
         return namedComponent::getName();
     }
 };
@@ -306,37 +306,37 @@ public:
     CComboBox(int id, const CRect &relPos)
             : Component(id, relPos) {}
 
-    int getID() const {
+    int getID() const override {
         return Component::getID();
     }
 
-    string getType() const {
+    string getType() const override {
         string name = "ComboBox";
         return name;
     }
 
-    CRect getRect() const {
+    CRect getRect() const override {
         return Component::getRect();
     }
 
-    virtual void changeRel(const CRect &abs) {
+    void changeRel(const CRect &abs) {
         this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
         this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
         this->rect_.m_W = abs.m_W * this->rect_.m_W;
         this->rect_.m_H = abs.m_H * this->rect_.m_H;
     }
 
-    Component *clone() const {
+    Component *clone() const override {
         return new CComboBox(*this);
     }
 
-    void print(ostream &out, const Component &item) const {
-        out << "+- [" << item.getID() << "] "
+    void print(ostream &out, const Component &item) const override {
+        out << "[" << item.getID() << "] "
             << item.getType() << " "
             << item.getRect() << endl;
         int count = 0;
         for (const auto &i: combobox_) {
-            if (count == 0) {
+            if (count == selected_) {
                 count++;
                 out << "   +->" << i << "<" << endl;
             } else {
@@ -352,17 +352,36 @@ public:
     }
 
     // setSelected
+    int setSelected(int index) {
+        selected_ = index;
+        return selected_;
+    }
 
 
     // getSelected
-
+    int getSelected() const {
+        return selected_;
+    }
 
 private:
     vector<string> combobox_;
-    int selected_;
+    int selected_ = 0;
 };
 
 // output operators
+
+/*
+ostream &operator<<(ostream &out, const CWindow &item) {
+    item.print(out, item);
+    return out;
+}
+
+ostream &operator<<(ostream &out, const CComboBox &item) {
+    item.print2(out, item);
+    return out;
+}
+*/
+
 ostream &operator<<(ostream &out, const Component &item) {
     item.print(out, item);
     //item.print(cout, item);
@@ -406,7 +425,7 @@ int main() {
             "   +- Progtest\n");
 
     CWindow b = a;
-    *b.search(20);
+    //*b.search(20);
     assert (toString(*b.search(20)) ==
             "[20] ComboBox (70,154,480,48)\n"
             "+->Karate<\n"
