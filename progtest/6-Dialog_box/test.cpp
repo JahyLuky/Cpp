@@ -45,7 +45,7 @@ public:
 class Component {
 public:
     Component(int id, const CRect &rect)
-            : id_(id), rect_(rect) {}
+            : id_(id), rect_(rect), abs_rect_(rect) {}
 
     //virtual int getID() const = 0;
     virtual int getID() const {
@@ -63,7 +63,7 @@ public:
 
     virtual void changeRel(const CRect &abs) = 0;
 
-    virtual void print(ostream &out, const Component &item) const = 0;
+    virtual void print(ostream &out, const Component &item, int text) const = 0;
 
     friend ostream &operator<<(ostream &out, const Component &item);
 
@@ -72,12 +72,11 @@ public:
 protected:
     int id_;
     CRect rect_;
+    CRect abs_rect_;
 };
 
 class namedComponent : public Component {
 public:
-    namedComponent() = default;
-
     namedComponent(int id, const CRect rect, const string &str)
             : Component(id, rect), str_(str) {}
 
@@ -91,10 +90,33 @@ protected:
 
 class CWindow : public namedComponent {
 public:
-    CWindow() = default;
+    //CWindow() = default;
 
     CWindow(int id, const string &title, const CRect &absPos)
             : namedComponent(id, absPos, title) {}
+
+    CWindow(const CWindow &other)
+            : namedComponent(other) {
+        for (const auto &item: other.components_) {
+            components_.emplace_back(shared_ptr<Component>(item->clone()));
+        }
+    }
+
+    CWindow &operator=(const CWindow &other) {
+        if (this != &other) {
+            components_.clear();
+            namedComponent::rect_ = other.rect_;
+            namedComponent::str_ = other.str_;
+            namedComponent::id_ = other.id_;
+            namedComponent::abs_rect_ = other.abs_rect_;
+            for (const auto &item: other.components_) {
+                components_.emplace_back(shared_ptr<Component>(item->clone()));
+            }
+        }
+        return *this;
+    }
+
+    ~CWindow() override = default;
 
     // add
     CWindow &add(const Component &item) {
@@ -120,7 +142,7 @@ public:
         return namedComponent::getRect();
     }
 
-    namedComponent *clone() const override {
+    CWindow *clone() const override {
         return new CWindow(*this);
     }
 
@@ -131,14 +153,28 @@ public:
         this->rect_.m_H = abs.m_H;
     }
 
-    void print(ostream &out, const Component &item) const override {
+    void print(ostream &out, const Component &item, int text) const override {
         out << "[" << namedComponent::getID() << "] "
-            << this->getType() << " \""
+            << item.getType() << " \""
             << namedComponent::getName() << "\" "
             << namedComponent::getRect() << endl;
         for (const auto &i: components_) {
             out << "+- ";
-            i->print(out, *i);
+            if (i != *(components_.end() - 1) && i->getType() == "ComboBox") {
+                i->print(out, *i, 2);
+            } else if (i == *(components_.end() - 1)) {
+                if (i->getType() == "ComboBox") {
+                    i->print(out, *i, 1);
+                } else {
+                    i->print(out, *i, text);
+                }
+            } else {
+                if (i->getType() == "ComboBox") {
+                    i->print(out, *i, 1);
+                } else {
+                    i->print(out, *i, 0);
+                }
+            }
         }
     }
 
@@ -190,17 +226,17 @@ public:
     }
 
     void changeRel(const CRect &abs) override {
-        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
-        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
-        this->rect_.m_W = abs.m_W * this->rect_.m_W;
-        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+        this->rect_.m_X = abs.m_X + abs.m_W * this->abs_rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->abs_rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->abs_rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->abs_rect_.m_H;
     }
 
     string getName() const override {
         return namedComponent::getName();
     }
 
-    void print(ostream &out, const Component &item) const override {
+    void print(ostream &out, const Component &item, int text) const override {
         out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
@@ -233,13 +269,13 @@ public:
     }
 
     void changeRel(const CRect &abs) override {
-        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
-        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
-        this->rect_.m_W = abs.m_W * this->rect_.m_W;
-        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+        this->rect_.m_X = abs.m_X + abs.m_W * this->abs_rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->abs_rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->abs_rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->abs_rect_.m_H;
     }
 
-    void print(ostream &out, const Component &item) const override {
+    void print(ostream &out, const Component &item, int text) const override {
         out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
@@ -251,9 +287,15 @@ public:
     }
 
     // setValue
+    Component &setValue(const string &text) {
+        namedComponent::str_ = text;
+        return *this;
+    }
 
-
-    // getValue 
+    // getValue
+    string getValue() const {
+        return namedComponent::str_;
+    }
 };
 
 class CLabel : public namedComponent {
@@ -281,13 +323,13 @@ public:
     }
 
     void changeRel(const CRect &abs) override {
-        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
-        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
-        this->rect_.m_W = abs.m_W * this->rect_.m_W;
-        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+        this->rect_.m_X = abs.m_X + abs.m_W * this->abs_rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->abs_rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->abs_rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->abs_rect_.m_H;
     }
 
-    void print(ostream &out, const Component &item) const override {
+    void print(ostream &out, const Component &item, int text) const override {
         out << "[" << item.getID() << "] "
             << item.getType()
             << " \"" << namedComponent::getName() << "\" "
@@ -319,29 +361,41 @@ public:
         return Component::getRect();
     }
 
-    void changeRel(const CRect &abs) {
-        this->rect_.m_X = abs.m_X + abs.m_W * this->rect_.m_X;
-        this->rect_.m_Y = abs.m_Y + abs.m_H * this->rect_.m_Y;
-        this->rect_.m_W = abs.m_W * this->rect_.m_W;
-        this->rect_.m_H = abs.m_H * this->rect_.m_H;
+    void changeRel(const CRect &abs) override {
+        this->rect_.m_X = abs.m_X + abs.m_W * this->abs_rect_.m_X;
+        this->rect_.m_Y = abs.m_Y + abs.m_H * this->abs_rect_.m_Y;
+        this->rect_.m_W = abs.m_W * this->abs_rect_.m_W;
+        this->rect_.m_H = abs.m_H * this->abs_rect_.m_H;
     }
 
     Component *clone() const override {
         return new CComboBox(*this);
     }
 
-    void print(ostream &out, const Component &item) const override {
+    void print(ostream &out, const Component &item, int text) const override {
         out << "[" << item.getID() << "] "
             << item.getType() << " "
             << item.getRect() << endl;
         int count = 0;
         for (const auto &i: combobox_) {
             if (count == selected_) {
-                count++;
-                out << "   +->" << i << "<" << endl;
+                if (text == 1) {
+                    out << "   +->" << i << "<" << endl;
+                } else if (text == 2) {
+                    out << "|  +->" << i << "<" << endl;
+                } else {
+                    out << "+->" << i << "<" << endl;
+                }
             } else {
-                out << "   +- " << i << endl;
+                if (text == 1) {
+                    out << "   +- " << i << endl;
+                } else if (text == 2) {
+                    out << "|  +- " << i << endl;
+                } else {
+                    out << "+- " << i << endl;
+                }
             }
+            count++;
         }
     }
 
@@ -357,7 +411,6 @@ public:
         return selected_;
     }
 
-
     // getSelected
     int getSelected() const {
         return selected_;
@@ -369,22 +422,9 @@ private:
 };
 
 // output operators
-
-/*
-ostream &operator<<(ostream &out, const CWindow &item) {
-    item.print(out, item);
-    return out;
-}
-
-ostream &operator<<(ostream &out, const CComboBox &item) {
-    item.print2(out, item);
-    return out;
-}
-*/
-
 ostream &operator<<(ostream &out, const Component &item) {
-    item.print(out, item);
-    //item.print(cout, item);
+    item.print(out, item, 0);
+    //item.print(cout, item, 0);
     return out;
 }
 
@@ -425,14 +465,13 @@ int main() {
             "   +- Progtest\n");
 
     CWindow b = a;
-    //*b.search(20);
     assert (toString(*b.search(20)) ==
             "[20] ComboBox (70,154,480,48)\n"
             "+->Karate<\n"
             "+- Judo\n"
             "+- Box\n"
             "+- Progtest\n");
-    /*
+
     assert (dynamic_cast<CComboBox &> ( *b.search(20)).getSelected() == 0);
     dynamic_cast<CComboBox &> ( *b.search(20)).setSelected(3);
     assert (dynamic_cast<CInput &> ( *b.search(11)).getValue() == "chucknorris");
@@ -480,7 +519,7 @@ int main() {
             "   +->PA2<\n"
             "   +- OSY\n"
             "   +- Both\n");
-    */
+
     return EXIT_SUCCESS;
 }
 
