@@ -28,15 +28,31 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-struct pairCmp {
+// (a, b) == (b, a)
+
+
+struct pair_compare {
     bool operator()(const pair<string, string> &a, const pair<string, string> &b) const {
         if (a.first < b.first) {
             return true;
         } else if (a.first > b.first) {
             return false;
         } else {
-            return (a.second < b.second);
+            if (a.second < b.second) {
+                return true;
+            } else {
+                return false;
+            }
         }
+    }
+};
+
+class Graph {
+public:
+    list<pair<string, string>> edges;
+
+    void add_edge(const string &a, const string &b) {
+        edges.emplace_back(a, b);
     }
 };
 
@@ -49,47 +65,81 @@ public:
     // destructor
     ~CContest() = default;
 
-    struct CMP {
-        int operator()(const M_ &a, const M_ &b) {
-            if (get<2>(a) < get<2>(b)) {
-                return -1;
-            } else if (get<2>(a) == get<2>(b)) {
-                return 0;
-            } else {
-                return 1;
-            }
-        }
-    };
-
     // addMatch ( contestant1, contestant2, result )
-    CContest
+    CContest &addMatch(const string &contestant1, const string &contestant2, const M_ &result) {
+        auto itr1 = data_.find(make_pair(contestant1, contestant2));
 
-    addMatch(const string &contestant1, const string &contestant2, const M_ &result) {
-        auto itr = data_.find(make_pair(contestant1, contestant2));
-
-        if (itr != data_.end()) {
+        if (itr1 != data_.end()) {
             throw logic_error("duplicate match");
         }
 
         data_.insert({make_pair(contestant1, contestant2), result});
+
         return *this;
     }
 
     // isOrdered ( comparator )
-    bool isOrdered() {
+    template<typename Comparator>
+    bool isOrdered(Comparator cmp) const noexcept {
+        Graph graph;
+
+        // create graph
+        for (const auto &i: data_) {
+            const auto &contestant1 = i.first.first;
+            const auto &contestant2 = i.first.second;
+            const auto &result = i.second;
+
+            if (cmp(result) == 0) {
+                return false;
+            } else if (cmp(result) > 0) {
+                graph.add_edge(contestant1, contestant2);
+            } else {
+                graph.add_edge(contestant2, contestant1);
+            }
+        }
+
+        queue<string> que;
+        que.push(graph.edges.front().first);
+
+        // find path
+        while (!que.empty()) {
+            cout << que.front() << endl;
+            que.pop();
+        }
 
         return true;
     }
 
-
     // results ( comparator )
-    list<M_> results() {
-        list<M_> res;
+    template<typename Comparator>
+    list<string> results(Comparator cmp) const {
+        list<string> res;
+        Graph graph;
+        pair<string, string> tmp;
+
+        // create graph
+        for (const auto &i: data_) {
+            const auto &contestant1 = i.first.first;
+            const auto &contestant2 = i.first.second;
+            const auto &result = i.second;
+            tmp.first = contestant1;
+            tmp.second = contestant2;
+            if (cmp(result) == 0) {
+                throw logic_error("duplicate match");
+            } else if (cmp(result) > 0) {
+                graph.add_edge(contestant1, contestant2);
+            } else {
+                graph.add_edge(contestant2, contestant1);
+            }
+        }
+
+        queue<string> que;
+
         return res;
     }
 
 private:
-    map<pair<string, string>, M_, pairCmp> data_;
+    map<pair<string, string>, M_, pair_compare> data_;
 };
 
 #ifndef __PROGTEST__
@@ -120,7 +170,7 @@ int HigherScore(const CMatch &x) {
     return (x.m_A > x.m_B) - (x.m_B > x.m_A);
 }
 
-int main(void) {
+int main() {
     CContest<CMatch> x;
 
     x.addMatch("C++", "Pascal", CMatch(10, 3))
