@@ -29,8 +29,6 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 // (a, b) == (b, a)
-
-
 struct pair_compare {
     bool operator()(const pair<string, string> &a, const pair<string, string> &b) const {
         if (a.first < b.first) {
@@ -49,10 +47,20 @@ struct pair_compare {
 
 class Graph {
 public:
-    list<pair<string, string>> edges;
+    map<string, pair<int, vector<string>>> edges;
 
-    void add_edge(const string &a, const string &b) {
-        edges.emplace_back(a, b);
+    void add_edge(const string &name, int loses, const string &name2) {
+        auto itr = edges.find(name);
+
+        if (itr == edges.end()) {
+            vector<string> tmp;
+            tmp.push_back(name2);
+            edges.insert({name, make_pair(loses, tmp)});
+        } else {
+            vector<string> &tmp = itr->second.second;
+            tmp.push_back(name2);
+            itr->second.first += loses;
+        }
     }
 };
 
@@ -92,19 +100,54 @@ public:
             if (cmp(result) == 0) {
                 return false;
             } else if (cmp(result) > 0) {
-                graph.add_edge(contestant1, contestant2);
+                graph.add_edge(contestant1, 0, contestant2);
+                graph.add_edge(contestant2, 1, contestant1);
             } else {
-                graph.add_edge(contestant2, contestant1);
+                graph.add_edge(contestant1, 1, contestant2);
+                graph.add_edge(contestant2, 0, contestant1);
             }
         }
 
-        queue<string> que;
-        que.push(graph.edges.front().first);
+        int flag = 0;
+        string winner;
 
         // find path
-        while (!que.empty()) {
-            cout << que.front() << endl;
-            que.pop();
+        for (const auto &i: graph.edges) {
+            if (i.second.first == 0) {
+                winner = i.first;
+                flag++;
+            }
+        }
+
+        // multiple winners (0 loses) or no winner
+        if (flag > 1 || flag == 0) {
+            return false;
+        }
+
+        queue<string> Q;
+        Q.push(winner);
+        flag = 0;
+        while (!Q.empty()) {
+            auto itr = graph.edges.find(Q.front());
+            cout << "win: " << itr->first;
+            Q.pop();
+            for (const auto &j: itr->second.second) {
+                auto itr2 = graph.edges.find(j);
+                if (itr2->second.first == 0) {
+                    continue;
+                }
+                itr2->second.first--;
+                if (itr2->second.first == 0) {
+                    Q.push(j);
+                    flag++;
+                }
+                cout << ", lose: " << itr2->first;
+            }
+            cout << endl;
+            if (flag > 1) {
+                return false;
+            }
+            flag = 0;
         }
 
         return true;
@@ -115,26 +158,67 @@ public:
     list<string> results(Comparator cmp) const {
         list<string> res;
         Graph graph;
-        pair<string, string> tmp;
 
         // create graph
         for (const auto &i: data_) {
             const auto &contestant1 = i.first.first;
             const auto &contestant2 = i.first.second;
             const auto &result = i.second;
-            tmp.first = contestant1;
-            tmp.second = contestant2;
+
             if (cmp(result) == 0) {
-                throw logic_error("duplicate match");
+                throw logic_error("tie match");
             } else if (cmp(result) > 0) {
-                graph.add_edge(contestant1, contestant2);
+                graph.add_edge(contestant1, 0, contestant2);
+                graph.add_edge(contestant2, 1, contestant1);
             } else {
-                graph.add_edge(contestant2, contestant1);
+                graph.add_edge(contestant1, 1, contestant2);
+                graph.add_edge(contestant2, 0, contestant1);
             }
         }
 
-        queue<string> que;
+        int flag = 0;
+        string winner;
 
+        // find path
+        for (const auto &i: graph.edges) {
+            if (i.second.first == 0) {
+                winner = i.first;
+                flag++;
+            }
+        }
+
+        // multiple winners (0 loses) or no winner
+        if (flag > 1 || flag == 0) {
+            throw logic_error("no winner");
+        }
+
+        queue<string> Q;
+        Q.push(winner);
+        flag = 0;
+        while (!Q.empty()) {
+            auto itr = graph.edges.find(Q.front());
+            res.push_back(itr->first);
+            cout << "win: " << itr->first;
+            Q.pop();
+            for (const auto &j: itr->second.second) {
+                auto itr2 = graph.edges.find(j);
+                if (itr2->second.first == 0) {
+                    continue;
+                }
+                itr2->second.first--;
+                if (itr2->second.first == 0) {
+                    Q.push(j);
+                    flag++;
+                }
+                cout << ", lose: " << itr2->first;
+            }
+            cout << endl;
+            if (flag > 1) {
+                throw logic_error("no winner");
+            }
+            flag = 0;
+        }
+        
         return res;
     }
 
