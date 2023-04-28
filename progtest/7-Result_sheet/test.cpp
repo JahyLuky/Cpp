@@ -45,6 +45,7 @@ struct pair_compare {
     }
 };
 
+// my algorithm is based on pseudocode from BI-AG1: TopSort (3rd handout)
 class Graph {
 public:
     map<string, pair<int, vector<string>>> edges;
@@ -76,8 +77,9 @@ public:
     // addMatch ( contestant1, contestant2, result )
     CContest &addMatch(const string &contestant1, const string &contestant2, const M_ &result) {
         auto itr1 = data_.find(make_pair(contestant1, contestant2));
+        auto itr2 = data_.find(make_pair(contestant2, contestant1));
 
-        if (itr1 != data_.end()) {
+        if (itr1 != data_.end() || itr2 != data_.end()) {
             throw logic_error("duplicate match");
         }
 
@@ -87,8 +89,7 @@ public:
     }
 
     // isOrdered ( comparator )
-    template<typename Comparator>
-    bool isOrdered(Comparator cmp) const noexcept {
+    bool isOrdered(function<int(M_)> cmp) const noexcept {
         Graph graph;
 
         // create graph
@@ -127,6 +128,7 @@ public:
         queue<string> Q;
         Q.push(winner);
         flag = 0;
+        size_t max_loses = 1;
         while (!Q.empty()) {
             auto itr = graph.edges.find(Q.front());
             cout << "win: " << itr->first;
@@ -138,6 +140,7 @@ public:
                 }
                 itr2->second.first--;
                 if (itr2->second.first == 0) {
+                    max_loses++;
                     Q.push(j);
                     flag++;
                 }
@@ -150,12 +153,13 @@ public:
             flag = 0;
         }
 
+        if (max_loses != graph.edges.size())
+            return false;
         return true;
     }
 
     // results ( comparator )
-    template<typename Comparator>
-    list<string> results(Comparator cmp) const {
+    list<string> results(function<int(M_)> cmp) const {
         list<string> res;
         Graph graph;
 
@@ -195,6 +199,7 @@ public:
         queue<string> Q;
         Q.push(winner);
         flag = 0;
+        size_t max_loses = 1;
         while (!Q.empty()) {
             auto itr = graph.edges.find(Q.front());
             res.push_back(itr->first);
@@ -209,6 +214,7 @@ public:
                 if (itr2->second.first == 0) {
                     Q.push(j);
                     flag++;
+                    max_loses++;
                 }
                 cout << ", lose: " << itr2->first;
             }
@@ -218,7 +224,8 @@ public:
             }
             flag = 0;
         }
-        
+        if (max_loses != graph.edges.size())
+            throw logic_error("no winner");
         return res;
     }
 
