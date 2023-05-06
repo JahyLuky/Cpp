@@ -31,5 +31,24 @@ bool Menu::print_menu() {
     }
     std::cout << std::endl;
 
+    // Choosing board format
+    /*
+    std::cout << "Choose your board format:\n(c):\tColored\n(b:)\tBasic" << std::endl;
+    std::cin >> in;
+    // Check "ctrl+d"
+    if (std::cin.eof()) {
+        std::cout << "Input failed!" << std::endl;
+        return false;
+    }
+
+    if (in == 'c'){
+        is_colored_board_ = true;
+    } else if (in == 'b') {
+        is_colored_board_ = false;
+    } else {
+        std::cout << "Wrong format input!" << std::endl;
+        return false;
+    }
+    */
     return true;
 }

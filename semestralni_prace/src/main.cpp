@@ -35,7 +35,7 @@ int check_col(char c) {
     return num;
 }
 
-bool extract_input(const std::string &start,const std::string &end, Position &old_pos, Position &new_pos) {
+bool extract_input(const std::string &start, const std::string &end, Position &old_pos, Position &new_pos) {
     int col = coordinates_to_int(start[0]);
     int row = check_col(start[1]);
 
@@ -64,8 +64,14 @@ int main() {
     }
 
     Board board;
-    board = Board::init_board();
-    Board::print_board(board);
+    board.init_board();
+
+    std::cout << "\nNo color and format board\n" << std::endl;
+    board.print_basic_board();
+    std::cout << "\nColor and format board\n" << std::endl;
+    board.print_color_board();
+
+    std::cout << "\nGame starts!\n" << std::endl;
 
     std::string start;
     std::string end;
@@ -86,9 +92,7 @@ int main() {
         }
 
         Player::make_move(board, old_pos, new_pos);
-        //Player::make_move(board, Position(6,4), Position(4,4));
-        Board::print_board(board);
-
+        board.print_color_board();
     }
 
     return 1;

@@ -7,5 +7,4 @@ public:
     static bool print_menu();
 
 private:
-
 };

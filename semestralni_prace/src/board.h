@@ -20,21 +20,6 @@ struct Square {
     Square(Position pos, std::unique_ptr<Piece> piece)
             : pos_(pos), piece_(std::move(piece)) {}
 
-            /*
-    Square(const Square &other)
-            : pos_(other.pos_), piece_(other.piece_->clone()) {}
-
-    Square& operator=(const Square& other) {
-        if (this != &other) {
-            pos_ = other.pos_;
-            piece_ = other.piece_ ? std::make_unique<other.piece_>(*other.piece_) : nullptr;
-        }
-        return *this;
-    }
-
-
-    ~Square() = default;
-*/
 };
 
 /**
@@ -51,16 +36,19 @@ public:
      * Initialize classical chess board
      * @return Board with pieces
      */
-    static Board init_board();
+    void init_board();
 
     /**
      * Print chess board
      * @param src : board to be printed
      */
-    static void print_board(const Board &src);
+    void print_color_board() const;
 
+    void print_basic_board() const;
 
+    std::vector<Square> &get_squares();
+
+private:
     // Stores each square of chess board
     std::vector<Square> squares_;
-private:
 };

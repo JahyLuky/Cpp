@@ -4,7 +4,7 @@
 
 
 // set classical chess board with all pieces
-static Square startingPieces[] = {
+Square startingPieces[] = {
         //-----BLACK-----
         {Position(0, 0), std::make_unique<Pawn>('R', 'B', Position(0, 0))},
         {Position(0, 1), std::make_unique<Pawn>('N', 'B', Position(0, 1))},
@@ -42,43 +42,26 @@ static Square startingPieces[] = {
         {Position(7, 7), std::make_unique<Pawn>('r', 'W', Position(7, 7))},
 };
 
-Board Board::init_board() {
-    Board board;
+void Board::init_board() {
     int piece_cnt = 0;
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
             if (piece_cnt < 16) {
                 // BLACK pieces
-                board.squares_.emplace_back(std::move(startingPieces[piece_cnt]));
+                this->squares_.emplace_back(std::move(startingPieces[piece_cnt]));
             } else if (piece_cnt > 47) {
                 // WHITE pieces (32 empty squares)
-                board.squares_.emplace_back(std::move(startingPieces[piece_cnt - 32]));
+                this->squares_.emplace_back(std::move(startingPieces[piece_cnt - 32]));
             } else {
                 // Empty squares
-                board.squares_.emplace_back(Position(row, col), nullptr);
+                this->squares_.emplace_back(Position(row, col), nullptr);
             }
             piece_cnt++;
         }
     }
-    /*
-    piece_cnt = 0;
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            if (board.squares_[piece_cnt].piece_ != nullptr) {
-                std::cout << board.squares_[piece_cnt].piece_->get_piece();
-            } else {
-                std::cout << " ";
-            }
-            piece_cnt++;
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "------------Board_init-----------" << std::endl;
-    */
-    return board;
 }
 
-void Board::print_board(const Board &src) {
+void Board::print_color_board() const {
     // Indicates if a square is black or white
     bool isBlackSquare = false;
     // Row coordinates
@@ -99,10 +82,10 @@ void Board::print_board(const Board &src) {
     std::cout << std::endl;
 
     int board_itr = 0;
-    for (int row = 0; row < BOARD_SIZE; row++) {
+    for (int row = 0; row < BOARD_SIZE; ++row) {
         // Print left side coordinates
         std::cout << number_coordinates << " ";
-        for (int col = 0; col < BOARD_SIZE; col++, board_itr++) {
+        for (int col = 0; col < BOARD_SIZE; ++col, ++board_itr) {
             isBlackSquare = (row + col) % 2 == 1;
 
             /** Print the square
@@ -113,14 +96,14 @@ void Board::print_board(const Board &src) {
              * "\033[0m" resets the text color to the default
              */
             if (isBlackSquare) {
-                if (src.squares_[board_itr].piece_ != nullptr) {
-                    std::cout << "\033[40m\033[37m " << src.squares_[board_itr].piece_->get_piece() << " \033[0m";
+                if (this->squares_[board_itr].piece_ != nullptr) {
+                    std::cout << "\033[40m\033[37m " << this->squares_[board_itr].piece_->get_piece() << " \033[0m";
                 } else {
                     std::cout << "\033[40m\033[37m " << ' ' << " \033[0m";
                 }
             } else {
-                if (src.squares_[board_itr].piece_ != nullptr) {
-                    std::cout << "\033[47m\033[30m " << src.squares_[board_itr].piece_->get_piece() << " \033[0m";
+                if (this->squares_[board_itr].piece_ != nullptr) {
+                    std::cout << "\033[47m\033[30m " << this->squares_[board_itr].piece_->get_piece() << " \033[0m";
                 } else {
                     std::cout << "\033[47m\033[30m " << ' ' << " \033[0m";
                 }
@@ -146,3 +129,68 @@ void Board::print_board(const Board &src) {
     std::cout << std::endl;
 }
 
+void Board::print_basic_board() const {
+    // Indicates if a square is black or white
+    bool isBlackSquare = false;
+    // Row coordinates
+    int number_coordinates = BOARD_SIZE;
+    // Column coordinates
+    int coordinates_itr = 0;
+    std::vector<char> word_coordinates = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+
+    // Print top side coordinates
+    while (coordinates_itr < BOARD_SIZE) {
+        if (coordinates_itr == 0) {
+            std::cout << "   " << word_coordinates[coordinates_itr];
+        } else {
+            std::cout << "  " << word_coordinates[coordinates_itr];
+        }
+        coordinates_itr++;
+    }
+    std::cout << std::endl;
+    std::cout << "  ________________________  " << std::endl;
+
+    int board_itr = 0;
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        // Print left side coordinates
+        std::cout << number_coordinates << "|";
+        for (int col = 0; col < BOARD_SIZE; ++col, ++board_itr) {
+            isBlackSquare = (row + col) % 2 == 1;
+
+            if (isBlackSquare) {
+                if (this->squares_[board_itr].piece_ != nullptr) {
+                    std::cout << " " << this->squares_[board_itr].piece_->get_piece() << " ";
+                } else {
+                    std::cout << " " << ' ' << " ";
+                }
+            } else {
+                if (this->squares_[board_itr].piece_ != nullptr) {
+                    std::cout << " " << this->squares_[board_itr].piece_->get_piece() << " ";
+                } else {
+                    std::cout << " " << ' ' << " ";
+                }
+            }
+        }
+        // Print right side coordinates
+        std::cout << "|" << number_coordinates;
+        std::cout << std::endl;
+        number_coordinates--;
+    }
+
+    // Print bottom side coordinates
+    std::cout << "  ------------------------  " << std::endl;
+    coordinates_itr = 0;
+    while (coordinates_itr < BOARD_SIZE) {
+        if (coordinates_itr == 0) {
+            std::cout << "   " << word_coordinates[coordinates_itr];
+        } else {
+            std::cout << "  " << word_coordinates[coordinates_itr];
+        }
+        coordinates_itr++;
+    }
+    std::cout << std::endl;
+}
+
+std::vector<Square> &Board::get_squares() {
+    return squares_;
+}
