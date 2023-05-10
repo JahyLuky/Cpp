@@ -4,7 +4,7 @@
 
 class Menu {
 public:
-    static bool print_menu();
+    char print_menu() const;
 
 private:
 };

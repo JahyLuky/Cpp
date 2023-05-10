@@ -1,0 +1,88 @@
+Autor\+: Lukáš Jahelka\hypertarget{md_README_autotoc_md4}{}\doxysection{Zadání}\label{md_README_autotoc_md4}
+Vaším cílem má být implementovat klasickou hru Šachy. Není nutné implementovat jen ty známé šachy, ale případně se inspirovat nějakou jejich variantou jakou jsou asijské šachy. V tom případě je potřeba pravidla dostatečně dobře popsat v zadání. A zároveň je nutné za každé z pravidel mít vhodnou alternativu, aby nedošlo k přehnanému zjednodušení zadání.
+
+Implementujte následující varianty\+:
+
+
+\begin{DoxyItemize}
+\item tutoriál, který naučí hráče jednotlivé prvky a pravidla hry,
+\item pro 2 hráče na jednom počítači,
+\item pro hru proti počítači.
+\end{DoxyItemize}
+
+Hra musí splňovat následující funkcionality\+:
+
+
+\begin{DoxyItemize}
+\item Dodržování všech pravidel vč. rošády, braní mimochodem, proměna pěsce
+\item Hra musí řádně oznamovat stav hry a případně její konec (šach, mat, pat) a výsledek (kdo vyhrál).
+\item Implementujte alespoň 3 druhy umělé inteligence (náhodné tahy nestačí).
+\begin{DoxyItemize}
+\item Jeden druh musí být škálovatelná umělá inteligence pomocí algoritmu minimax. Škálování pak probíhá na úrovni hloubky prohledávacího stromu.
+\end{DoxyItemize}
+\item Hra je konfigurovatelná ze souboru\+:
+\begin{DoxyItemize}
+\item umístění uložených her na disku,
+\item zahájení šachových partií pro umělou inteligenci,
+\item texty, rozestavění (příp. očekávané tahy) k tutoriálu.
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Kde lze využít polymorfismus? (doporučené)
+
+
+\begin{DoxyItemize}
+\item pohyby figurek\+: král, dáma, věž, jezdec, ...
+\item jednotlivá pravidla\+: tahy, rošáda, braní mimochodem, proměna (jejich výběr pak může být konfigurovatelný), ...
+\item pravidla různých variant\+: klasické šachy, žravé šachy, asijské šachy, ...
+\item ovládání hráčů\+: lokální hráč, umělá inteligence (různé druhy), síťový hráč
+\item uživatelské rozhraní\+: konzolové, ncurses, SDL, Open\+GL (různé druhy), ...
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md5}{}\doxysection{Specifikace}\label{md_README_autotoc_md5}
+Budeme implementovat klasickou variantu hry šachy. TODO\+: pravidla.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Chess game}
+\DoxyCodeLine{Choose how you want to play.}
+\DoxyCodeLine{}
+\DoxyCodeLine{-\/-\/-\/-\/-\/-\/MENU-\/-\/-\/-\/-\/-\/}
+\DoxyCodeLine{Choose your type of game:}
+\DoxyCodeLine{(t):    Tutorial}
+\DoxyCodeLine{(h):    Game vs human}
+\DoxyCodeLine{(a):    Game vs AI}
+\DoxyCodeLine{\$h}
+\DoxyCodeLine{}
+\DoxyCodeLine{Game vs human}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{Game starts!}
+\DoxyCodeLine{}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{8  R  N  B  Q  K  B  N  R  8}
+\DoxyCodeLine{7  P  P  P  P  P  P  P  P  7}
+\DoxyCodeLine{6                          6}
+\DoxyCodeLine{5                          5}
+\DoxyCodeLine{4                          4}
+\DoxyCodeLine{3                          3}
+\DoxyCodeLine{2  p  p  p  p  p  p  p  p  2}
+\DoxyCodeLine{1  r  n  b  q  k  b  n  r  1}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{What is your move?}
+\DoxyCodeLine{\$e2 e4}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{8  R  N  B  Q  K  B  N  R  8}
+\DoxyCodeLine{7  P  P  P  P  P  P  P  P  7}
+\DoxyCodeLine{6                          6}
+\DoxyCodeLine{5                          5}
+\DoxyCodeLine{4              p           4}
+\DoxyCodeLine{3                          3}
+\DoxyCodeLine{2  p  p  p  p     p  p  p  2}
+\DoxyCodeLine{1  r  n  b  q  k  b  n  r  1}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{What is your move?}
+
+\end{DoxyCode}
+
+
+TODO\+: pripadny dalsi popis\hypertarget{md_README_autotoc_md6}{}\doxysection{Polymorfismus}\label{md_README_autotoc_md6}
+TODO\+: popsat 

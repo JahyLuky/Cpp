@@ -1,12 +1,11 @@
 #pragma once
 
 #include <iostream>
-
-#include "move.h"
+#include <vector>
 
 /**
  * Represents position on chess board
- * (row_, col_)
+ * (row, col)
  */
 struct Position {
     int row_;
@@ -16,11 +15,6 @@ struct Position {
 
     Position(int a, int b)
             : row_(a), col_(b) {}
-
-    const friend std::ostream &operator<<(std::ostream &out, const Position &pos) {
-        out << "row: " << pos.row_ << ", column: " << pos.col_;
-        return out;
-    }
 };
 
 /**
@@ -28,43 +22,33 @@ struct Position {
  */
 class Piece {
 public:
+    // TODO: constructor into cpp
     Piece(char name, char color, const Position &pos)
             : name_(name), color_(color), pos_(pos) {}
 
-    virtual char get_piece() const {
-        return name_;
-    }
+    char get_piece() const;
 
-    virtual void set_piece(char name) {
-        name_ = name;
-    }
+    void set_piece(char name);
 
     virtual void print(std::ostream &out, const Piece &item) const = 0;
 
-    virtual char get_color() const {
-        return color_;
-    }
+    char get_color() const;
 
-    virtual Position get_coor() const {
-        return pos_;
-    }
+    void set_color(char color);
 
-    virtual void set_coor(Position &other) {
-        pos_.row_ = other.row_;
-        pos_.col_ = other.col_;
-    }
+    Position get_coor() const;
 
-    virtual bool get_square() const {
-        return is_on_black_square;
-    }
+    void set_coor(Position &other);
 
-    virtual void set_square(bool square) {
-        is_on_black_square = square;
-    }
+    bool get_square() const;
+
+    void set_square(bool square);
 
     virtual Piece *clone() const = 0;
 
-    //virtual void make_move() = 0;
+    // takes actual position on board (pos_)
+    // gives all possible moves
+    virtual std::vector<Position>* possible_moves() = 0;
 
     virtual ~Piece() = default;
 
@@ -75,4 +59,5 @@ protected:
     char color_;
     bool is_on_black_square;
     Position pos_;
+    std::vector<Position> moves_;
 };

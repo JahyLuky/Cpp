@@ -76,37 +76,30 @@ private:
     vector<Person> email_sort_;
 
 public:
-    CPersonalAgenda(void) = default;
+    CPersonalAgenda() = default;
 
-    ~CPersonalAgenda(void) = default;
+    ~CPersonalAgenda() = default;
 
-    static bool findPerson_name_sur(const vector<Person>::iterator &itr_ns,
-                                    const vector<Person> &name_sur_sort,
-                                    const Person &emp) {
-        if (itr_ns == name_sur_sort.end())
+    // finds person in database
+    static bool findPerson(const vector<Person>::iterator &itr,
+                           const vector<Person> &data_sort,
+                           const Person &emp) {
+        if (itr == data_sort.end())
             return false;
-        if ((*itr_ns) != emp)
-            return false;
-        return true;
-    }
-
-    static bool findPerson_email(const vector<Person>::iterator &itr_e,
-                                 const vector<Person> &email_sort,
-                                 const Person &emp) {
-        if (itr_e == email_sort.end())
-            return false;
-        if ((*itr_e) != emp)
+        if ((*itr) != emp)
             return false;
         return true;
     }
 
+    // add new Person into database
     bool add(const string &name, const string &surname, const string &email, unsigned int salary) {
         Person emp(name, surname, email, salary);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
                                   name_sur_sort_.end(),
                                   emp, compare_name_sur());
+
         // name and surname already exists
-        if (findPerson_name_sur(itr_ns, name_sur_sort_, emp))
+        if (findPerson(itr_ns, name_sur_sort_, emp))
             return false;
 
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -114,7 +107,7 @@ public:
                                  emp, compare_email());
 
         // email already exists
-        if (findPerson_email(itr_e, email_sort_, emp))
+        if (findPerson(itr_e, email_sort_, emp))
             return false;
 
         name_sur_sort_.emplace(itr_ns, emp);
@@ -123,6 +116,7 @@ public:
         return true;
     }
 
+    // delete Person from database (found by name and surname)
     bool del(const string &name, const string &surname) {
         Person emp(name, surname, "", 0);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -130,7 +124,7 @@ public:
                                   emp, compare_name_sur());
 
         // name and surname not found
-        if (!findPerson_name_sur(itr_ns, name_sur_sort_, emp))
+        if (!findPerson(itr_ns, name_sur_sort_, emp))
             return false;
 
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -143,6 +137,7 @@ public:
         return true;
     }
 
+    // delete person from database (found by email)
     bool del(const string &email) {
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -150,7 +145,7 @@ public:
                                  emp, compare_email());
 
         // email not found
-        if (!findPerson_email(itr_e, email_sort_, emp))
+        if (!findPerson(itr_e, email_sort_, emp))
             return false;
 
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -163,6 +158,7 @@ public:
         return true;
     }
 
+    // change person's name (found by email)
     bool changeName(const string &email, const string &newName, const string &newSurname) {
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -170,7 +166,7 @@ public:
                                  emp, compare_email());
 
         // email not found
-        if (!findPerson_email(itr_e, email_sort_, emp))
+        if (!findPerson(itr_e, email_sort_, emp))
             return false;
 
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -187,7 +183,7 @@ public:
                                    tmp, compare_name_sur());
 
         // newName and newSurname already exists
-        if (findPerson_name_sur(itr_tmp, name_sur_sort_, tmp))
+        if (findPerson(itr_tmp, name_sur_sort_, tmp))
             return false;
 
         name_sur_sort_.erase(itr_ns);
@@ -208,6 +204,7 @@ public:
         return true;
     }
 
+    // change person's email (found by name and surname)
     bool changeEmail(const string &name, const string &surname, const string &newEmail) {
         Person emp(name, surname, "", 0);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -215,7 +212,7 @@ public:
                                   emp, compare_name_sur());
 
         // person not found
-        if (!findPerson_name_sur(itr_ns, name_sur_sort_, emp))
+        if (!findPerson(itr_ns, name_sur_sort_, emp))
             return false;
 
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -234,7 +231,7 @@ public:
 
 
         // newEmail already exists
-        if (findPerson_email(itr_tmp, email_sort_, tmp))
+        if (findPerson(itr_tmp, email_sort_, tmp))
             return false;
 
         name_sur_sort_.erase(itr_ns);
@@ -255,6 +252,8 @@ public:
         return true;
     }
 
+
+    // set person's new salary (found by name and surname)
     bool setSalary(const string &name, const string &surname, unsigned int salary) {
         Person emp(name, surname, "", 0);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -262,7 +261,7 @@ public:
                                   emp, compare_name_sur());
 
         // name and surname not found
-        if (!findPerson_name_sur(itr_ns, name_sur_sort_, emp))
+        if (!findPerson(itr_ns, name_sur_sort_, emp))
             return false;
 
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -274,6 +273,7 @@ public:
         return true;
     }
 
+    // set person's new salary (found by email)
     bool setSalary(const string &email, unsigned int salary) {
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -281,18 +281,20 @@ public:
                                  emp, compare_email());
 
         // email not found
-        if (!findPerson_email(itr_e, email_sort_, emp))
+        if (!findPerson(itr_e, email_sort_, emp))
             return false;
 
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
                                   name_sur_sort_.end(),
                                   (*itr_e), compare_name_sur());
+
         (*itr_e).salary_ = salary;
         (*itr_ns).salary_ = salary;
 
         return true;
     }
 
+    // get person's salary (found by name and sur)
     unsigned int getSalary(const string &name, const string &surname) const {
         Person emp(name, surname, "", 0);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -306,6 +308,7 @@ public:
         return (*itr_ns).salary_;
     }
 
+    // get person's salary (found email)
     unsigned int getSalary(const string &email) const {
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -319,6 +322,7 @@ public:
         return (*itr_e).salary_;
     }
 
+    // get person's "salary" rank (found by name and sur)
     bool getRank(const string &name, const string &surname, int &rankMin, int &rankMax) const {
         Person emp(name, surname, "", 0);
         auto itr_ns = lower_bound(name_sur_sort_.begin(),
@@ -342,6 +346,7 @@ public:
         return true;
     }
 
+    // get person's "salary" rank (found by email)
     bool getRank(const string &email, int &rankMin, int &rankMax) const {
         Person emp("", "", email, 0);
         auto itr_e = lower_bound(email_sort_.begin(),
@@ -365,6 +370,7 @@ public:
         return true;
     }
 
+    // get first person in database (found by name and sur)
     bool getFirst(string &outName, string &outSurname) const {
         if (name_sur_sort_.empty())
             return false;
@@ -375,6 +381,7 @@ public:
         return true;
     }
 
+    // get next person in database (found by name and sur)
     bool getNext(const string &name, const string &surname, string &outName, string &outSurname) const {
         Person emp(name, surname, "", 0);
         auto itr = lower_bound(name_sur_sort_.begin(),
@@ -382,9 +389,10 @@ public:
                                emp, compare_name_sur());
 
         // name and surname not found
-        if (itr == name_sur_sort_.end() || ((*itr) != emp) )
+        if (itr == name_sur_sort_.end() || ((*itr) != emp))
             return false;
         itr++;
+        // end of database
         if (itr == name_sur_sort_.end())
             return false;
 
@@ -397,7 +405,7 @@ public:
 
 #ifndef __PROGTEST__
 
-int main(void) {
+int main() {
     string outName, outSurname;
     int lo, hi;
 

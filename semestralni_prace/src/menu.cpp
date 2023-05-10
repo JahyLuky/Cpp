@@ -1,9 +1,10 @@
 #include "menu.h"
 
-bool Menu::print_menu() {
-    std::cout << "\nChoose how you want to play.\n" << std::endl;
+char Menu::print_menu() const {
+    std::cout << "Chess game\nChoose how you want to play.\n" << std::endl;
 
-    std::cout << "Menu:\nChoose your game:\n(t):\tTutorial\n(h):\tGame vs human\n(a):\tGame vs AI" << std::endl;
+    std::cout << "------MENU------\nChoose your type of game:\n";
+    std::cout << "(t):\tTutorial\n(h):\tGame vs human\n(a):\tGame vs AI" << std::endl;
     char in;
     std::cin >> in;
 
@@ -27,28 +28,8 @@ bool Menu::print_menu() {
             break;
         default:
             std::cout << "Wrong input!" << std::endl;
-            return false;
+            return 'f';
     }
     std::cout << std::endl;
-
-    // Choosing board format
-    /*
-    std::cout << "Choose your board format:\n(c):\tColored\n(b:)\tBasic" << std::endl;
-    std::cin >> in;
-    // Check "ctrl+d"
-    if (std::cin.eof()) {
-        std::cout << "Input failed!" << std::endl;
-        return false;
-    }
-
-    if (in == 'c'){
-        is_colored_board_ = true;
-    } else if (in == 'b') {
-        is_colored_board_ = false;
-    } else {
-        std::cout << "Wrong format input!" << std::endl;
-        return false;
-    }
-    */
-    return true;
+    return in;
 }

@@ -16,7 +16,7 @@ using namespace std;
 //----------------------------------------------
 class String {
 public:
-    String();
+    String() = default;
 
     String(const String &src);
 
@@ -31,12 +31,7 @@ public:
     bool operator!=(const String &src) const;
 
     char *str;
-private:
 };
-
-String::String() {
-    str = nullptr;
-}
 
 String::String(const String &src) {
     size_t len = strlen(src.str);
@@ -108,7 +103,7 @@ bool String::operator!=(const String &src) const {
 //----------------------------------------------
 class CMail {
 public:
-    CMail();
+    CMail() = default;
 
     CMail(const char *from, const char *to, const char *body);
 
@@ -122,14 +117,7 @@ public:
     String from_;
     String to_;
     String body_;
-private:
 };
-
-CMail::CMail() {
-    from_.str = nullptr;
-    to_.str = nullptr;
-    body_.str = nullptr;
-}
 
 CMail::CMail(const char *from, const char *to, const char *body) {
     from_ = from;
@@ -162,7 +150,6 @@ public:
     CMail *data_;
     int itr_;
     int pos_;
-private:
 };
 
 CMailIterator::operator bool() const {

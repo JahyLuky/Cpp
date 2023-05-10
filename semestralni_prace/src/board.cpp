@@ -23,7 +23,7 @@ Square startingPieces[] = {
         {Position(1, 6), std::make_unique<Pawn>('P', 'B', Position(1, 6))},
         {Position(1, 7), std::make_unique<Pawn>('P', 'B', Position(1, 7))},
         //-----WHITE-----
-        {Position(1, 0), std::make_unique<Pawn>('p', 'W', Position(6, 0))},
+        {Position(6, 0), std::make_unique<Pawn>('p', 'W', Position(6, 0))},
         {Position(6, 1), std::make_unique<Pawn>('p', 'W', Position(6, 1))},
         {Position(6, 2), std::make_unique<Pawn>('p', 'W', Position(6, 2))},
         {Position(6, 3), std::make_unique<Pawn>('p', 'W', Position(6, 3))},
@@ -191,6 +191,3 @@ void Board::print_basic_board() const {
     std::cout << std::endl;
 }
 
-std::vector<Square> &Board::get_squares() {
-    return squares_;
-}

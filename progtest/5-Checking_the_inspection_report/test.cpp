@@ -159,19 +159,18 @@ public:
     unsigned int amount_;
     double vat_;
     int order_;
-private:
 };
 
 // https://courses.fit.cvut.cz/BI-PA2/media/lectures/l06-stl-cz.pdf
 struct CompareInvoices {
-    // cmp for registerCompany
+    // compare for registerCompany
     bool operator()(const string &a, const string &b) const {
         string tmp1 = removeExtraSpaces(a);
         string tmp2 = removeExtraSpaces(b);
         return strcasecmp(tmp1.c_str(), tmp2.c_str()) < 0;
     }
 
-    // cmp for CInvoices
+    // compare for CInvoices
     bool operator()(const CInvoice &a, const CInvoice &b) const {
         if (a.date().compare(b.date()) != 0) {
             return a.date().compare(b.date()) < 0;

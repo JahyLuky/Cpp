@@ -14,7 +14,7 @@ const int BOARD_SIZE = 8;
  */
 struct Square {
     Position pos_;
-    // chess piece or nullptr -> empty
+    // chess piece or empty square (nullptr)
     std::unique_ptr<Piece> piece_;
 
     Square(Position pos, std::unique_ptr<Piece> piece)
@@ -30,6 +30,7 @@ class Board {
 public:
     Board() = default;
 
+    // To indicate end of game
     bool game_over = false;
 
     /**
@@ -38,17 +39,10 @@ public:
      */
     void init_board();
 
-    /**
-     * Print chess board
-     * @param src : board to be printed
-     */
     void print_color_board() const;
 
     void print_basic_board() const;
 
-    std::vector<Square> &get_squares();
-
-private:
     // Stores each square of chess board
     std::vector<Square> squares_;
 };
