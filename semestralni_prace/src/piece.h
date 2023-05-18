@@ -22,15 +22,11 @@ struct Position {
  */
 class Piece {
 public:
-    // TODO: constructor into cpp
-    Piece(char name, char color, const Position &pos)
-            : name_(name), color_(color), pos_(pos) {}
+    Piece(char name, char color, const Position &pos);
 
     char get_piece() const;
 
     void set_piece(char name);
-
-    virtual void print(std::ostream &out, const Piece &item) const = 0;
 
     char get_color() const;
 
@@ -40,24 +36,18 @@ public:
 
     void set_coor(Position &other);
 
-    bool get_square() const;
-
-    void set_square(bool square);
-
     virtual Piece *clone() const = 0;
 
-    // takes actual position on board (pos_)
-    // gives all possible moves
-    virtual std::vector<Position>* possible_moves() = 0;
+    /** takes actual position on board (pos_)
+     * gives all possible moves (based on piece's type)
+     */
+    virtual std::vector<Position> *possible_moves() = 0;
 
     virtual ~Piece() = default;
 
-    friend std::ostream &operator<<(std::ostream &out, const Piece &item);
-
 protected:
-    char name_;
+    char type_;
     char color_;
-    bool is_on_black_square;
     Position pos_;
     std::vector<Position> moves_;
 };

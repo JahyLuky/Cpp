@@ -1,13 +1,5 @@
 #include "pawn.h"
 
-void Pawn::print(std::ostream &out, const Piece &item) const {
-    if (Pawn::get_square()) {
-        out << "\033[40m\033[37m " << get_piece() << " \033[0m";
-    } else {
-        out << "\033[47m\033[30m " << get_piece() << " \033[0m";
-    }
-}
-
 Pawn *Pawn::clone() const {
     return new Pawn(*this);
 }

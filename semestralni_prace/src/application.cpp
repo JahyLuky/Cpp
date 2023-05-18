@@ -55,16 +55,19 @@ bool extract_input(const std::string &start, const std::string &end, Position &o
 
 bool Application::run() const {
     Menu menu;
-
+    // TODO: input game in menu
     switch (menu.print_menu()) {
         case 't':
             if (!tutorial()) {
                 return false;
             }
         case 'a':
-            break;
+            // choose AI
+            if (!game('a')) {
+                return false;
+            }
         case 'h':
-            if (!game_vs_human()) {
+            if (!game('h')) {
                 return false;
             }
         default:
@@ -76,14 +79,21 @@ bool Application::run() const {
 
 bool Application::tutorial() const {
     std::cout << "Pravidla:" << std::endl;
-    if (!game_vs_human()) {
+    // TODO: set up tutorial
+    if (!game('h')) {
         return false;
     }
     return true;
 }
 
+// TODO: add maybe into class
+// TODO: add vector for captures
+void print_captures () {
+    std::cout << "\nW: " << std::endl;
+    std::cout << "B: " << std::endl;
+}
 
-bool Application::game_vs_human() const {
+bool Application::game(char game_type) const {
     Board board;
 
     board.init_board();
@@ -95,7 +105,6 @@ bool Application::game_vs_human() const {
     board.print_color_board();
     */
     std::cout << "\nGame starts!\n" << std::endl;
-
     // print classical board
     board.print_color_board();
 
@@ -103,7 +112,14 @@ bool Application::game_vs_human() const {
     Position old_pos{}, new_pos{};
     HumanPlayer A{}, B{};
     bool white_plays = true;
+    // TODO: find all possibles TIEs
     while (!board.game_over) {
+        if (white_plays) {
+            std::cout << "\nWHITE plays!" << std::endl;
+        } else {
+            std::cout << "\nBLACK plays!" << std::endl;
+        }
+
         std::cout << "What is your move?" << std::endl;
         std::cin >> start;
         std::cin >> end;
@@ -117,13 +133,19 @@ bool Application::game_vs_human() const {
             return false;
         }
 
+        // TODO: add who plays -> if bad position dont change :D
+
+        // TODO: based on game_type, change get old and new pos from input or AI
+
         // change turns
         if (white_plays) {
             A.make_move(board, old_pos, new_pos);
             white_plays = false;
+            print_captures();
         } else {
             B.make_move(board, old_pos, new_pos);
             white_plays = true;
+            print_captures();
         }
         // print updated board
         board.print_color_board();

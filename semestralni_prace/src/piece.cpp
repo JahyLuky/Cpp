@@ -2,12 +2,15 @@
 
 // PIECE
 
+Piece::Piece(char name, char color, const Position &pos)
+        : type_(name), color_(color), pos_(pos) {}
+
 char Piece::get_piece() const {
-    return name_;
+    return type_;
 }
 
 void Piece::set_piece(char name) {
-    name_ = name;
+    type_ = name;
 }
 
 char Piece::get_color() const {
@@ -26,17 +29,3 @@ void Piece::set_coor(Position &other) {
     pos_.row_ = other.row_;
     pos_.col_ = other.col_;
 }
-
-bool Piece::get_square() const {
-    return is_on_black_square;
-}
-
-void Piece::set_square(bool square) {
-    is_on_black_square = square;
-}
-
-std::ostream &operator<<(std::ostream &out, const Piece &item) {
-    item.print(out, item);
-    return out;
-}
-

@@ -15,9 +15,7 @@ public:
 
     bool tutorial() const;
 
-    bool game_vs_human() const;
-
-    bool game_vs_ai() const;
+    bool game(char game_type) const;
 
 private:
 

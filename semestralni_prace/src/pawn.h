@@ -8,8 +8,6 @@ public:
     Pawn(char name, char color, const Position &pos)
             : Piece(name, color, pos) {}
 
-    void print(std::ostream &out, const Piece &item) const override;
-
     Pawn *clone() const override;
 
     std::vector<Position> *possible_moves() override;

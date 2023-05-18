@@ -5,6 +5,7 @@
 
 // set classical chess board with all pieces
 Square startingPieces[] = {
+        // TODO: change pawn
         //-----BLACK-----
         {Position(0, 0), std::make_unique<Pawn>('R', 'B', Position(0, 0))},
         {Position(0, 1), std::make_unique<Pawn>('N', 'B', Position(0, 1))},

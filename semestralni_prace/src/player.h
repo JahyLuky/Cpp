@@ -6,6 +6,9 @@
 #include "piece.h"
 #include "pawn.h"
 
+/**
+ * Abstract class for player
+ */
 class Player {
 public:
     Player() = default;

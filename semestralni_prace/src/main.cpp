@@ -1,6 +1,8 @@
 #include <exception>
 #include "application.h"
 
+// TODO: doxygen correct
+
 int main() {
     Application app;
 

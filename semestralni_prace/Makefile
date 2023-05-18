@@ -1,15 +1,12 @@
 # Specifies the login name of the user who created this Makefile
-LOGIN = chess
+MAKE_NAME = jahelluk
 
 # Specifies the C++ compiler to use
 CXX = g++
 
-# Specifies basic compilation flags, including the C++ standard to use, optimization level, debugging information,
-# undefined behavior sanitizer, and warnings to display
+# Specifies basic compilation flags, including the C++17 standard to use, optimization level, debugging information,
+# undefined behavior sanitizer and warnings to display
 BASIC_FLAGS = -std=c++17 -O2 -g -fsanitize=undefined -Wall -pedantic
-
-# Additional flags that can be specified at the command line, which will be passed to the compiler
-FLAGS =
 
 # List of files to include in the zip file created by 'make zip'
 ZIP = Makefile Doxyfile DOCUMENTATION.md zadani.txt prohlaseni.txt \
@@ -31,12 +28,12 @@ DEPS = $(patsubst src/%.cpp, build/%.dep, ${SOURCES})
 all: compile doc
 
 # Target to compile the program
-compile: ${LOGIN}
+compile: ${MAKE_NAME}
 
 # Rule to generate the executable program, which depends on the object files
-${LOGIN}: ${OBJECTS}
+${MAKE_NAME}: ${OBJECTS}
 	@mkdir -p build/
-	${CXX} ${BASIC_FLAGS} ${FLAGS} $^ -o $@
+	${CXX} ${BASIC_FLAGS} $^ -o $@
 
 # Rule to generate an object file from a source file
 build/%.o: src/%.cpp
@@ -45,11 +42,11 @@ build/%.o: src/%.cpp
 
 # Target to run the program after compilation
 run: compile
-	./${LOGIN}
+	./${MAKE_NAME}
 
 # Target to run the program with valgrind to detect memory errors
 valgrind: compile
-	valgrind ./${LOGIN}
+	valgrind ./${MAKE_NAME}
 
 # Target to generate documentation
 doc: doc/index.html
@@ -66,17 +63,17 @@ count:
 # Target to remove all build and documentation files
 clean:
 	rm -rf build doc
-	rm -f ${LOGIN} ${LOGIN}.zip
+	rm -f ${MAKE_NAME} ${MAKE_NAME}.zip
 
 # Target to generate a zip file of all files necessary to build and run the program
-zip: ${LOGIN}.zip
+zip: ${MAKE_NAME}.zip
 
-${LOGIN}.zip: ${ZIP}
+${MAKE_NAME}.zip: ${ZIP}
 	rm -rf tmp/
 	rm -f $@
-	mkdir -p tmp/${LOGIN}/
-	cp --parents -r $^ tmp/${LOGIN}/
-	cd tmp/ && zip -r ../$@ ${LOGIN}/
+	mkdir -p tmp/${MAKE_NAME}/
+	cp --parents -r $^ tmp/${MAKE_NAME}/
+	cd tmp/ && zip -r ../$@ ${MAKE_NAME}/
 	rm -rf tmp/
 
 # Rule to generate a dependency file from a source file
