@@ -12,8 +12,4 @@ public:
 
     std::vector<Position> *possible_moves() override;
 
-protected:
-    // true -> can move 2 squares ahead
-    // false -> otherwise
-    bool first_move = true;
 };

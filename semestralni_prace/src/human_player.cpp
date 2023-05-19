@@ -1,5 +1,8 @@
 #include "human_player.h"
 
+HumanPlayer::HumanPlayer(char white_plays)
+: white_plays_(white_plays) {}
+
 bool HumanPlayer::make_move(Board &src, const Position &old_pos, const Position &new_pos) {
     // Starting position of piece
     int old_place = (old_pos.row_ * 8) + old_pos.col_;
@@ -10,14 +13,19 @@ bool HumanPlayer::make_move(Board &src, const Position &old_pos, const Position 
         return false;
     }
 
+    // moving with piece of opposite color
+    if (src.squares_[old_place].piece_->get_color() != this->white_plays_) {
+        std::cout << "Choose piece with your color!" << std::endl;
+        return false;
+    }
+
     // Final position of piece
     int new_place = (new_pos.row_ * 8) + new_pos.col_;
-
 
     int move = 0;
     bool found_move = false;
     std::vector<Position> *tmp = src.squares_[old_place].piece_->possible_moves();
-    // TODO: validate 'possible_moves' in its piece method
+
     // check if new_pos is a possible move
     for (const auto &i: *tmp) {
         move = (i.row_ * 8) + i.col_;
@@ -33,16 +41,20 @@ bool HumanPlayer::make_move(Board &src, const Position &old_pos, const Position 
         return false;
     }
 
-
-    // Copy piece "name"
-    char new_name = src.squares_[old_place].piece_->get_piece();
-    // Copy piece color
-    char new_color = src.squares_[old_place].piece_->get_color();
-    // Create new square with moved piece
-    src.squares_[new_place].pos_ = new_pos;
     // TODO: change 'pawn' to correct piece
-    src.squares_[new_place].piece_ = std::make_unique<Pawn>
-            (new_name, new_color, Position(new_pos.row_, new_pos.col_));
+
+    // TODO: how to access child from abstract class
+    if (tolower(src.squares_[old_place].piece_->get_piece()) == 'p'){
+        src.squares_[old_place].piece_->first_move_ = false;
+    }
+
+    // TODO: if piece was taken, add it to Players vector of taken pieces
+
+    // move piece to new position
+    src.squares_[new_place].piece_ = std::unique_ptr<Piece>(src.squares_[old_place].piece_->clone());
+
+    // change coor to new position
+    src.squares_[new_place].piece_->set_position(Position(new_pos.row_, new_pos.col_));
 
     // Empty starting square
     src.squares_[old_place].piece_ = nullptr;

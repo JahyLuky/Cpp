@@ -21,11 +21,11 @@ void Piece::set_color(char color) {
     color_ = color;
 }
 
-Position Piece::get_coor() const {
+Position Piece::get_position() const {
     return pos_;
 }
 
-void Piece::set_coor(Position &other) {
+void Piece::set_position(const Position &other) {
     pos_.row_ = other.row_;
     pos_.col_ = other.col_;
 }

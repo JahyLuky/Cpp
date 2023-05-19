@@ -15,6 +15,8 @@ public:
 
     bool tutorial() const;
 
+    bool game_run(Board &board) const;
+
     bool game(char game_type) const;
 
 private:

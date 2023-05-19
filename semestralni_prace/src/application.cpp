@@ -88,38 +88,29 @@ bool Application::tutorial() const {
 
 // TODO: add maybe into class
 // TODO: add vector for captures
-void print_captures () {
+void print_captures() {
     std::cout << "\nW: " << std::endl;
     std::cout << "B: " << std::endl;
 }
 
-bool Application::game(char game_type) const {
-    Board board;
+void print_color(bool white_plays) {
+    if (white_plays) {
+        std::cout << "\nWHITE plays!" << std::endl;
+    } else {
+        std::cout << "\nBLACK plays!" << std::endl;
+    }
+}
 
-    board.init_board();
-
-    /*
-    std::cout << "\nNo color and format board\n" << std::endl;
-    board.print_basic_board();
-    std::cout << "\nColor and format board\n" << std::endl;
-    board.print_color_board();
-    */
-    std::cout << "\nGame starts!\n" << std::endl;
-    // print classical board
-    board.print_color_board();
-
+bool Application::game_run(Board &board) const {
     std::string start, end;
     Position old_pos{}, new_pos{};
-    HumanPlayer A{}, B{};
+    HumanPlayer A('W'), B('B');
     bool white_plays = true;
-    // TODO: find all possibles TIEs
-    while (!board.game_over) {
-        if (white_plays) {
-            std::cout << "\nWHITE plays!" << std::endl;
-        } else {
-            std::cout << "\nBLACK plays!" << std::endl;
-        }
 
+    std::cout << "\nWHITE plays!" << std::endl;
+
+    // TODO: find all possible TIEs
+    while (!board.game_over) {
         std::cout << "What is your move?" << std::endl;
         std::cin >> start;
         std::cin >> end;
@@ -133,22 +124,39 @@ bool Application::game(char game_type) const {
             return false;
         }
 
-        // TODO: add who plays -> if bad position dont change :D
-
         // TODO: based on game_type, change get old and new pos from input or AI
 
         // change turns
         if (white_plays) {
-            A.make_move(board, old_pos, new_pos);
-            white_plays = false;
-            print_captures();
+            if (A.make_move(board, old_pos, new_pos)) {
+                white_plays = false;
+            }
         } else {
-            B.make_move(board, old_pos, new_pos);
-            white_plays = true;
-            print_captures();
+            if (B.make_move(board, old_pos, new_pos)) {
+                white_plays = true;
+            }
         }
+        print_captures();
+
         // print updated board
         board.print_color_board();
+        // print who plays next
+        print_color(white_plays);
+    }
+    return true;
+}
+
+bool Application::game(char game_type) const {
+    Board board;
+    board.init_board();
+
+    std::cout << "\nGame starts!\n" << std::endl;
+
+    // print classical board
+    board.print_color_board();
+
+    if (!game_run(board)) {
+        return false;
     }
     return true;
 }

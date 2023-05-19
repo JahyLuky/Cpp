@@ -32,9 +32,9 @@ public:
 
     void set_color(char color);
 
-    Position get_coor() const;
+    Position get_position() const;
 
-    void set_coor(Position &other);
+    void set_position(const Position &other);
 
     virtual Piece *clone() const = 0;
 
@@ -45,6 +45,9 @@ public:
 
     virtual ~Piece() = default;
 
+    // true -> can move 2 squares ahead
+    // false -> otherwise
+    bool first_move_ = true;
 protected:
     char type_;
     char color_;

@@ -10,6 +10,7 @@ int main() {
         app.run();
     }
     catch (std::exception &e) {
+        std::cout << "main catch" << std::endl;
         std::cout << e.what() << std::endl;
     }
 
