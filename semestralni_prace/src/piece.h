@@ -3,19 +3,9 @@
 #include <iostream>
 #include <vector>
 
-/**
- * Represents position on chess board
- * (row, col)
- */
-struct Position {
-    int row_;
-    int col_;
+#include "position.h"
 
-    Position() = default;
-
-    Position(int a, int b)
-            : row_(a), col_(b) {}
-};
+class Board; // Forward declaration of the Board class
 
 /**
  * Abstract class for chess pieces
@@ -36,18 +26,27 @@ public:
 
     void set_position(const Position &other);
 
+    bool valid_position(const Position &other) const;
+
+    void add_move(const Position &dest);
+
+    bool is_empty(const Board &board, const Position &dest) const;
+
+    bool is_same_color(const Board &board, const Position &dest) const;
+
     virtual Piece *clone() const = 0;
 
-    /** takes actual position on board (pos_)
+    /**
      * gives all possible moves (based on piece's type)
      */
-    virtual std::vector<Position> *possible_moves() = 0;
+    virtual std::vector<Position> *possible_moves(Board &board) = 0;
 
     virtual ~Piece() = default;
 
     // true -> can move 2 squares ahead
     // false -> otherwise
     bool first_move_ = true;
+
 protected:
     char type_;
     char color_;

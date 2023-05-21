@@ -4,7 +4,16 @@
 #include <vector>
 #include <memory>
 
+#include "position.h"
+
 #include "piece.h"
+
+#include "pawn.h"
+#include "queen.h"
+#include "king.h"
+#include "rook.h"
+#include "bishop.h"
+#include "knight.h"
 
 // Size of the chess board
 const int BOARD_SIZE = 8;
@@ -44,5 +53,5 @@ public:
     void print_basic_board() const;
 
     // Stores each square of chess board
-    std::vector<Square> squares_;
+    std::vector<std::vector<Square>> squares_;
 };

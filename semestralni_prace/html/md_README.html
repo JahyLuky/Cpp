@@ -191,7 +191,7 @@ Pokud hráč zadá místo pohybu figurky: <code>save game1</code>, uloží se ak
 <li>jakmile hráč zadá pozice, hra najde figurku, zjistí její typ (pěšec, věž atd.), se kterou chce hráč pohnout</li>
 <li>této figurce najde všechny povolené tahy (dle typu figurky):<ul>
 <li>pokud je v cestě naše figurka nebo je mimo šachovnici, tah nebude povolen</li>
-<li>pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "make_move" třídy <code>player</code>)</li>
+<li>pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "get_move" třídy <code>player</code>)</li>
 </ul>
 </li>
 <li>jelikož může nastat situace: Mějme na "e1 bílého krále", na "e5 černého střelce" a na "e6 černou věž", po pohnutí "střelcem na g3" se bílý král dostane do šachu od 2 figurek zároveň<ul>
@@ -210,14 +210,14 @@ Polymorfismus</h1>
 <p>Třída <code>piece:</code></p><ul>
 <li>má za potomky jednotlivé šachové figurky</li>
 <li>má polymorfní metodu <code>possible_moves</code>, která na základě typu figurky spočítá její povolené tahy<ul>
-<li>tato metoda se volá v <code>HumanPlayer::make_move</code> a <code>AIPlayer::make_move</code></li>
+<li>tato metoda se volá v <code>HumanPlayer::get_move</code> a <code>AIPlayer::get_move</code></li>
 </ul>
 </li>
 <li>jednotlivé figurky využívají <code>piece</code> pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)</li>
 </ul>
 <p>Třída <code>player:</code></p><ul>
 <li>má dva potomky <code>human_player</code> a <code>ai_player</code></li>
-<li>má polymorfní metodu <code>make_move</code>, která si vyžadá: <code>aktuální šachovnice</code>, <code>startovní_pozice</code>, <code>cílová_pozice</code> a vrátí <code>true</code>, pokud je tah platný, v opačném případě vrátí <code>false</code><ul>
+<li>má polymorfní metodu <code>get_move</code>, která si vyžadá: <code>aktuální šachovnice</code>, <code>startovní_pozice</code>, <code>cílová_pozice</code> a vrátí <code>true</code>, pokud je tah platný, v opačném případě vrátí <code>false</code><ul>
 <li>tato metoda se volá v <code>application::game</code></li>
 </ul>
 </li>

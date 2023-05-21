@@ -151,7 +151,7 @@ Pokud hráč zadá místo pohybu figurky\+: {\ttfamily save game1}, uloží se a
 \item této figurce najde všechny povolené tahy (dle typu figurky)\+:
 \begin{DoxyItemize}
 \item pokud je v cestě naše figurka nebo je mimo šachovnici, tah nebude povolen
-\item pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě \char`\"{}make\+\_\+move\char`\"{} třídy {\ttfamily player})
+\item pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě \char`\"{}get\+\_\+move\char`\"{} třídy {\ttfamily player})
 \end{DoxyItemize}
 \item jelikož může nastat situace\+: Mějme na \char`\"{}e1 bílého krále\char`\"{}, na \char`\"{}e5 černého střelce\char`\"{} a na \char`\"{}e6 černou věž\char`\"{}, po pohnutí \char`\"{}střelcem na g3\char`\"{} se bílý král dostane do šachu od 2 figurek zároveň
 \begin{DoxyItemize}
@@ -170,7 +170,7 @@ Třída {\ttfamily piece\+:}
 \item má za potomky jednotlivé šachové figurky
 \item má polymorfní metodu {\ttfamily possible\+\_\+moves}, která na základě typu figurky spočítá její povolené tahy
 \begin{DoxyItemize}
-\item tato metoda se volá v {\ttfamily Human\+Player\+::make\+\_\+move} a {\ttfamily AIPlayer\+::make\+\_\+move}
+\item tato metoda se volá v {\ttfamily Human\+Player\+::get\+\_\+move} a {\ttfamily AIPlayer\+::get\+\_\+move}
 \end{DoxyItemize}
 \item jednotlivé figurky využívají {\ttfamily piece} pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)
 \end{DoxyItemize}
@@ -178,7 +178,7 @@ Třída {\ttfamily piece\+:}
 Třída {\ttfamily player\+:}
 \begin{DoxyItemize}
 \item má dva potomky {\ttfamily human\+\_\+player} a {\ttfamily ai\+\_\+player}
-\item má polymorfní metodu {\ttfamily make\+\_\+move}, která si vyžadá\+: {\ttfamily aktuální šachovnice}, {\ttfamily startovní\+\_\+pozice}, {\ttfamily cílová\+\_\+pozice} a vrátí {\ttfamily true}, pokud je tah platný, v opačném případě vrátí {\ttfamily false}
+\item má polymorfní metodu {\ttfamily get\+\_\+move}, která si vyžadá\+: {\ttfamily aktuální šachovnice}, {\ttfamily startovní\+\_\+pozice}, {\ttfamily cílová\+\_\+pozice} a vrátí {\ttfamily true}, pokud je tah platný, v opačném případě vrátí {\ttfamily false}
 \begin{DoxyItemize}
 \item tato metoda se volá v {\ttfamily application\+::game}
 \end{DoxyItemize}

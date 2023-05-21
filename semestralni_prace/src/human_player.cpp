@@ -1,63 +1,68 @@
 #include "human_player.h"
 
-HumanPlayer::HumanPlayer(char white_plays)
-: white_plays_(white_plays) {}
+HumanPlayer::HumanPlayer(char color)
+        : Player(color) {}
 
-bool HumanPlayer::make_move(Board &src, const Position &old_pos, const Position &new_pos) {
+bool HumanPlayer::validate_move(Board &board) const {
     // Starting position of piece
-    int old_place = (old_pos.row_ * 8) + old_pos.col_;
+    Square &start = board.squares_[this->start_.row_][this->start_.col_];
 
-    // empty square
-    if (src.squares_[old_place].piece_ == nullptr) {
+    // Final position of piece
+    Square &end = board.squares_[this->end_.row_][this->end_.col_];
+
+    // cant move with empty square
+    if (start.piece_ == nullptr) {
         std::cout << "Choose valid piece!" << std::endl;
         return false;
     }
 
-    // moving with piece of opposite color
-    if (src.squares_[old_place].piece_->get_color() != this->white_plays_) {
+    // moving piece on square where is already our piece
+    if (end.piece_ != nullptr
+        && end.piece_->get_color() == this->color_) {
+        std::cout << "Can't take our piece!" << std::endl;
+        return false;
+    }
+
+    // moving piece of opposite color
+    if (start.piece_->get_color() != this->color_) {
         std::cout << "Choose piece with your color!" << std::endl;
         return false;
     }
 
-    // Final position of piece
-    int new_place = (new_pos.row_ * 8) + new_pos.col_;
-
-    int move = 0;
     bool found_move = false;
-    std::vector<Position> *tmp = src.squares_[old_place].piece_->possible_moves();
-
-    // check if new_pos is a possible move
-    for (const auto &i: *tmp) {
-        move = (i.row_ * 8) + i.col_;
-        if (move == new_place) {
+    std::vector<Position> *possible_moves = start.piece_->possible_moves(board);
+    for (const auto &item: *possible_moves) {
+        if (item.row_ == end.pos_.row_
+            && item.col_ == end.pos_.col_) {
             found_move = true;
             break;
         }
     }
 
-    // no valid move found
+    // No valid move found
     if (!found_move) {
         std::cout << "Cant move piece to that square!" << std::endl;
         return false;
     }
 
-    // TODO: change 'pawn' to correct piece
+    return true;
+}
 
-    // TODO: how to access child from abstract class
-    if (tolower(src.squares_[old_place].piece_->get_piece()) == 'p'){
-        src.squares_[old_place].piece_->first_move_ = false;
+bool HumanPlayer::get_move(Board &board) {
+    std::string start, end;
+
+    // load positions
+    std::cin >> start;
+    std::cin >> end;
+
+    if (!extract_input(start, end, this->start_, this->end_)) {
+        return false;
     }
 
-    // TODO: if piece was taken, add it to Players vector of taken pieces
+    if (!validate_move(board)) {
+        return false;
+    }
 
-    // move piece to new position
-    src.squares_[new_place].piece_ = std::unique_ptr<Piece>(src.squares_[old_place].piece_->clone());
-
-    // change coor to new position
-    src.squares_[new_place].piece_->set_position(Position(new_pos.row_, new_pos.col_));
-
-    // Empty starting square
-    src.squares_[old_place].piece_ = nullptr;
     return true;
 }
 

@@ -8,10 +8,11 @@ public:
 
     HumanPlayer(char white_plays);
 
-    bool make_move(Board &src, const Position &old_pos, const Position &new_pos) override;
+    bool validate_move(Board &board) const;
+
+    bool get_move(Board &board) override;
 
     HumanPlayer *clone() const override;
 
 private:
-    char white_plays_;
 };

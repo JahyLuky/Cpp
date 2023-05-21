@@ -136,7 +136,7 @@ V případě, že hráč zadá špatné pozice, bude vyzván k opětovnému zad�
 * jakmile hráč zadá pozice, hra najde figurku, zjistí její typ (pěšec, věž atd.), se kterou chce hráč pohnout
 * této figurce najde všechny povolené tahy (dle typu figurky):
   * pokud je v cestě naše figurka nebo je mimo šachovnici, tah nebude povolen
-  * pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "make_move" třídy `player`)
+  * pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "get_move" třídy `player`)
 * jelikož může nastat situace: Mějme na "e1 bílého krále", na "e5 černého střelce" a na "e6 černou věž", po pohnutí "střelcem na g3" se bílý král dostane do šachu od 2 figurek zároveň
   * před zadáním tahu se vždy podívám zda můj král není v šachu, pokud ANO, upozorním hráče, jinak hra pokračuje normálně
   * zda je král v šachu zjistím tak, že zkontroluji diagonály, sloupec a řádek na kterém se nachází (výsledek bude uložen ve třídě `king`)
@@ -150,12 +150,12 @@ Po skončení hry se vypíše výsledek hry: `WHITE WINS`, `BLACK WINS`, `TIE`.
 Třída `piece:`
 * má za potomky jednotlivé šachové figurky
 * má polymorfní metodu `possible_moves`, která na základě typu figurky spočítá její povolené tahy
-  * tato metoda se volá v `HumanPlayer::make_move` a `AIPlayer::make_move`
+  * tato metoda se volá v `HumanPlayer::get_move` a `AIPlayer::get_move`
 * jednotlivé figurky využívají `piece` pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)
 
 Třída `player:`
 * má dva potomky `human_player` a `ai_player`
-* má polymorfní metodu `make_move`, která si vyžadá: `aktuální šachovnice`, `startovní_pozice`, `cílová_pozice` a vrátí `true`, pokud je tah platný, v opačném případě vrátí `false`
+* má polymorfní metodu `get_move`, která si vyžadá: `aktuální šachovnice`, `startovní_pozice`, `cílová_pozice` a vrátí `true`, pokud je tah platný, v opačném případě vrátí `false`
   * tato metoda se volá v `application::game`
 * implementace pro `human_player` očekává, že se dotážeme na další tah pomocí terminálu
 * implementace pro `ai_player` vypočítá tah z aktuální šachovnice (podle zvolené AI se vybere metoda = AI algoritmus, která určí tah)

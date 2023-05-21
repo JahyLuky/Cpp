@@ -6,7 +6,7 @@ class AIPlayer : public Player {
 public:
     AIPlayer() = default;
 
-    bool make_move(Board &src, const Position &old_pos, const Position &new_pos) override;
+    bool get_move(Board &src) override;
 
     AIPlayer *clone() const override;
 

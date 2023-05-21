@@ -155,7 +155,7 @@ Třída `piece:`
 
 Třída `player:`
 * má dva potomky `human_player` a `ai_player`
-* má polymorfní metodu `make_move`, která si vyžadá: `aktuální šachovnice`, `startovní_pozice`, `cílová_pozice` a vrátí `true`, pokud je tah platný, v opačném případě vrátí `false`
+* má polymorfní metodu `get_move`, která si vyžadá: `aktuální šachovnice`, `startovní_pozice`, `cílová_pozice` a vrátí `true`, pokud je tah platný, v opačném případě vrátí `false`
   * tato metoda se volá v `application::game`
 * implementace pro `human_player` očekává, že se dotážeme na další tah pomocí terminálu
 * implementace pro `ai_player` vypočítá tah z aktuální šachovnice (podle zvolené AI se vybere metoda = AI algoritmus, která určí tah)

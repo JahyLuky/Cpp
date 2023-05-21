@@ -1,3 +1,5 @@
+#pragma once
+
 #include "piece.h"
 
 /**
@@ -10,6 +12,5 @@ public:
 
     Pawn *clone() const override;
 
-    std::vector<Position> *possible_moves() override;
-
+    std::vector<Position>* possible_moves(Board & board) override;
 };
