@@ -5,7 +5,6 @@
 
 #include "position.h"
 
-class Board; // Forward declaration of the Board class
 
 /**
  * Abstract class for chess pieces
@@ -30,22 +29,20 @@ public:
 
     void add_move(const Position &dest);
 
-    bool is_empty(const Board &board, const Position &dest) const;
-
-    bool is_same_color(const Board &board, const Position &dest) const;
-
     virtual Piece *clone() const = 0;
 
     /**
      * gives all possible moves (based on piece's type)
      */
-    virtual std::vector<Position> *possible_moves(Board &board) = 0;
+    virtual std::vector<Position> *possible_moves() = 0;
 
     virtual ~Piece() = default;
 
     // true -> can move 2 squares ahead
     // false -> otherwise
     bool first_move_ = true;
+
+    bool is_checked = false;
 
 protected:
     char type_;

@@ -2,11 +2,9 @@
 
 #include <iostream>
 #include <vector>
-#include <memory>
 
+#include "square.h"
 #include "position.h"
-
-#include "piece.h"
 
 #include "pawn.h"
 #include "queen.h"
@@ -17,19 +15,6 @@
 
 // Size of the chess board
 const int BOARD_SIZE = 8;
-
-/**
- * Represents square of chess board
- */
-struct Square {
-    Position pos_;
-    // chess piece or empty square (nullptr)
-    std::unique_ptr<Piece> piece_;
-
-    Square(Position pos, std::unique_ptr<Piece> piece)
-            : pos_(pos), piece_(std::move(piece)) {}
-
-};
 
 /**
  * Represents classical chess board
@@ -54,4 +39,6 @@ public:
 
     // Stores each square of chess board
     std::vector<std::vector<Square>> squares_;
+    Position start_;
+    Position end_;
 };

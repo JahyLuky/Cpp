@@ -2,9 +2,10 @@
 
 #include <iostream>
 
+#include "application.h"
+
 class Menu {
 public:
-    char print_menu() const;
-
+    void run () const;
 private:
 };

@@ -1,7 +1,15 @@
 #include "player.h"
 
 Player::Player(char color)
-        : color_(color) {}
+        : color_(color), castling_(false) {
+    if (color == 'W') {
+        this->king_.row_ = 7;
+        this->king_.col_ = 4;
+    } else {
+        this->king_.row_ = 0;
+        this->king_.col_ = 4;
+    }
+}
 
 int Player::coordinates_to_int(char c) {
     switch (tolower(c)) {
@@ -56,5 +64,9 @@ bool Player::extract_input(const std::string &start, const std::string &end, Pos
     return true;
 }
 
-
-
+void Player::print_captures() const {
+    std::cout << this->color_ << ": ";
+    for (const auto &item: this->captures_) {
+        std::cout << item << ", ";
+    }
+}

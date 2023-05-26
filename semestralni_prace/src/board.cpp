@@ -1,15 +1,13 @@
 #include "board.h"
 
-
 // set classical chess board with all pieces
 Square startingPieces[] = {
-        // TODO: change pawn
         //-----BLACK-----
         {Position(0, 0), std::make_unique<Rook>('R', 'B', Position(0, 0))},
         {Position(0, 1), std::make_unique<Knight>('N', 'B', Position(0, 1))},
         {Position(0, 2), std::make_unique<Bishop>('B', 'B', Position(0, 2))},
         {Position(0, 3), std::make_unique<Queen>('Q', 'B', Position(0, 3))},
-        {Position(0, 4), std::make_unique<Pawn>('K', 'B', Position(0, 4))},
+        {Position(0, 4), std::make_unique<King>('K', 'B', Position(0, 4))},
         {Position(0, 5), std::make_unique<Bishop>('B', 'B', Position(0, 5))},
         {Position(0, 6), std::make_unique<Knight>('N', 'B', Position(0, 6))},
         {Position(0, 7), std::make_unique<Pawn>('R', 'B', Position(0, 7))},
@@ -34,7 +32,7 @@ Square startingPieces[] = {
         {Position(7, 1), std::make_unique<Knight>('n', 'W', Position(7, 1))},
         {Position(7, 2), std::make_unique<Bishop>('b', 'W', Position(7, 2))},
         {Position(7, 3), std::make_unique<Queen>('q', 'W', Position(7, 3))},
-        {Position(7, 4), std::make_unique<Pawn>('k', 'W', Position(7, 4))},
+        {Position(7, 4), std::make_unique<King>('k', 'W', Position(7, 4))},
         {Position(7, 5), std::make_unique<Bishop>('b', 'W', Position(7, 5))},
         {Position(7, 6), std::make_unique<Knight>('n', 'W', Position(7, 6))},
         {Position(7, 7), std::make_unique<Rook>('r', 'W', Position(7, 7))},

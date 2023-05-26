@@ -8,9 +8,7 @@ public:
 
     HumanPlayer(char white_plays);
 
-    bool validate_move(Board &board) const;
-
-    bool get_move(Board &board) override;
+    bool get_move() override;
 
     HumanPlayer *clone() const override;
 

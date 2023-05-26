@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "board.h"
 #include "piece.h"
 
 /**
@@ -28,18 +27,22 @@ public:
      */
     bool extract_input(const std::string &start, const std::string &end, Position &old_pos, Position &new_pos);
 
+    void print_captures() const;
+
     /**
      * @param chess board
      * @return true -> valid moves in start_ and end_
      * @return false -> no valid moves
      */
-    virtual bool get_move(Board &board) = 0;
+    virtual bool get_move() = 0;
 
     virtual Player *clone() const = 0;
 
     char color_;
     Position start_;
     Position end_;
+    Position king_;
     std::vector<char> captures_;
+    bool castling_;
 protected:
 };

@@ -12,5 +12,5 @@ public:
 
     Queen *clone() const override;
 
-    std::vector<Position> *possible_moves(Board &board) override;
+    std::vector<Position> *possible_moves() override;
 };

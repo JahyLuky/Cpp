@@ -1,7 +1,4 @@
 #include "piece.h"
-#include "board.h"
-
-// PIECE
 
 Piece::Piece(char name, char color, const Position &pos)
         : type_(name), color_(color), pos_(pos) {}
@@ -32,8 +29,8 @@ void Piece::set_position(const Position &other) {
 }
 
 bool Piece::valid_position(const Position &other) const {
-    if (other.row_ >= 0 && other.row_ < BOARD_SIZE
-        && other.col_ >= 0 && other.col_ < BOARD_SIZE) {
+    if (other.row_ >= 0 && other.row_ <= 7
+        && other.col_ >= 0 && other.col_ <= 7) {
         return true;
     }
     return false;
@@ -41,18 +38,4 @@ bool Piece::valid_position(const Position &other) const {
 
 void Piece::add_move(const Position &dest) {
     this->moves_.emplace_back(dest);
-}
-
-bool Piece::is_empty(const Board &board, const Position &dest) const {
-    if (board.squares_[dest.row_][dest.col_].piece_ == nullptr) {
-        return true;
-    }
-    return false;
-}
-
-bool Piece::is_same_color(const Board &board, const Position &dest) const {
-    if (this->get_color() == board.squares_[dest.row_][dest.col_].piece_->get_color()) {
-        return true;
-    }
-    return false;
 }

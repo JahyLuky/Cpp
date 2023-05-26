@@ -1,7 +1,5 @@
 #include "queen.h"
 
-#include "board.h"
-
 Queen *Queen::clone() const {
     return new Queen(*this);
 }
@@ -18,7 +16,7 @@ const std::vector<Position> move_directions = {
         Position(1, -1)
 };
 
-std::vector<Position> *Queen::possible_moves(Board &board) {
+std::vector<Position> *Queen::possible_moves() {
     // Reset possible moves
     this->moves_.clear();
 
@@ -33,14 +31,8 @@ std::vector<Position> *Queen::possible_moves(Board &board) {
         Position pos(row_cnt, col_cnt);
 
         while (valid_position(pos)) {
-            if (is_empty(board, pos)) {
-                add_move(pos);
-            } else if (!is_same_color(board, pos)) {
-                add_move(pos);
-                break;
-            } else {
-                break;
-            }
+
+            add_move(pos);
             pos.row_ += direction.row_;
             pos.col_ += direction.col_;
         }

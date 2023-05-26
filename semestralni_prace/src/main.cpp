@@ -1,18 +1,19 @@
 #include <exception>
-#include "application.h"
+
+#include "menu.h"
 
 // TODO: doxygen correct
 
 int main() {
-    Application app;
+    Menu menu;
 
     try {
-        app.run();
+        menu.run();
     }
     catch (std::exception &e) {
         std::cout << "main catch" << std::endl;
         std::cout << e.what() << std::endl;
     }
 
-    return 1;
+    return 0;
 }

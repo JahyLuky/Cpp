@@ -12,19 +12,15 @@ struct Position {
 
     Position() = default;
 
-    Position(int a, int b)
-            : row_(a), col_(b) {}
+    Position(int a, int b);
 
-    Position(const Position &other)
-            : row_(other.row_), col_(other.col_) {}
+    Position(const Position &other);
 
-    Position& operator=(const Position &other) {
-        if (this != &other) {
-            row_ = other.row_;
-            col_ = other.col_;
-        }
-        return *this;
-    }
+    Position &operator=(const Position &other);
+
+    bool operator==(const Position &other) const;
+
+    bool operator!=(const Position &other) const;
 
     ~Position() = default;
 };
