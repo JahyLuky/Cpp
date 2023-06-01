@@ -44,5 +44,6 @@ public:
     Position king_;
     std::vector<char> captures_;
     bool castling_;
+    bool en_passant_;
 protected:
 };

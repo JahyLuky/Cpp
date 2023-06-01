@@ -27,6 +27,8 @@ void Menu::run() const {
         switch (tolower(in)) {
             case 't': // tutorial
                 std::cout << "Tutorial" << std::endl;
+                Tutorial tutorial;
+                tutorial.run();
                 game_on = false;
                 break;
             case 'h': // game vs human

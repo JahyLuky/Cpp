@@ -6,10 +6,14 @@ Knight *Knight::clone() const {
 
 // Possible knight directions
 const std::vector<Position> move_directions = {
-        Position(-2, -1), Position(-2, 1),
-        Position(-1, -2), Position(-1, 2),
-        Position(1, -2), Position(1, 2),
-        Position(2, -1), Position(2, 1)
+        Position(-2, -1),
+        Position(-2, 1),
+        Position(-1, -2),
+        Position(-1, 2),
+        Position(1, -2),
+        Position(1, 2),
+        Position(2, -1),
+        Position(2, 1)
 };
 
 std::vector<Position> *Knight::possible_moves() {

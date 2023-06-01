@@ -8,11 +8,19 @@
 
 class Application {
 public:
-    void make_move(Board &board, Player &player) const;
+    void print_color(bool white_plays);
 
-    bool play_move(Board &board, Player &player) const;
+    void move_piece(Square &start, Square &end);
 
-    bool game() const;
+    void handle_castling(Board &board, Player &player, Square &start, Square &end);
+
+    void make_move(Board &board, Player &player);
+
+    void undo_move(Board &board, Player &player);
+
+    bool play_move(Board &board, Player &player);
+
+    bool game();
 
 private:
 };

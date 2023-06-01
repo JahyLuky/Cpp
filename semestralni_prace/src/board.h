@@ -39,6 +39,6 @@ public:
 
     // Stores each square of chess board
     std::vector<std::vector<Square>> squares_;
-    Position start_;
-    Position end_;
+    Square start_;
+    Square end_;
 };

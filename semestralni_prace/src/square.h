@@ -13,6 +13,8 @@ struct Square {
     // chess piece or empty square (nullptr)
     std::unique_ptr<Piece> piece_;
 
+    Square() = default;
+
     Square(const Position &pos, std::unique_ptr<Piece> piece);
 
     Square(const Square &other);

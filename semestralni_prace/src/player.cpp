@@ -1,7 +1,7 @@
 #include "player.h"
 
 Player::Player(char color)
-        : color_(color), castling_(false) {
+        : color_(color), castling_(false), en_passant_(false) {
     if (color == 'W') {
         this->king_.row_ = 7;
         this->king_.col_ = 4;
