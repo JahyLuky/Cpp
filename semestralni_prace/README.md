@@ -70,14 +70,14 @@ Game starts!
 
    a  b  c  d  e  f  g  h
   ________________________
-8| R  N  B  Q  K  B  N  R |8
-7| P  P  P  P  P  P  P  P |7
+8| r  n  b  q  k  b  n  r |8
+7| p  p  p  p  p  p  p  p |7
 6|                        |6
 5|                        |5
 4|                        |4
 3|                        |3
-2| p  p  p  p  p  p  p  p |2
-1| r  n  b  q  k  b  n  r |1
+2| P  P  P  P  P  P  P  P |2
+1| R  N  B  Q  K  B  N  R |1
   ------------------------
    a  b  c  d  e  f  g  h
 
@@ -90,20 +90,20 @@ B:
    a  b  c  d  e  f  g  h
   ________________________
 8| R  N  B  Q  K  B  N  R |8
-7| P  P  P  P  P  P  P  P |7
+7| p  p  p  p  p  p  p  p |7
 6|                        |6
 5|                        |5
-4|             p          |4
+4|             P          |4
 3|                        |3
-2| p  p  p  p     p  p  p |2
-1| r  n  b  q  k  b  n  r |1
+2| P  P  P  P     P  P  P |2
+1| R  N  B  Q  K  B  N  R |1
   ------------------------
    a  b  c  d  e  f  g  h
 
 BLACK plays!
 What is your move?
 ```
-Bílé figurky jsou psány malými písmeny ('p'), černé figurky jsou psány velkými písmeny ('P').
+Bílé figurky jsou psány malými písmeny ('P'), černé figurky jsou psány velkými písmeny ('p').
 
 Pohyb se zadává ve formátu: `startovní_pozice` `cílová_pozice` ("e2 e4").
 

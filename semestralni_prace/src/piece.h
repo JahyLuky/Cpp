@@ -40,7 +40,7 @@ public:
 
     // true -> can move 2 squares ahead
     // false -> otherwise
-    bool first_move_ = true;
+    bool first_move_ = false;
 
     bool is_checked = false;
 

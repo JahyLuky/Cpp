@@ -124,7 +124,7 @@ bool valid_castling(const Board &board, const Square &end) {
     if (king_row == 0 && king_col == 2) {
         // Left rook
         const Square &rook = board.squares_[0][0];
-        if (rook.piece_ != nullptr && rook.piece_->first_move_
+        if (rook.piece_ != nullptr && !rook.piece_->first_move_
             && tolower(rook.piece_->get_piece()) == 'r') {
             return true;
         }
@@ -132,7 +132,7 @@ bool valid_castling(const Board &board, const Square &end) {
     if (king_row == 0 && king_col == 6) {
         // Right rook
         const Square &rook = board.squares_[0][7];
-        if (rook.piece_ != nullptr && rook.piece_->first_move_
+        if (rook.piece_ != nullptr && !rook.piece_->first_move_
             && tolower(rook.piece_->get_piece()) == 'r') {
             return true;
         }
@@ -142,7 +142,7 @@ bool valid_castling(const Board &board, const Square &end) {
     if (king_row == 7 && king_col == 2) {
         // Left rook
         const Square &rook = board.squares_[7][0];
-        if (rook.piece_ != nullptr && rook.piece_->first_move_
+        if (rook.piece_ != nullptr && !rook.piece_->first_move_
             && tolower(rook.piece_->get_piece()) == 'r') {
             return true;
         }
@@ -150,7 +150,7 @@ bool valid_castling(const Board &board, const Square &end) {
     if (king_row == 7 && king_col == 6) {
         // Right rook
         const Square &rook = board.squares_[7][7];
-        if (rook.piece_ != nullptr && rook.piece_->first_move_
+        if (rook.piece_ != nullptr && !rook.piece_->first_move_
             && tolower(rook.piece_->get_piece()) == 'r') {
             return true;
         }
@@ -187,7 +187,7 @@ bool Rules::validate_move(const Board &board, Player &player) {
     }
 
     // Moving king who hasn't moved yet
-    if (tolower(start.piece_->get_piece()) == 'k' && start.piece_->first_move_) {
+    if (tolower(start.piece_->get_piece()) == 'k' && !start.piece_->first_move_) {
         player.castling_ = valid_castling(board, end);
     }
 

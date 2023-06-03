@@ -53,7 +53,7 @@ void Application::make_move(Board &board, Player &player) {
 
     // No double move
     if (tolower(start.piece_->get_piece()) == 'p') {
-        start.piece_->first_move_ = false;
+        start.piece_->first_move_ = true;
         if ((player.end_.row_ % 7) == 0) {
             promote = true;
         }
@@ -68,13 +68,13 @@ void Application::make_move(Board &board, Player &player) {
 
     // King's first move
     if (tolower(start.piece_->get_piece()) == 'k') {
-        start.piece_->first_move_ = false;
+        start.piece_->first_move_ = true;
         player.king_ = end.pos_;
     }
 
     // Rook's first move
     if (tolower(start.piece_->get_piece()) == 'r') {
-        start.piece_->first_move_ = false;
+        start.piece_->first_move_ = true;
     }
 
     if (!promote) {
@@ -174,7 +174,6 @@ bool Application::game() {
     board.print_color_board();
 
     HumanPlayer A('W'), B('B');
-    bool white_plays = true;
 
     // TODO: find all possible TIEs
     while (!board.game_over) {
@@ -188,10 +187,10 @@ bool Application::game() {
         // TODO: based on game_type, change get old and new pos from input or AI
 
         // Change turns
-        if (white_plays) {
+        if (board.white_playes) {
             if (play_move(board, A)) {
                 // Piece moved, switch players
-                white_plays = false;
+                board.white_playes = false;
             } else {
                 // Incorrect move, try again
                 continue;
@@ -199,7 +198,7 @@ bool Application::game() {
         } else {
             if (play_move(board, B)) {
                 // Piece moved, switch players
-                white_plays = true;
+                board.white_playes = true;
             } else {
                 // Incorrect move, try again
                 continue;
@@ -215,7 +214,7 @@ bool Application::game() {
         // Print updated board
         board.print_color_board();
         // Print who plays next
-        print_color(white_plays);
+        print_color(board.white_playes);
     }
     return true;
 }

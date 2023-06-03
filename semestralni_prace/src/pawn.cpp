@@ -24,7 +24,7 @@ std::vector<Position> *Pawn::possible_moves() {
             }
             // Move forward
             add_move(Position((row - 1), (col)));
-            if (this->first_move_) {
+            if (!this->first_move_) {
                 add_move(Position((row - 2), (col)));
             }
 
@@ -41,7 +41,7 @@ std::vector<Position> *Pawn::possible_moves() {
             }
             // Move forward
             add_move(Position((row + 1), (col)));
-            if (this->first_move_) {
+            if (!this->first_move_) {
                 add_move(Position((row + 2), (col)));
 
             }

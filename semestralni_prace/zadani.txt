@@ -70,14 +70,14 @@ Game starts!
 
    a  b  c  d  e  f  g  h
   ________________________
-8| R  N  B  Q  K  B  N  R |8
-7| P  P  P  P  P  P  P  P |7
+8| r  n  b  q  k  b  n  r |8
+7| p  p  p  p  p  p  p  p |7
 6|                        |6
 5|                        |5
 4|                        |4
 3|                        |3
-2| p  p  p  p  p  p  p  p |2
-1| r  n  b  q  k  b  n  r |1
+2| P  P  P  P  P  P  P  P |2
+1| R  N  B  Q  K  B  N  R |1
   ------------------------
    a  b  c  d  e  f  g  h
 
@@ -90,20 +90,20 @@ B:
    a  b  c  d  e  f  g  h
   ________________________
 8| R  N  B  Q  K  B  N  R |8
-7| P  P  P  P  P  P  P  P |7
+7| p  p  p  p  p  p  p  p |7
 6|                        |6
 5|                        |5
-4|             p          |4
+4|             P          |4
 3|                        |3
-2| p  p  p  p     p  p  p |2
-1| r  n  b  q  k  b  n  r |1
+2| P  P  P  P     P  P  P |2
+1| R  N  B  Q  K  B  N  R |1
   ------------------------
    a  b  c  d  e  f  g  h
 
 BLACK plays!
 What is your move?
 ```
-Bílé figurky jsou psány malými písmeny ('p'), černé figurky jsou psány velkými písmeny ('P').
+Bílé figurky jsou psány malými písmeny ('P'), černé figurky jsou psány velkými písmeny ('p').
 
 Pohyb se zadává ve formátu: `startovní_pozice` `cílová_pozice` ("e2 e4").
 
@@ -136,7 +136,7 @@ V případě, že hráč zadá špatné pozice, bude vyzván k opětovnému zad�
 * jakmile hráč zadá pozice, hra najde figurku, zjistí její typ (pěšec, věž atd.), se kterou chce hráč pohnout
 * této figurce najde všechny povolené tahy (dle typu figurky):
   * pokud je v cestě naše figurka nebo je mimo šachovnici, tah nebude povolen
-  * pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "make_move" třídy `player`)
+  * pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě "get_move" třídy `player`)
 * jelikož může nastat situace: Mějme na "e1 bílého krále", na "e5 černého střelce" a na "e6 černou věž", po pohnutí "střelcem na g3" se bílý král dostane do šachu od 2 figurek zároveň
   * před zadáním tahu se vždy podívám zda můj král není v šachu, pokud ANO, upozorním hráče, jinak hra pokračuje normálně
   * zda je král v šachu zjistím tak, že zkontroluji diagonály, sloupec a řádek na kterém se nachází (výsledek bude uložen ve třídě `king`)
@@ -150,7 +150,7 @@ Po skončení hry se vypíše výsledek hry: `WHITE WINS`, `BLACK WINS`, `TIE`.
 Třída `piece:`
 * má za potomky jednotlivé šachové figurky
 * má polymorfní metodu `possible_moves`, která na základě typu figurky spočítá její povolené tahy
-  * tato metoda se volá v `HumanPlayer::make_move` a `AIPlayer::make_move`
+  * tato metoda se volá v `HumanPlayer::get_move` a `AIPlayer::get_move`
 * jednotlivé figurky využívají `piece` pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)
 
 Třída `player:`

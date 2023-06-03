@@ -24,6 +24,8 @@ class Board {
 public:
     Board() = default;
 
+    bool white_playes = true;
+
     // To indicate end of game
     bool game_over = false;
 

@@ -35,7 +35,7 @@ std::vector<Position> *King::possible_moves() {
     }
 
     // Castling
-    if (this->first_move_) {
+    if (!this->first_move_) {
         // Queen-side
         Position pos1(this->get_position().row_, this->get_position().col_ - 1);
         Position pos2(this->get_position().row_, this->get_position().col_ - 2);
