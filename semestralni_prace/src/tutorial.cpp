@@ -9,4 +9,12 @@ void Tutorial::run() {
     HumanPlayer black('B');
     manager.open_file(file_path, board, white, black);
 
+    file_path = "../semestralni_prace/examples/scholar.txt";
+
+    manager.open_file(file_path, board, white, black);
+
+    file_path = "../semestralni_prace/examples/e2.txt";
+
+    manager.open_file(file_path, board, white, black);
+
 }

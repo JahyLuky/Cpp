@@ -30,85 +30,132 @@ void File_manager::place_piece_on_board(std::vector<Square> &pieces, char piece,
     }
 }
 
-void File_manager::fill_pieces(Board &board, std::vector<Square> &pieces, char FEN_piece, int FEN_cnt, Position &pos) {
-    if (FEN_piece != '/') {
-        if (FEN_piece == '8') {
-            for (int i = 0; i < 8; ++i) {
-                place_piece_on_board(pieces, FEN_piece, pos);
+void File_manager::fill_pieces(Board &board, std::string &fen) {
+    std::vector<Square> pieces;
+    Position pos(0, 0);
+
+    int end = 0;
+    while (fen[end] != '\0') {
+        if (fen[end] != '/') {
+            if (std::isdigit(fen[end])) {
+                int number = fen[end] - '0';
+                for (int i = 0; i < number; ++i) {
+                    place_piece_on_board(pieces, fen[end], pos);
+                    // Moving piece to right
+                    pos.col_++;
+                }
+            } else {
+                place_piece_on_board(pieces, fen[end], pos);
                 // Moving piece to right
                 pos.col_++;
             }
         } else {
-            place_piece_on_board(pieces, FEN_piece, pos);
-            // Moving piece to right
-            pos.col_++;
-        }
-    } else {
-        board.squares_.emplace_back(std::move(pieces));
+            board.squares_.emplace_back(std::move(pieces));
 
-        // Moving piece down
-        pos.row_++;
-        pos.col_ = 0;
-        FEN_cnt++;
-        pieces.clear();
+            // Moving piece down
+            pos.row_++;
+            pos.col_ = 0;
+            pieces.clear();
+        }
+        end++;
     }
+
+    board.squares_.emplace_back(std::move(pieces));
 }
 
-bool File_manager::read_file(std::ifstream &ifs, Board &board, Player &white, Player &black) {
-    std::vector<Square> pieces;
-    Position pos(0, 0);
-    int FEN_cnt = 0;
-    bool piece_read = true;
-    for (char FEN_piece; ifs.get(FEN_piece);) {
-        if (ifs.fail()) {
-            std::cout << "Fail bit!" << std::endl;
-            return false;
-        }
+void File_manager::print_FEN(std::vector<std::string> &fields) {
+    // Example output
+    std::cout << "-----------------------------------------" << std::endl;
+    std::cout << "Piece Placement: " << fields[0] << std::endl;
+    std::cout << "Active Color: " << fields[1] << std::endl;
+    std::cout << "Castling Availability: " << fields[2] << std::endl;
+    std::cout << "En Passant Target: " << fields[3] << std::endl;
+    std::cout << "Halfmove Clock: " << fields[4] << std::endl;
+    std::cout << "Fullmove Number: " << fields[5] << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+}
 
-        if (FEN_piece == ' ') {
-            if (piece_read) {
-                FEN_cnt = 0;
-            } else {
-                FEN_cnt++;
+void File_manager::readFEN(const std::string &fen, Board &board, Player &white, Player &black) {
+    // Split the FEN notation into fields
+    std::vector<std::string> fields;
+    size_t start_pos = 0;
+    size_t end_pos = fen.find(' ');
+
+    // Extract each field from the FEN notation
+    while (end_pos != std::string::npos) {
+        // Extract the substring corresponding to the field
+        fields.emplace_back(fen.substr(start_pos, end_pos - start_pos));
+        start_pos = end_pos + 1;
+        end_pos = fen.find(' ', start_pos);
+    }
+
+    fields.emplace_back(fen.substr(start_pos));
+
+    // Piece placement data
+    std::string piece_placement = fields[0];
+    fill_pieces(board, piece_placement);
+
+    // Active color
+    std::string active_color = fields[1];
+    if (active_color == "w") {
+        board.white_playes = true;
+    } else {
+        board.white_playes = false;
+    }
+
+    // Castling availability
+    std::string can_castle = fields[2];
+    int w_row = white.king_.row_;
+    int w_col = white.king_.col_;
+    int b_row = black.king_.row_;
+    int b_col = black.king_.col_;
+    if (can_castle == "-") {
+        board.squares_[w_row][w_col].piece_->first_move_ = true;
+        board.squares_[b_row][b_col].piece_->first_move_ = true;
+    } else {
+        for (char c: can_castle) {
+            if (c == 'K') {
+                board.squares_[7][7].piece_->first_move_ = false;
+            } else if (c == 'Q') {
+                board.squares_[7][0].piece_->first_move_ = false;
+            } else if (c == 'k') {
+                board.squares_[0][7].piece_->first_move_ = false;
+            } else if (c == 'q') {
+                board.squares_[0][0].piece_->first_move_ = false;
             }
-            piece_read = false;
-            continue;
         }
 
-        if (piece_read) {
-            // Piece placement data
-            fill_pieces(board, pieces, FEN_piece, FEN_cnt, pos);
+    }
+
+    // En passant target square
+    std::string can_en_passant = fields[3];
+    if (can_en_passant == "-") {
+        if (active_color == "w") {
+            white.en_passant_ = false;
         } else {
-            // Active color
-            if (FEN_cnt == 0) {
-                if (FEN_piece == 'w') {
-                    board.white_playes = true;
-                } else {
-                    board.white_playes = false;
-                }
-                continue;
-            }
-
-            // Castling availability
-            if (FEN_cnt == 1) {
-                // No white valid castling
-
-            }
+            black.en_passant_ = false;
+        }
+    } else {
+        if (active_color == "w") {
+            white.en_passant_ = true;
+        } else {
+            black.en_passant_ = true;
         }
     }
 
-    // Add the last row to the board
-    board.squares_.emplace_back(std::move(pieces));
+    // Halfmove clock
+    std::string halfmove = fields[4];
+    // TODO: no number edge case
+    board.halfmoves_ = std::stoi(halfmove);
+
+    // Fullmove number
+    // TODO: do something about move count
+    std::string fullmove = fields[5];
 
     board.print_color_board();
 
-    // Check if the end of file was reached or if some other error occurred
-    if (!ifs.eof()) {
-        std::cout << "Error reading file." << std::endl;
-        return false;
-    }
+    print_FEN(fields);
 
-    return true;
 }
 
 bool File_manager::open_file(const std::string &file_path, Board &board, Player &white, Player &black) {
@@ -119,9 +166,13 @@ bool File_manager::open_file(const std::string &file_path, Board &board, Player 
         return false;
     }
 
-    std::cout << "File opened successfully!" << std::endl;
+    std::string fen;
+    std::getline(ifs, fen);
 
-    read_file(ifs, board, white, black);
+    // Resets the board
+    board.squares_.clear();
+
+    readFEN(fen, board, white, black);
 
     ifs.close();
 

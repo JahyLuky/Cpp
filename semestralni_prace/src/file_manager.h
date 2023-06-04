@@ -25,17 +25,11 @@ public:
      * @param FEN_cnt
      * @param pos
      */
-    void fill_pieces(Board &board, std::vector<Square> &pieces, char FEN_piece, int FEN_cnt, Position &pos);
+    void fill_pieces(Board &board, std::string &fen);
 
-    /**
-     *
-     * @param ifs
-     * @param board
-     * @param white
-     * @param black
-     * @return
-     */
-    bool read_file(std::ifstream &ifs, Board &board, Player &white, Player &black);
+    void print_FEN(std::vector<std::string> &fields);
+
+    void readFEN(const std::string &fen, Board &board, Player &white, Player &black);
 
     /**
      *
@@ -45,7 +39,7 @@ public:
      * @param black
      * @return
      */
-    bool open_file(const std::string& file_path, Board &board, Player &white, Player &black);
+    bool open_file(const std::string &file_path, Board &board, Player &white, Player &black);
 
 private:
 };

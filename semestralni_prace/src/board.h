@@ -43,4 +43,6 @@ public:
     std::vector<std::vector<Square>> squares_;
     Square start_;
     Square end_;
+    // 50-move rule
+    int halfmoves_;
 };

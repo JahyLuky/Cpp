@@ -1,10 +1,1 @@
-h
-e2 e4
-d7 d5
-e4 e5
-d5 d4
-e5 e6
-d4 d3
-e6 f7
-d3 e2
-
+2kr1bnr/pp3ppp/2n5/2p1p3/2q2Pb1/N2P1N2/PPP1Q1PP/R1B1K1R1 b Q - 2 9
