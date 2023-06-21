@@ -1,5 +1,8 @@
 #include "pawn.h"
 
+Pawn::Pawn(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 Pawn *Pawn::clone() const {
     return new Pawn(*this);
 }
@@ -43,11 +46,9 @@ std::vector<Position> *Pawn::possible_moves() {
             add_move(Position((row + 1), (col)));
             if (!this->first_move_) {
                 add_move(Position((row + 2), (col)));
-
             }
         }
     }
 
     return &this->moves_;
 }
-

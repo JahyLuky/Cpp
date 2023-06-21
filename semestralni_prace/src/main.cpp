@@ -1,3 +1,4 @@
+#include <iostream>
 #include <exception>
 
 #include "menu.h"
@@ -11,7 +12,6 @@ int main() {
         menu.run();
     }
     catch (std::exception &e) {
-        std::cout << "main catch" << std::endl;
         std::cout << e.what() << std::endl;
     }
 

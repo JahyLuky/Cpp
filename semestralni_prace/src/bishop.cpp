@@ -1,5 +1,8 @@
 #include "bishop.h"
 
+Bishop::Bishop(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 Bishop *Bishop::clone() const {
     return new Bishop(*this);
 }

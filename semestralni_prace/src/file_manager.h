@@ -1,45 +1,44 @@
 #pragma once
-
 #include <iostream>
 #include <fstream>
-
+#include <set>
 #include "board.h"
 #include "player.h"
 
+/**
+ * @brief Represents file manager
+ */
 class File_manager {
 public:
-
     /**
-     *
-     * @param pieces
-     * @param piece
-     * @param pos
+     * @brief Default Constructor
      */
-    void place_piece_on_board(std::vector<Square> &pieces, char piece, const Position &pos);
-
+    File_manager() = default;
     /**
-     *
-     * @param board
-     * @param pieces
-     * @param FEN_piece
-     * @param FEN_cnt
-     * @param pos
+     * @brief Checks if file name ends with .txt
+     * @param str File name
+     * @return True -> file ends with .txt, FALSE -> file doesn't
      */
-    void fill_pieces(Board &board, std::string &fen);
-
-    void print_FEN(std::vector<std::string> &fields);
-
-    void readFEN(const std::string &fen, Board &board, Player &white, Player &black);
-
+    bool ends_with_txt(const std::string &str);
     /**
-     *
-     * @param file_path
-     * @param board
-     * @param white
-     * @param black
-     * @return
+     * @brief List all files in directory
+     * @param dir_file_names Vector of file names
+     * @param dir_path Directory path
      */
-    bool open_file(const std::string &file_path, Board &board, Player &white, Player &black);
-
-private:
+    void list_directory(std::set<std::string> &dir_file_names, const std::string &dir_path);
+    /**
+     * @brief Saves file
+     * @param board Chess board
+     * @param white White player
+     * @param black Black player
+     */
+    void save_file(Board &board, Player &white, Player &black);
+    /**
+     * @brief Opens file
+     * @param file_path File path
+     * @param board Chess board
+     * @param white White player
+     * @param black Black player
+     */
+    void open_file(const std::string &file_path, Board &board, Player &white, Player &black);
 };

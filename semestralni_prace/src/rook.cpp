@@ -1,5 +1,8 @@
 #include "rook.h"
 
+Rook::Rook(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 Rook *Rook::clone() const {
     return new Rook(*this);
 }

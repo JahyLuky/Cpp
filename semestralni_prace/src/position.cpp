@@ -15,8 +15,16 @@ Position &Position::operator=(const Position &other) {
 }
 
 bool Position::operator==(const Position &other) const {
-    if (this->row_ == other.row_
-        && this->col_ == other.col_) {
+    if (row_ < 0 || row_ > 7
+        || col_ < 0 || col_ > 7) {
+        return false;
+    }
+    //std::cout << row_ << std::endl;
+    //std::cout << col_ << std::endl;
+    //std::cout << other.row_ << std::endl;
+    //std::cout << other.col_ << std::endl;
+    if (row_ == other.row_
+        && col_ == other.col_) {
         return true;
     }
     return false;

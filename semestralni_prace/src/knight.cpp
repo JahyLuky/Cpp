@@ -1,5 +1,8 @@
 #include "knight.h"
 
+Knight::Knight(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 Knight *Knight::clone() const {
     return new Knight(*this);
 }

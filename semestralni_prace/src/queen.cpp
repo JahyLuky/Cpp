@@ -1,5 +1,8 @@
 #include "queen.h"
 
+Queen::Queen(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 Queen *Queen::clone() const {
     return new Queen(*this);
 }

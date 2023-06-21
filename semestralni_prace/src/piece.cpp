@@ -1,22 +1,21 @@
 #include "piece.h"
 
+Piece::Piece()
+        : type_('X'), color_('X'), pos_(0, 0) {
+    first_move_ = false;
+}
+
 Piece::Piece(char name, char color, const Position &pos)
-        : type_(name), color_(color), pos_(pos) {}
+        : type_(name), color_(color), pos_(pos) {
+    first_move_ = false;
+}
 
 char Piece::get_piece() const {
     return type_;
 }
 
-void Piece::set_piece(char name) {
-    type_ = name;
-}
-
 char Piece::get_color() const {
     return color_;
-}
-
-void Piece::set_color(char color) {
-    color_ = color;
 }
 
 Position Piece::get_position() const {
@@ -36,6 +35,6 @@ bool Piece::valid_position(const Position &other) const {
     return false;
 }
 
-void Piece::add_move(const Position &dest) {
-    this->moves_.emplace_back(dest);
+void Piece::add_move(const Position &src) {
+    this->moves_.emplace_back(src);
 }

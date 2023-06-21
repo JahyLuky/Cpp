@@ -3,70 +3,69 @@
 Player::Player(char color)
         : color_(color), castling_(false), en_passant_(false) {
     if (color == 'W') {
-        this->king_.row_ = 7;
-        this->king_.col_ = 4;
+        king_.row_ = 7;
+        king_.col_ = 4;
     } else {
-        this->king_.row_ = 0;
-        this->king_.col_ = 4;
+        king_.row_ = 0;
+        king_.col_ = 4;
+    }
+    castling_ = false;
+    en_passant_ = false;
+    ask_draw_ = no_draw_asked;
+    start_.row_ = 0;
+    start_.col_ = 0;
+    end_.row_ = 0;
+    end_.col_ = 0;
+}
+
+void Player::fill_pieces(Board &board) {
+    for (const auto &row: board.squares_) {
+        for (const auto &col: row) {
+            Square &square = board.squares_[col.pos_.row_][col.pos_.col_];
+
+            if (square.piece_ != nullptr && square.piece_->get_color() == color_) {
+                pieces_pos_.emplace_back(col.pos_.row_, col.pos_.col_);
+
+                if (color_ == 'W') {
+                    if (square.piece_->get_piece() == 'K') {
+                        king_ = col.pos_;
+                        continue;
+                    }
+                    if (square.piece_->get_piece() == 'P' && col.pos_.row_ != 6) {
+                        square.piece_->first_move_ = true;
+                    } else {
+                        square.piece_->first_move_ = false;
+                    }
+                } else {
+                    if (square.piece_->get_piece() == 'k') {
+                        king_ = col.pos_;
+                        continue;
+                    }
+                    if (square.piece_->get_piece() == 'p' && col.pos_.row_ != 1) {
+                        square.piece_->first_move_ = true;
+                    } else {
+                        square.piece_->first_move_ = false;
+                    }
+                }
+            }
+        }
     }
 }
 
-int Player::coordinates_to_int(char c) {
-    switch (tolower(c)) {
-        case 'a':
-            return 0;
-        case 'b':
-            return 1;
-        case 'c':
-            return 2;
-        case 'd':
-            return 3;
-        case 'e':
-            return 4;
-        case 'f':
-            return 5;
-        case 'g':
-            return 6;
-        case 'h':
-            return 7;
-        default:
-            return -1;
+void Player::update_pieces(const Position &start, const Position &end) {
+    for (auto &pieces_po: pieces_pos_) {
+        if (pieces_po == start) {
+            pieces_po = end;
+            break;
+        }
     }
 }
 
-int Player::check_col(char c) {
-    int num = c - '0';
-    if (num < 1 || num > 8) {
-        return -1;
-    }
-    return num;
-}
-
-bool Player::extract_input(const std::string &start, const std::string &end, Position &old_pos, Position &new_pos) {
-    int col = coordinates_to_int(start[0]);
-    int row = check_col(start[1]);
-
-    int col2 = coordinates_to_int(end[0]);
-    int row2 = check_col(end[1]);
-
-    if (row == -1 || col == -1 || row2 == -1 || col2 == -1
-        || start.length() > 2 || end.length() > 2) {
-        std::cout << "Coordinates out of range!" << std::endl;
-        return false;
-    }
-
-    old_pos.row_ = 8 - row;
-    old_pos.col_ = col;
-
-    new_pos.row_ = 8 - row2;
-    new_pos.col_ = col2;
-
-    return true;
-}
-
-void Player::print_captures() const {
-    std::cout << this->color_ << ": ";
-    for (const auto &item: this->captures_) {
-        std::cout << item << ", ";
+void Player::delete_piece(const Position &start) {
+    for (auto it = pieces_pos_.begin(); it != pieces_pos_.end(); ++it) {
+        if (*it == start) {
+            pieces_pos_.erase(it);
+            break;
+        }
     }
 }

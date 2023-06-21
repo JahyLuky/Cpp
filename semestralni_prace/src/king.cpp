@@ -1,6 +1,9 @@
 #include "king.h"
 #include "board.h"
 
+King::King(char name, char color, const Position &pos)
+        : Piece(name, color, pos) {}
+
 King *King::clone() const {
     return new King(*this);
 }

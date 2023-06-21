@@ -1,220 +1,292 @@
 #include "application.h"
+#include <stdexcept>
+#include "file_manager.h"
+#include "validate.h"
 
-void Application::print_color(bool white_plays) {
+void Application::print_color(const bool white_plays) const {
     if (white_plays) {
         std::cout << "\nWHITE plays!" << std::endl;
     } else {
         std::cout << "\nBLACK plays!" << std::endl;
     }
-}
-
-void Application::move_piece(Square &start, Square &end) {
-    // Move piece to new position
-    end.piece_ = std::unique_ptr<Piece>(start.piece_->clone());
-
-    // Change coor to new position
-    end.piece_->set_position(Position(end.pos_.row_, end.pos_.col_));
-
-    // Empty starting square
-    start.piece_ = nullptr;
-}
-
-void Application::handle_castling(Board &board, Player &player, Square &start, Square &end) {
-    // Move king
-    move_piece(start, end);
-
-    // 3 -> left
-    int side = 3;
-    // first col
-    int rook_col = 0;
-    if (end.pos_.col_ == 6) {
-        // -2 -> right
-        side = -2;
-        // last col
-        rook_col = 7;
-    }
-
-    Square &rook_start = board.squares_[player.end_.row_][rook_col];
-    Square &rook_end = board.squares_[player.end_.row_][rook_col + side];
-
-    move_piece(rook_start, rook_end);
-
-    player.castling_ = false;
-}
-
-void Application::make_move(Board &board, Player &player) {
-    // Starting position of piece
-    Square &start = board.squares_[player.start_.row_][player.start_.col_];
-
-    // Final position of piece
-    Square &end = board.squares_[player.end_.row_][player.end_.col_];
-
-    bool promote = false;
-
-    // No double move
-    if (tolower(start.piece_->get_piece()) == 'p') {
-        start.piece_->first_move_ = true;
-        if ((player.end_.row_ % 7) == 0) {
-            promote = true;
-        }
-    }
-
-    // TODO: piece in a way or check
-    // Castling
-    if (player.castling_) {
-        handle_castling(board, player, start, end);
-        return;
-    }
-
-    // King's first move
-    if (tolower(start.piece_->get_piece()) == 'k') {
-        start.piece_->first_move_ = true;
-        player.king_ = end.pos_;
-    }
-
-    // Rook's first move
-    if (tolower(start.piece_->get_piece()) == 'r') {
-        start.piece_->first_move_ = true;
-    }
-
-    if (!promote) {
-        // Taken piece
-        if (end.piece_ != nullptr) {
-            player.captures_.push_back(end.piece_->get_piece());
-        }
-        move_piece(start, end);
-    } else {
-        // TODO: make proper promotion
-        char q;
-        if (player.color_ == 'W') {
-            q = 'q';
-        } else {
-            q = 'Q';
-        }
-        // Taken piece
-        if (end.piece_ != nullptr) {
-            player.captures_.push_back(end.piece_->get_piece());
-        }
-        start.piece_ = std::make_unique<Queen>(q, player.color_, Position(player.end_.row_, player.end_.col_));
-        move_piece(start, end);
-    }
-}
-
-void Application::undo_move(Board &board, Player &player) {
-    Position tmp = player.start_;
-    player.start_ = player.end_;
-    player.end_ = tmp;
-    make_move(board, player);
+    std::cout << "What is your move?" << std::endl;
 }
 
 bool Application::play_move(Board &board, Player &player) {
     Rules rules;
+    Move move;
+    Validate validate;
 
-    // Ask player for move
-    if (!player.get_move()) {
-        return false;
-    }
-
-    // Validate player's move
-    if (!rules.validate_move(board, player)) {
-        return false;
-    }
-
-    size_t captures = player.captures_.size();
+    // Backup for undo_move
     Position king(player.king_);
     bool castle = player.castling_;
     bool en_passant = player.en_passant_;
+    std::vector<Position> pieces_pos_save = player.pieces_pos_;
 
-    make_move(board, player);
+    // King isn't in check
+    if (!rules.checked(board, king, player.color_)) {
+        // Print who plays next
+        print_color(board.white_playes);
 
-    Position pos(player.king_.row_, player.king_.col_);
-
-    // Check if player's king is in check
-    if (!rules.checked(board, pos, player.color_)) {
-        // Save last move (for en passant)
+        // Ask player for move
+        if (!player.get_move(board)) {
+            return false;
+        }
+        // Check if player offers draw
+        if (player.ask_draw_ != 0) {
+            return true;
+        }
+        // Validate player's move
+        if (!validate.validate_move(board, player, true)) {
+            return false;
+        }
+        Square & king_piece = board.squares_[player.start_.row_][player.start_.col_];
+        if (tolower(king_piece.piece_->get_piece()) == 'k') {
+            player.king_ = player.end_;
+        }
+        move.make_move(board, player);
+        if (rules.checked(board, player.king_, player.color_)) {
+            player.castling_ = castle;
+            player.en_passant_ = en_passant;
+            player.king_ = king;
+            player.pieces_pos_ = pieces_pos_save;
+            move.undo_move(board, player);
+            std::cout << "Your king would be in check, try again." << std::endl;
+            return false;
+        }
+        // Save last move
         board.start_ = board.squares_[player.start_.row_][player.start_.col_];
         board.end_ = board.squares_[player.end_.row_][player.end_.col_];
-
+        // En passant was played
         if (player.en_passant_) {
             if (player.end_.row_ == 2) {
                 // Empty square
-                player.captures_.emplace_back('P');
                 board.squares_[player.end_.row_ + 1][player.end_.col_].piece_ = nullptr;
             }
             if (player.end_.row_ == 5) {
                 // Empty square
-                player.captures_.emplace_back('p');
                 board.squares_[player.end_.row_ - 1][player.end_.col_].piece_ = nullptr;
             }
             player.en_passant_ = false;
         }
     } else {
-        player.castling_ = castle;
-        player.en_passant_ = en_passant;
-        // TODO: check if capture was made, delete it if undo needed
-        if (captures != player.captures_.size()) {
-            player.captures_.pop_back();
+        // King in checkmate
+        if (rules.checkmate(board, player)) {
+            std::cout << "CHECKMATE!" << std::endl;
+            if (player.color_ == 'W') {
+                board.game_over = black_wins;
+            } else {
+                board.game_over = white_wins;
+            }
+            return false;
         }
-        player.king_ = king;
-
-        undo_move(board, player);
-        std::cout << "Your king is in check" << std::endl;
-        return false;
+        // King in check
+        // Print who plays next
+        print_color(board.white_playes);
+        // Ask player for move
+        if (!player.get_move(board)) {
+            return false;
+        }
+        // Check if player offers draw
+        if (player.ask_draw_ != 0) {
+            return true;
+        }
+        // Validate player's move
+        if (!validate.validate_move(board, player, true)) {
+            return false;
+        }
+        Square & king_piece = board.squares_[player.start_.row_][player.start_.col_];
+        if (tolower(king_piece.piece_->get_piece()) == 'k') {
+            player.king_ = player.end_;
+        }
+        move.make_move(board, player);
+        if (rules.checked(board, player.king_, player.color_)) {
+            player.castling_ = castle;
+            player.en_passant_ = en_passant;
+            player.king_ = king;
+            player.pieces_pos_ = pieces_pos_save;
+            move.undo_move(board, player);
+            std::cout << "Your king is still in check, try again." << std::endl;
+            return false;
+        }
+        return true;
     }
-
     return true;
 }
 
-bool Application::game() {
-    std::cout << "\nGame starts!\n" << std::endl;
-    std::cout << "\nWHITE plays!" << std::endl;
-
-    Board board;
-    board.init_board();
-    board.print_color_board();
-
-    HumanPlayer A('W'), B('B');
-
-    // TODO: find all possible TIEs
-    while (!board.game_over) {
-        std::cout << "What is your move?" << std::endl;
-
-        if (std::cin.eof()) {
-            std::cout << "End of input or file!" << std::endl;
+void Application::print_results(const Board &board) const {
+    switch (board.game_over) {
+        case game_not_finished:
+            std::cout << "Game wasn't finished!" << std::endl;
             break;
+        case white_wins:
+            std::cout << "White wins!" << std::endl;
+            break;
+        case black_wins:
+            std::cout << "Black wins!" << std::endl;
+            break;
+        case tie:
+            std::cout << "Tie!" << std::endl;
+            break;
+        case pat:
+            std::cout << "Pat!" << std::endl;
+            break;
+        default:
+            break;
+    }
+}
+
+bool Application::change_turns(Board &board, Player &white, Player &black, int &wrong_move_cnt, bool is_tutorial) {
+    if (board.white_playes) {
+        if (black.ask_draw_ == save) {
+            board.game_over = save_game;
+            return false;
         }
-
-        // TODO: based on game_type, change get old and new pos from input or AI
-
-        // Change turns
-        if (board.white_playes) {
-            if (play_move(board, A)) {
-                // Piece moved, switch players
+        if (black.ask_draw_ == resign) {
+            board.game_over = white_wins;
+            return false;
+        }
+        if (black.ask_draw_ == draw_asked) {
+            std::cout << "Black offers a draw." << std::endl;
+            std::cout << "Type (yes) for accepting draw." << std::endl;
+            std::cout << "Type (no) for denying draw." << std::endl;
+            play_move(board, white);
+            if (board.game_over == black_wins) {
+                return true;
+            }
+            if (white.ask_draw_ == draw) {
+                board.game_over = tie;
+            } else {
+                white.ask_draw_ = no_draw_asked;
+                black.ask_draw_ = no_draw_asked;
                 board.white_playes = false;
-            } else {
-                // Incorrect move, try again
-                continue;
+                return true;
             }
-        } else {
-            if (play_move(board, B)) {
-                // Piece moved, switch players
-                board.white_playes = true;
-            } else {
-                // Incorrect move, try again
-                continue;
-            }
+
+            return false;
         }
-
-        // TODO: captures resets, need to fix
-        A.print_captures();
-        std::cout << std::endl;
-        B.print_captures();
-        std::cout << std::endl;
-
-        // Print updated board
-        board.print_color_board();
-        // Print who plays next
-        print_color(board.white_playes);
+        if (play_move(board, white)) {
+            // Switch turns
+            board.white_playes = false;
+            wrong_move_cnt = 0;
+        } else {
+            // Incorrect move, try again
+            wrong_move_cnt++;
+            return false;
+        }
+    } else {
+        if (white.ask_draw_ == save) {
+            board.game_over = save_game;
+            return false;
+        }
+        if (white.ask_draw_ == resign) {
+            board.game_over = black_wins;
+            return false;
+        }
+        if (white.ask_draw_ == draw_asked) {
+            std::cout << "White offers a draw." << std::endl;
+            std::cout << "Type (yes) for accepting draw." << std::endl;
+            std::cout << "Type (no) for denying draw." << std::endl;
+            play_move(board, black);
+            if (board.game_over == white_wins) {
+                return true;
+            }
+            if (black.ask_draw_ == draw) {
+                board.game_over = tie;
+            } else {
+                if (is_tutorial) {
+                    board.game_over = tutorial;
+                    return false;
+                }
+                white.ask_draw_ = no_draw_asked;
+                black.ask_draw_ = no_draw_asked;
+                board.white_playes = true;
+                return true;
+            }
+            return false;
+        }
+        if (is_tutorial) {
+            board.game_over = tutorial;
+            return false;
+        }
+        if (play_move(board, black)) {
+            // Switch turns
+            board.white_playes = true;
+            wrong_move_cnt = 0;
+        } else {
+            // Incorrect move, try again
+            wrong_move_cnt++;
+            return false;
+        }
     }
     return true;
+}
+
+void Application::game(Board &board, Player &white, Player &black, bool is_tutorial) {
+    std::cout << "\nGame starts!\n" << std::endl;
+    GameRules game_rules;
+    board.print_board();
+    int wrong_move_cnt = 0, move_cnt = 0;
+    // Threefold repetition
+    std::vector<Position> white_last_moves;
+    std::vector<Position> black_last_moves;
+
+    while (true) {
+        // TODO: check tutorial
+        if (is_tutorial && move_cnt == 2) {
+            board.game_over = tutorial;
+            break;
+        }
+        if (wrong_move_cnt == 10) {
+            std::cout << "\n\nYou entered 10 times in a row wrong input, maybe try tutorial first.\n\n" << std::endl;
+            break;
+        }
+        if (board.halfmoves_ >= 50) {
+            board.game_over = tie;
+            break;
+        }
+        if (board.game_over != game_not_finished) {
+            break;
+        }
+        if (std::cin.eof()) {
+            throw std::runtime_error("End of input");
+        }
+        if (game_rules.stalemate(board, white, black)) {
+            board.game_over = pat;
+            break;
+        }
+        // Change turns
+        if (!change_turns(board, white, black, wrong_move_cnt, is_tutorial)) {
+            continue;
+        }
+        game_rules.update_threefold(board, white, black, white_last_moves, black_last_moves);
+        game_rules.half_moves(board, white, black);
+        if (game_rules.dead_position(board, white, black)) {
+            board.game_over = tie;
+            break;
+        }
+        // Check Threefold repetition
+        if (game_rules.threefold(white_last_moves, black_last_moves)) {
+            board.game_over = tie;
+            break;
+        }
+        if (board.taken_.piece_ != nullptr ) {
+            if (board.white_playes) {
+                white.delete_piece(board.taken_.pos_);
+            } else {
+                black.delete_piece(board.taken_.pos_);
+            }
+        }
+        // Reset taken piece for undo_move -> move was legit
+        board.taken_.piece_ = nullptr;
+        board.fullmoves_++;
+        move_cnt++;
+        // Print updated board
+        board.print_board();
+    }
+    if (board.game_over == save_game) {
+        File_manager file_manager;
+        file_manager.save_file(board, white, black);
+    }
+    print_results(board);
 }

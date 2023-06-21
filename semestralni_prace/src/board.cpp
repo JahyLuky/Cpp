@@ -1,7 +1,18 @@
 #include "board.h"
 
-// set classical chess board with all pieces
-Square startingPieces[] = {
+Board::Board() {
+    white_playes = true;
+    game_over = game_not_finished;
+    squares_.clear();
+    taken_.piece_ = nullptr;
+    start_.piece_ = nullptr;
+    end_.piece_ = nullptr;
+    halfmoves_ = 0;
+    fullmoves_ = 0;
+}
+
+// Set classical chess board with all pieces
+const Square startingPieces[] = {
         //-----BLACK-----
         {Position(0, 0), std::make_unique<Rook>('r', 'B', Position(0, 0))},
         {Position(0, 1), std::make_unique<Knight>('n', 'B', Position(0, 1))},
@@ -39,11 +50,25 @@ Square startingPieces[] = {
 };
 
 void Board::init_board() {
+    start_.piece_ = nullptr;
+    start_.pos_.row_ = 0;
+    start_.pos_.col_ = 0;
+    end_.piece_ = nullptr;
+    end_.pos_.row_ = 0;
+    end_.pos_.col_ = 0;
+    taken_.piece_ = nullptr;
+    taken_.pos_.row_ = 0;
+    taken_.pos_.col_ = 0;
+    game_over = game_not_finished;
+    squares_.clear();
+    halfmoves_ = 0;
+    fullmoves_ = 0;
+    white_playes = true;
     int piece_cnt = 0;
     std::vector<Square> pieces;
-    for (int row = 0; row < BOARD_SIZE; ++row) {
+    for (int row = 0; row < 8; ++row) {
         pieces.clear();
-        for (int col = 0; col < BOARD_SIZE; ++col) {
+        for (int col = 0; col < 8; ++col) {
             // fill 1, 2, 7, 8 rows with chess pieces
             if (row == 0 || row == 1 || row == 6 || row == 7) {
                 pieces.emplace_back(std::move(startingPieces[piece_cnt++]));
@@ -56,18 +81,16 @@ void Board::init_board() {
     }
 }
 
-
-void Board::print_color_board() const {
+void Board::print_board() const {
     // Indicates if a square is black or white
     bool isBlackSquare = false;
     // Row coordinates
-    int number_coordinates = BOARD_SIZE;
+    int number_coordinates = 8;
     // Column coordinates
     int coordinates_itr = 0;
     std::vector<char> word_coordinates = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-
     // Print top side coordinates
-    while (coordinates_itr < BOARD_SIZE) {
+    while (coordinates_itr < 8) {
         if (coordinates_itr == 0) {
             std::cout << "   " << word_coordinates[coordinates_itr];
         } else {
@@ -76,14 +99,12 @@ void Board::print_color_board() const {
         coordinates_itr++;
     }
     std::cout << std::endl;
-
     int row_pos = 0, col_pos = 0;
     for (const auto &row: this->squares_) {
         // Print left side coordinates
         std::cout << number_coordinates << " ";
         for (const auto &col: row) {
             isBlackSquare = (row_pos + col_pos) % 2 == 1;
-
             /** Print the square
              * "\033[" is the escape code for the ANSI escape sequence
              * "40" is the code for the background color, in this case black
@@ -112,11 +133,9 @@ void Board::print_color_board() const {
         number_coordinates--;
         row_pos++;
     }
-
-
     // Print bottom side coordinates
     coordinates_itr = 0;
-    while (coordinates_itr < BOARD_SIZE) {
+    while (coordinates_itr < 8) {
         if (coordinates_itr == 0) {
             std::cout << "   " << word_coordinates[coordinates_itr];
         } else {
@@ -127,67 +146,19 @@ void Board::print_color_board() const {
     std::cout << std::endl;
 }
 
-
-void Board::print_basic_board() const {
-    // Indicates if a square is black or white
-    bool isBlackSquare = false;
-    // Row coordinates
-    int number_coordinates = BOARD_SIZE;
-    // Column coordinates
-    int coordinates_itr = 0;
-    std::vector<char> word_coordinates = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-
-    // Print top side coordinates
-    while (coordinates_itr < BOARD_SIZE) {
-        if (coordinates_itr == 0) {
-            std::cout << "   " << word_coordinates[coordinates_itr];
-        } else {
-            std::cout << "  " << word_coordinates[coordinates_itr];
-        }
-        coordinates_itr++;
-    }
-    std::cout << std::endl;
-    std::cout << "  ________________________  " << std::endl;
-
-    int row_pos = 0, col_pos = 0;
-    for (const auto &row: this->squares_) {
-        // Print left side coordinates
-        std::cout << number_coordinates << "|";
-        for (const auto &col: row) {
-            isBlackSquare = (row_pos + col_pos) % 2 == 1;
-
-            if (isBlackSquare) {
-                if (col.piece_ != nullptr) {
-                    std::cout << " " << col.piece_->get_piece() << " ";
-                } else {
-                    std::cout << " " << ' ' << " ";
-                }
-            } else {
-                if (col.piece_ != nullptr) {
-                    std::cout << " " << col.piece_->get_piece() << " ";
-                } else {
-                    std::cout << " " << ' ' << " ";
-                }
-            }
-            col_pos++;
-        }
-        // Print right side coordinates
-        std::cout << "|" << number_coordinates;
-        std::cout << std::endl;
-        number_coordinates--;
-        row_pos++;
-    }
-
-    // Print bottom side coordinates
-    std::cout << "  ------------------------  " << std::endl;
-    coordinates_itr = 0;
-    while (coordinates_itr < BOARD_SIZE) {
-        if (coordinates_itr == 0) {
-            std::cout << "   " << word_coordinates[coordinates_itr];
-        } else {
-            std::cout << "  " << word_coordinates[coordinates_itr];
-        }
-        coordinates_itr++;
-    }
-    std::cout << std::endl;
+void Board::reset_board() {
+    game_over = game_not_finished;
+    squares_.clear();
+    halfmoves_ = 0;
+    fullmoves_ = 0;
+    white_playes = true;
+    start_.piece_ = nullptr;
+    start_.pos_.row_ = 0;
+    start_.pos_.col_ = 0;
+    end_.piece_ = nullptr;
+    end_.pos_.row_ = 0;
+    end_.pos_.col_ = 0;
+    taken_.piece_ = nullptr;
+    taken_.pos_.row_ = 0;
+    taken_.pos_.col_ = 0;
 }
