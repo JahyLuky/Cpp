@@ -1,5 +1,5 @@
 # Specifies the login name of the user who created this Makefile
-MAKE_NAME = jahelluk
+MAKE_NAME = chess
 
 # Specifies the C++ compiler to use
 CXX = g++

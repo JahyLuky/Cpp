@@ -1,54 +1,32 @@
-# Chess game (zadání "Hra: Šachy")
+# Chess game
 Autor: Lukáš Jahelka
 
-## Zadání
+---
 
-Vaším cílem má být implementovat klasickou hru Šachy. Není nutné implementovat jen ty známé šachy, ale případně se inspirovat nějakou jejich variantou jakou jsou asijské šachy. V tom případě je potřeba pravidla dostatečně dobře popsat v zadání. A zároveň je nutné za každé z pravidel mít vhodnou alternativu, aby nedošlo k přehnanému zjednodušení zadání.
+## Installation
 
-Implementujte následující varianty:
+To install my chess game, follow these steps:
 
-* tutoriál, který naučí hráče jednotlivé prvky a pravidla hry,
-* pro 2 hráče na jednom počítači,
-* pro hru proti počítači.
+1. Clone the repository.
+2. Run `make` to compile the game.
+3. Run `./chess` to run the game.
 
-Hra musí splňovat následující funkcionality:
+## Play
 
-* Dodržování všech pravidel vč. rošády, braní mimochodem, proměna pěsce
-* Hra musí řádně oznamovat stav hry a případně její konec (šach, mat, pat) a výsledek (kdo vyhrál).
-* Implementujte alespoň 3 druhy umělé inteligence (náhodné tahy nestačí).
-  * Jeden druh musí být škálovatelná umělá inteligence pomocí algoritmu minimax. Škálování pak probíhá na úrovni hloubky prohledávacího stromu.
-* Hra je konfigurovatelná ze souboru:
-  * umístění uložených her na disku,
-  * zahájení šachových partií pro umělou inteligenci,
-  * texty, rozestavění (příp. očekávané tahy) k tutoriálu.
+To play my chess game, run `./chess` and follow the on-screen prompts.
 
+---
 
-Kde lze využít polymorfismus? (doporučené)
+## Popis
 
-* pohyby figurek: král, dáma, věž, jezdec, ...
-* jednotlivá pravidla: tahy, rošáda, braní mimochodem, proměna (jejich výběr pak může být konfigurovatelný), ...
-* pravidla různých variant: klasické šachy, žravé šachy, asijské šachy, ...
-* ovládání hráčů: lokální hráč, umělá inteligence (různé druhy), síťový hráč
-* uživatelské rozhraní: konzolové, ncurses, SDL, OpenGL (různé druhy), ...
-
-## Specifikace
-
-Budu implementovat klasickou variantu hry *šachy*.
-
-Hráč si po zapnutí hry vybere jak bude pokračovat.
-1) *$make*
-2) *$./jahelluk*
-
-Dostane na výběr 3 možnosti:
+Dostanete na výběr 3 možnosti:
 
 * `Tutorial` - interaktivní tutoriál
-* `Hra proti dalšímu hráči` - hra připraví šachovnici
-* `Hra proti umělé inteligenci` - výběr umělé inteligence, následně se připraví šachovnice a hráč si vybere barvu figurek (zda bude hrát první nebo druhý)
+* `Hra proti dalšímu hráči` - klasická hra šachů pro 2 hráče
+* `Hra proti umělé inteligenci` - hra proti umělé inteligenci
   1. minimax
   2. custom AI
   3. custom AI2
-
-Po výběru začíná hra.
 
 ```
 Chess game
@@ -102,30 +80,16 @@ $e2 e4
 
 BLACK plays!
 What is your move?
+$...
 ```
+
 Bílé figurky jsou psány malými písmeny ('P'), černé figurky jsou psány velkými písmeny ('p').
 
 Pohyb se zadává ve formátu: `startovní_pozice` `cílová_pozice` ("e2 e4").
 
-Jakmile hráč zadá korektní pozice, hra pohne figurkou, vypíše aktuální šachovnici a předá tah oponentovi. 
+Jakmile hráč zadá korektní pozice, hra pohne figurkou, vypíše aktuální šachovnici a předá tah oponentovi.
 V případě, že hráč zadá špatné pozice, bude vyzván k opětovnému zadání pozic.
 
-<u>Soubory:</u>
-<br>Pokud hráč zadá místo pohybu figurky: `save`, následně bude uživatel vyzván, aby zadal jméno souboru, např.: `game1.txt`, program uloží hru jako `game1.txt` do adresáře `examples/`.
+Pokud hráč zadá místo pohybu figurky: `save`, následně bude uživatel vyzván, aby zadal jméno souboru, např.: `game1.txt`, program uloží hru jako `game1.txt` do adresáře `examples/`.
 
 Po skončení hry se vypíše výsledek hry: `WHITE WINS`, `BLACK WINS`, `TIE`, `PAT`.
-
-## Polymorfismus
-
-Třída `piece:`
-* má za potomky jednotlivé šachové figurky
-* má polymorfní metodu `possible_moves`, která na základě typu figurky spočítá její povolené tahy
-  * tato metoda se volá v `HumanPlayer::get_move` a `AIPlayer::get_move`
-* jednotlivé figurky využívají `piece` pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)
-
-Třída `player:`
-* má dva potomky `human_player` a `ai_player`
-* má polymorfní metodu `get_move`, která si vyžadá: `aktuální šachovnice`, `startovní_pozice`, `cílová_pozice` a vrátí `true`, pokud je tah platný, v opačném případě vrátí `false`
-  * tato metoda se volá v `application::game`
-* implementace pro `human_player` očekává, že se dotážeme na další tah pomocí terminálu
-* implementace pro `ai_player` vypočítá tah z aktuální šachovnice (podle zvolené AI se vybere metoda = AI algoritmus, která určí tah)

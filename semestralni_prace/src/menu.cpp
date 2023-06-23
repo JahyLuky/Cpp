@@ -203,5 +203,4 @@ void Menu::run() {
             throw std::runtime_error("End of menu input");
         }
     }
-    std::cout << std::endl;
 }
