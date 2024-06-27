@@ -15,9 +15,9 @@ This repository includes various C++ programming assignments and projects from m
 
 Here are some of the key projects included in this repository:
 
-1. **Project 1: Polymorphism and Inheritance**
-   - Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
-   - Topics: Virtual functions, abstract classes, inheritance relationships.
+## Project 1: Polymorphism and Inheritance
+- Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
+- Topics: Virtual functions, abstract classes, inheritance relationships.
 
 ## Project 2: Data Structures
 
@@ -30,6 +30,7 @@ In this project, I implemented fundamental data structures in C programming lang
 - **Stacks**: Last In, First Out (LIFO) structure useful for applications like expression evaluation.
 - **Queues**: First In, First Out (FIFO) structure commonly used in scheduling and breadth-first search algorithms.
 - **Trees**: Non-linear data structure used for hierarchical representation and efficient searching.
+
 
 3. **Project 3: Chess Game (Semester Project)**
    - Description: Implementation of a chess game in C++, featuring file-based input/output, a tutorial mode, and three types of AI opponents.
