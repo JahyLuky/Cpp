@@ -16,7 +16,6 @@ This repository includes various C++ programming assignments and projects from m
 Here are some of the key projects included in this repository:
 
 1. **Project 1: Working with files**
-   - Description: Implementation of functions in C/C++ to compress and decompress input files using Huffman coding, as well as encode and decode files between UTF-8 and Fibonacci coding.
    - Key Concepts and Topics:
      - **File Compression**: Techniques to reduce the size of data files using Huffman coding.
      - **File Decompression**: Methods to reconstruct original data from compressed files using Huffman coding.
