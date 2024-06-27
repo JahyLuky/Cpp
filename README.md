@@ -16,6 +16,7 @@ This repository includes various C++ programming assignments and projects from m
 Here are some of the key projects included in this repository:
 
 1. **Project 1: Encoding and Decoding Files**
+- Description: This project explores the concepts of polymorphism and inheritance in C++. Polymorphism allows different classes to be treated as instances of a common base class, while inheritance facilitates the creation of new classes that inherit properties and behaviors from existing classes. These concepts are fundamental in object-oriented programming to promote code reuse, flexibility, and extensibility.
    - Key Concepts and Topics:
      - **File Compression**: Techniques to reduce the size of data files using Huffman coding.
      - **File Decompression**: Methods to reconstruct original data from compressed files using Huffman coding.
@@ -23,6 +24,7 @@ Here are some of the key projects included in this repository:
      - **Fibonacci Coding**: Techniques for encoding data using Fibonacci coding principles.
 
 2. **Project 2: Data Structures**
+   - Description: Implementation of functions in C/C++ to compress and decompress input files using Huffman coding, as well as encode and decode files between UTF-8 and Fibonacci coding.
    - Key Concepts and Topics:
      - **Arrays**: Basic linear data structure used for storing elements of the same type.
      - **Linked Lists**: Dynamic data structure where elements are not stored in contiguous memory locations.
@@ -30,26 +32,30 @@ Here are some of the key projects included in this repository:
      - **Queues**: First In, First Out (FIFO) structure commonly used in scheduling and breadth-first search algorithms.
      - **Trees**: Non-linear data structure used for hierarchical representation and efficient searching.
 
-3. **Project 3: Chess Game (Semester Project)**
-   - Description: Implementation of a chess game in C++, featuring file-based input/output, a tutorial mode, and three types of AI opponents.
-   - Topics: File handling, object-oriented design, AI algorithms (basic strategies).
+3. **Project 3: Date Representation and Integer Intervals**
+   - Description: Implementation of a class to represent dates according to the rules of the Gregorian calendar, focusing on dates within the range of 2000 to 2030. Additionally, implementation of classes CRange and CRangeList to represent integer intervals and their lists.
+   - Key Concepts and Topics:
+     - **Date Representation**: Designing a class to manage and manipulate dates within specified limits of the Gregorian calendar.
+     - **CRange Class**: Creating a class to encapsulate and manage integer intervals.
+     - **CRangeList Class**: Developing a class to handle lists of integer intervals.
 
-4. **Project 4: Advanced Concepts**
-   - Description: Projects exploring advanced topics in C++ beyond basic object-oriented programming.
-   - Topics: Templates, smart pointers, exception handling.
+4. **Project 4: Binary File Simulation and Mail Server**
+   - Description: Design and implementation of a class CFile to simulate a binary file. Additionally, implementation of a class CMailServer to simulate the operation of a simple mail server.
+   - Key Concepts and Topics:
+     - **CFile Class**: Designing a class to represent and manipulate binary files.
+     - **CMailServer Class**: Developing a class to simulate basic functionalities of a mail server.
 
-5. **Project 5: GUI Application**
-   - Description: Development of a graphical user interface (GUI) application using C++.
-   - Topics: GUI libraries (e.g., Qt), event handling, user interface design.
+5. **Project 5: Value Added Tax Management and Supermarket Inventory**
+   - Description: Implementation of classes for managing value-added tax (VAT) and supermarket inventory.
+   - Key Concepts and Topics:
+     - **VAT Management**: Designing classes to handle VAT calculations and management.
+     - **Supermarket Inventory**: Developing classes to manage and track inventory in a supermarket.
 
-6. **Project 6: Data Structures and Algorithms**
-   - Description: Implementation of data structures and algorithms specific to C++.
-   - Topics: Advanced data structures (e.g., hash tables, balanced trees), algorithm optimizations.
-
-7. **Project 7: Networking and Multithreading**
-   - Description: Projects involving network programming and multithreading in C++.
-   - Topics: Socket programming, concurrency, synchronization.
-
-8. **Project 8: Final Project**
-   - Description: Culmination project integrating all learned concepts and skills in C++.
-   - Topics: Comprehensive application development, project planning, software engineering principles.
+6. **Project 6: User Interface Elements Simulation**
+   - Description: Design and implementation of a set of classes simulating user interface elements.
+   - Key Concepts and Topics:
+     - **Window (CWindow)**: Class representing a graphical window element.
+     - **Button (CButton)**: Class simulating a clickable button.
+     - **Text Input (CInput)**: Class for capturing text input from users.
+     - **Label (CLabel)**: Class representing a textual label in the interface.
+     - **Combobox (CComboBox)**: Class simulating a dropdown selection box.
