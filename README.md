@@ -15,22 +15,20 @@ This repository includes various C++ programming assignments and projects from m
 
 Here are some of the key projects included in this repository:
 
-## Project 1: Polymorphism and Inheritance
-- Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
-- Topics: Virtual functions, abstract classes, inheritance relationships.
+1. **Project 1: Polymorphism and Inheritance**
+   - Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
+   - Topics: Virtual functions, abstract classes, inheritance relationships.
 
-## Project 2: Data Structures
+2. **Project 2: Data Structures**
 
-### Description
-In this project, I implemented fundamental data structures in C programming language. These structures are essential for handling and manipulating data efficiently within various applications.
+   - Description: In this project, I implemented fundamental data structures in C programming language. These structures are essential for handling and manipulating data efficiently within various applications.
 
-### Key Concepts and Topics
-- **Arrays**: Basic linear data structure used for storing elements of the same type.
-- **Linked Lists**: Dynamic data structure where elements are not stored in contiguous memory locations.
-- **Stacks**: Last In, First Out (LIFO) structure useful for applications like expression evaluation.
-- **Queues**: First In, First Out (FIFO) structure commonly used in scheduling and breadth-first search algorithms.
-- **Trees**: Non-linear data structure used for hierarchical representation and efficient searching.
-
+   - Key Concepts and Topics:
+     - **Arrays**: Basic linear data structure used for storing elements of the same type.
+     - **Linked Lists**: Dynamic data structure where elements are not stored in contiguous memory locations.
+     - **Stacks**: Last In, First Out (LIFO) structure useful for applications like expression evaluation.
+     - **Queues**: First In, First Out (FIFO) structure commonly used in scheduling and breadth-first search algorithms.
+     - **Trees**: Non-linear data structure used for hierarchical representation and efficient searching.
 
 3. **Project 3: Chess Game (Semester Project)**
    - Description: Implementation of a chess game in C++, featuring file-based input/output, a tutorial mode, and three types of AI opponents.
