@@ -19,9 +19,46 @@ Here are some of the key projects included in this repository:
    - Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
    - Topics: Virtual functions, abstract classes, inheritance relationships.
 
-2. **Project 2: Deep and Shallow Copy**
-   - Description: Understanding and implementing deep and shallow copying mechanisms in C++.
-   - Topics: Copy constructors, assignment operators, memory management.
+## Project 2: Data Structures
+
+### Description
+In this project, I implemented fundamental data structures in C programming language. These structures are essential for handling and manipulating data efficiently within various applications.
+
+### Key Concepts and Topics
+- **Arrays**: Basic linear data structure used for storing elements of the same type.
+- **Linked Lists**: Dynamic data structure where elements are not stored in contiguous memory locations.
+- **Stacks**: Last In, First Out (LIFO) structure useful for applications like expression evaluation.
+- **Queues**: First In, First Out (FIFO) structure commonly used in scheduling and breadth-first search algorithms.
+- **Trees**: Non-linear data structure used for hierarchical representation and efficient searching.
+  
+### Projects Included
+1. **Array Operations**
+   - Description: Basic operations and algorithms on arrays.
+   - Topics: Array traversal, searching, sorting.
+
+2. **Linked List Implementation**
+   - Description: Implementation of singly linked list and its operations.
+   - Topics: Insertion, deletion, traversal.
+
+3. **Stack Applications**
+   - Description: Implementing stack operations and applications.
+   - Topics: Expression evaluation, function call management.
+
+4. **Queue Implementation**
+   - Description: Implementing queue operations and applications.
+   - Topics: BFS traversal, job scheduling.
+
+5. **Binary Search Tree**
+   - Description: Implementation of a binary search tree.
+   - Topics: Insertion, deletion, searching.
+
+### Learning Outcomes
+- Understanding the efficiency and use cases of different data structures.
+- Hands-on experience with implementing data structures in a low-level language like C.
+- Insight into memory management and pointer manipulation in C programming.
+
+Each project within this section contributed to my understanding of how data structures operate in real-world applications, laying a strong foundation for more complex algorithmic tasks in subsequent coursework.
+
 
 3. **Project 3: Chess Game (Semester Project)**
    - Description: Implementation of a chess game in C++, featuring file-based input/output, a tutorial mode, and three types of AI opponents.
