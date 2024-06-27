@@ -15,14 +15,15 @@ This repository includes various C++ programming assignments and projects from m
 
 Here are some of the key projects included in this repository:
 
-1. **Project 1: Polymorphism and Inheritance**
-   - Description: Implementation of polymorphic behavior and inheritance hierarchy in C++.
-   - Topics: Virtual functions, abstract classes, inheritance relationships.
+1. **Project 1: Working with files**
+   - Description: Implementation of functions in C/C++ to compress and decompress input files using Huffman coding, as well as encode and decode files between UTF-8 and Fibonacci coding.
+   - Key Concepts and Topics:
+     - **File Compression**: Techniques to reduce the size of data files using Huffman coding.
+     - **File Decompression**: Methods to reconstruct original data from compressed files using Huffman coding.
+     - **UTF-8 Encoding**: Understanding and manipulating UTF-8 encoded data streams.
+     - **Fibonacci Coding**: Techniques for encoding data using Fibonacci coding principles.
 
 2. **Project 2: Data Structures**
-
-   - Description: In this project, I implemented fundamental data structures in C programming language. These structures are essential for handling and manipulating data efficiently within various applications.
-
    - Key Concepts and Topics:
      - **Arrays**: Basic linear data structure used for storing elements of the same type.
      - **Linked Lists**: Dynamic data structure where elements are not stored in contiguous memory locations.
