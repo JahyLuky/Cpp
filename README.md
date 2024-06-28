@@ -6,6 +6,7 @@ Welcome to my repository containing C++ projects from my university coursework (
 
 - [About the Repository](#about-the-repository)
 - [Projects](#projects)
+- [Chess](#chess)
 
 ## About the Repository
 
@@ -59,3 +60,6 @@ Here are some of the key projects included in this repository:
      - **Text Input (CInput)**: Class for capturing text input from users.
      - **Label (CLabel)**: Class representing a textual label in the interface.
      - **Combobox (CComboBox)**: Class simulating a dropdown selection box.
+
+## Chess
+Additionally, this repository includes mine Chess game implementation. For more details on how to install and play the Chess game, please refer to the [Chess Game README](https://github.com/JahyLuky/Cpp/tree/main/Chess).
