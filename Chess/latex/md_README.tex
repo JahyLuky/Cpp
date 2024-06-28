@@ -1,0 +1,188 @@
+Autor\+: Lukáš Jahelka\hypertarget{md_README_autotoc_md4}{}\doxysection{Zadání}\label{md_README_autotoc_md4}
+Vaším cílem má být implementovat klasickou hru Šachy. Není nutné implementovat jen ty známé šachy, ale případně se inspirovat nějakou jejich variantou jakou jsou asijské šachy. V tom případě je potřeba pravidla dostatečně dobře popsat v zadání. A zároveň je nutné za každé z pravidel mít vhodnou alternativu, aby nedošlo k přehnanému zjednodušení zadání.
+
+Implementujte následující varianty\+:
+
+
+\begin{DoxyItemize}
+\item tutoriál, který naučí hráče jednotlivé prvky a pravidla hry,
+\item pro 2 hráče na jednom počítači,
+\item pro hru proti počítači.
+\end{DoxyItemize}
+
+Hra musí splňovat následující funkcionality\+:
+
+
+\begin{DoxyItemize}
+\item Dodržování všech pravidel vč. rošády, braní mimochodem, proměna pěsce
+\item Hra musí řádně oznamovat stav hry a případně její konec (šach, mat, pat) a výsledek (kdo vyhrál).
+\item Implementujte alespoň 3 druhy umělé inteligence (náhodné tahy nestačí).
+\begin{DoxyItemize}
+\item Jeden druh musí být škálovatelná umělá inteligence pomocí algoritmu minimax. Škálování pak probíhá na úrovni hloubky prohledávacího stromu.
+\end{DoxyItemize}
+\item Hra je konfigurovatelná ze souboru\+:
+\begin{DoxyItemize}
+\item umístění uložených her na disku,
+\item zahájení šachových partií pro umělou inteligenci,
+\item texty, rozestavění (příp. očekávané tahy) k tutoriálu.
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Kde lze využít polymorfismus? (doporučené)
+
+
+\begin{DoxyItemize}
+\item pohyby figurek\+: král, dáma, věž, jezdec, ...
+\item jednotlivá pravidla\+: tahy, rošáda, braní mimochodem, proměna (jejich výběr pak může být konfigurovatelný), ...
+\item pravidla různých variant\+: klasické šachy, žravé šachy, asijské šachy, ...
+\item ovládání hráčů\+: lokální hráč, umělá inteligence (různé druhy), síťový hráč
+\item uživatelské rozhraní\+: konzolové, ncurses, SDL, Open\+GL (různé druhy), ...
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md5}{}\doxysection{Specifikace}\label{md_README_autotoc_md5}
+Budu implementovat klasickou variantu hry {\itshape šachy}.
+
+Hráč si po zapnutí hry vybere jak bude pokračovat. 1) {\itshape \$make} 2) {\itshape \$./chess}
+
+Dostane na výběr 3 možnosti\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily Tutorial} -\/ vypíše pravidla hry (staci toto pro tento bod? $\ast$\char`\"{}tutoriál, který naučí hráče jednotlivé prvky a pravidla hry,\char`\"{}$\ast$) / případně ukázky pravidel, např.\+: jak vypadá rošáda (kdy může nastat a jak ji udělat)
+\item {\ttfamily Hra proti dalšímu hráči} -\/ hra připraví šachovnici
+\item {\ttfamily Hra proti umělé inteligenci} -\/ výběr umělé inteligence, následně se připraví šachovnice a hráč si vybere barvu figurek (zda bude hrát první nebo druhý)
+\begin{DoxyEnumerate}
+\item minimax
+\item {\itshape další typ}
+\item {\itshape další typ}
+\end{DoxyEnumerate}
+\end{DoxyItemize}
+
+Po výběru začíná hra.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Chess game}
+\DoxyCodeLine{Choose how you want to play.}
+\DoxyCodeLine{}
+\DoxyCodeLine{-\/-\/-\/-\/-\/-\/MENU-\/-\/-\/-\/-\/-\/}
+\DoxyCodeLine{Choose your type of game:}
+\DoxyCodeLine{(t):    Tutorial}
+\DoxyCodeLine{(h):    Game vs human}
+\DoxyCodeLine{(a):    Game vs AI}
+\DoxyCodeLine{\$h}
+\DoxyCodeLine{}
+\DoxyCodeLine{Game vs human}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{Game starts!}
+\DoxyCodeLine{}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{  \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\DoxyCodeLine{8| R  N  B  Q  K  B  N  R |8}
+\DoxyCodeLine{7| P  P  P  P  P  P  P  P |7}
+\DoxyCodeLine{6|                        |6}
+\DoxyCodeLine{5|                        |5}
+\DoxyCodeLine{4|                        |4}
+\DoxyCodeLine{3|                        |3}
+\DoxyCodeLine{2| p  p  p  p  p  p  p  p |2}
+\DoxyCodeLine{1| r  n  b  q  k  b  n  r |1}
+\DoxyCodeLine{  -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{}
+\DoxyCodeLine{WHITE plays!}
+\DoxyCodeLine{What is your move?}
+\DoxyCodeLine{\$e2 e4}
+\DoxyCodeLine{}
+\DoxyCodeLine{W: }
+\DoxyCodeLine{B:}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{  \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\DoxyCodeLine{8| R  N  B  Q  K  B  N  R |8}
+\DoxyCodeLine{7| P  P  P  P  P  P  P  P |7}
+\DoxyCodeLine{6|                        |6}
+\DoxyCodeLine{5|                        |5}
+\DoxyCodeLine{4|             p          |4}
+\DoxyCodeLine{3|                        |3}
+\DoxyCodeLine{2| p  p  p  p     p  p  p |2}
+\DoxyCodeLine{1| r  n  b  q  k  b  n  r |1}
+\DoxyCodeLine{  -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}
+\DoxyCodeLine{   a  b  c  d  e  f  g  h}
+\DoxyCodeLine{}
+\DoxyCodeLine{BLACK plays!}
+\DoxyCodeLine{What is your move?}
+
+\end{DoxyCode}
+ Bílé figurky jsou psány malými písmeny (\textquotesingle{}p\textquotesingle{}), černé figurky jsou psány velkými písmeny (\textquotesingle{}P\textquotesingle{}).
+
+Pohyb se zadává ve formátu\+: {\ttfamily startovní\+\_\+pozice} {\ttfamily cílová\+\_\+pozice} (\char`\"{}e2 e4\char`\"{}).
+
+Jakmile hráč zadá korektní pozice, hra pohne figurkou, vypíše aktuální šachovnici a předá tah oponentovi. V případě, že hráč zadá špatné pozice, bude vyzván k opětovnému zadání pozic.
+
+\uline{Aktuální stav hry\+:} ~\newline
+{\ttfamily W\+:} zde budou vypsány sebrané figurky černého, ~\newline
+{\ttfamily B\+:} zde budou vypsány sebrané figurky bílého.
+
+\uline{Soubory\+:} ~\newline
+Pokud hráč zadá místo pohybu figurky\+: {\ttfamily save game1}, uloží se aktuální hra jako {\ttfamily game1.\+txt} do adresáře {\ttfamily examples/}. //todo format ulozeni
+
+\uline{Specifická pravidla a situace hry\+:} ~\newline
+{\ttfamily rošáda\+:} hra zkontroluje, zda je rošáda možná a provede ji, případně ohlásí neúspěch.
+\begin{DoxyItemize}
+\item třídy {\ttfamily king} a {\ttfamily rook} budou mít proměnné, zda se pohnuly
+\item třída {\ttfamily king} bude mít proměnnou, která zkontroluje, zda není v šachu
+\item -\/$>$ pokud žádná proměnná neplatí, lze udělat rošádu
+\end{DoxyItemize}
+
+~\newline
+{\ttfamily proměna pěšce\+:} jakmile hráč pohne pěšcem na poslední řádek, bude vyzván, aby určil novou figurku, která se vymění za pěsce.
+
+~\newline
+{\ttfamily braní mimochodem\+:} pokud hráč zadá tah, který implikuje, že chce brát mimochodem, hra zkontroluje, zda byla splněna kritéria.
+\begin{DoxyItemize}
+\item třída {\ttfamily board} si bude ukládat poslední tah
+\item třída {\ttfamily pawn} bude mít proměnnou, která kontroluje, zda byl udělán 1. tah -\/$>$ ztrácí právo na pohyb o 2 políčka vpřed
+\item třída {\ttfamily pawn} bude mít proměnnou, která kontroluje, zda se pohnul o 2 políčka před sebe
+\item -\/$>$ pokud byl poslední tah protihráče pěšcem, který se pohnul o 2 políčka, lze ho vzít mimochodem (náš pěsec musí být na korektní pozici)
+\end{DoxyItemize}
+
+~\newline
+{\ttfamily král v šachu\+:} {\bfseries{zde popíšu, jak bude fungovat pohyb figurek}}
+\begin{DoxyItemize}
+\item jakmile hráč zadá pozice, hra najde figurku, zjistí její typ (pěšec, věž atd.), se kterou chce hráč pohnout
+\item této figurce najde všechny povolené tahy (dle typu figurky)\+:
+\begin{DoxyItemize}
+\item pokud je v cestě naše figurka nebo je mimo šachovnici, tah nebude povolen
+\item pokud je v cestě protihráčova figurka, tah je povolen (případné vzatí figurky se bude řešit v metodě \char`\"{}get\+\_\+move\char`\"{} třídy {\ttfamily player})
+\end{DoxyItemize}
+\item jelikož může nastat situace\+: Mějme na \char`\"{}e1 bílého krále\char`\"{}, na \char`\"{}e5 černého střelce\char`\"{} a na \char`\"{}e6 černou věž\char`\"{}, po pohnutí \char`\"{}střelcem na g3\char`\"{} se bílý král dostane do šachu od 2 figurek zároveň
+\begin{DoxyItemize}
+\item před zadáním tahu se vždy podívám zda můj král není v šachu, pokud ANO, upozorním hráče, jinak hra pokračuje normálně
+\item zda je král v šachu zjistím tak, že zkontroluji diagonály, sloupec a řádek na kterém se nachází (výsledek bude uložen ve třídě {\ttfamily king})
+\end{DoxyItemize}
+\item v případě, že je král v šachu, se při hledání všech povolených tahů budou zvažovat pouze ty, který zabrání šachu
+\begin{DoxyItemize}
+\item povolené tahy figurky se budou shodovat s tahy, přes které je král v šachu, včetně útočné figurky
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Po skončení hry se vypíše výsledek hry\+: {\ttfamily WHITE WINS}, {\ttfamily BLACK WINS}, {\ttfamily TIE}.\hypertarget{md_README_autotoc_md6}{}\doxysection{Polymorfismus}\label{md_README_autotoc_md6}
+Třída {\ttfamily piece\+:}
+\begin{DoxyItemize}
+\item má za potomky jednotlivé šachové figurky
+\item má polymorfní metodu {\ttfamily possible\+\_\+moves}, která na základě typu figurky spočítá její povolené tahy
+\begin{DoxyItemize}
+\item tato metoda se volá v {\ttfamily Human\+Player\+::get\+\_\+move} a {\ttfamily AIPlayer\+::get\+\_\+move}
+\end{DoxyItemize}
+\item jednotlivé figurky využívají {\ttfamily piece} pro zjištění jejich pozice na šachovnici, barvy a hlavně jejich typu (zda je figurka král, pěšec atd.)
+\end{DoxyItemize}
+
+Třída {\ttfamily player\+:}
+\begin{DoxyItemize}
+\item má dva potomky {\ttfamily human\+\_\+player} a {\ttfamily ai\+\_\+player}
+\item má polymorfní metodu {\ttfamily get\+\_\+move}, která si vyžadá\+: {\ttfamily aktuální šachovnice}, {\ttfamily startovní\+\_\+pozice}, {\ttfamily cílová\+\_\+pozice} a vrátí {\ttfamily true}, pokud je tah platný, v opačném případě vrátí {\ttfamily false}
+\begin{DoxyItemize}
+\item tato metoda se volá v {\ttfamily application\+::game}
+\end{DoxyItemize}
+\item implementace pro {\ttfamily human\+\_\+player} očekává, že se dotážeme na další tah pomocí terminálu
+\item implementace pro {\ttfamily ai\+\_\+player} vypočítá tah z aktuální šachovnice (podle zvolené AI se vybere metoda = AI algoritmus, která určí tah)
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md7}{}\doxysubsection{Poznámka pro opravující}\label{md_README_autotoc_md7}
+Hra je spustitelná a hratelná (v rámci možností). Všechny figurky jsou aktuálně nastaveny jako {\ttfamily pawn} a mohou pouze o 1 nebo 2 políčka vpřed. Ukázka polymorfismu je v {\ttfamily piece} -\/$>$ {\ttfamily pawn} a {\ttfamily player} -\/$>$ {\ttfamily human\+\_\+player} (asi bude přesnější, než slovní popis). Dále je kód ve třídách {\ttfamily application}, {\ttfamily board} a {\ttfamily menu}. 
