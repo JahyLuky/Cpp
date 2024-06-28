@@ -17,13 +17,13 @@ To play my chess game, run `./chess` and follow the on-screen prompts.
 
 ---
 
-## Popis
+## Description
 
-Dostanete na výběr 3 možnosti:
+You have three options to choose from:
 
-* `Tutorial` - interaktivní tutoriál
-* `Hra proti dalšímu hráči` - klasická hra šachů pro 2 hráče
-* `Hra proti umělé inteligenci` - hra proti umělé inteligenci
+* `Tutorial` - interactive tutorial
+* `Player vs Player` - classic chess game for 2 players
+* `Player vs AI` - game against artificial intelligence
   1. minimax
   2. custom AI
   3. custom AI2
@@ -83,13 +83,15 @@ What is your move?
 $...
 ```
 
-Bílé figurky jsou psány malými písmeny ('P'), černé figurky jsou psány velkými písmeny ('p').
 
-Pohyb se zadává ve formátu: `startovní_pozice` `cílová_pozice` ("e2 e4").
+White pieces are represented by lowercase letters ('p'), black pieces by uppercase letters ('P').
 
-Jakmile hráč zadá korektní pozice, hra pohne figurkou, vypíše aktuální šachovnici a předá tah oponentovi.
-V případě, že hráč zadá špatné pozice, bude vyzván k opětovnému zadání pozic.
+Moves are entered in the format: `starting_position` `target_position` ("e2 e4").
 
-Pokud hráč zadá místo pohybu figurky: `save`, následně bude uživatel vyzván, aby zadal jméno souboru, např.: `game1.txt`, program uloží hru jako `game1.txt` do adresáře `examples/`.
+Once the player enters correct positions, the game makes the move, displays the current chessboard, and passes the turn to the opponent.
+If incorrect positions are entered, the player will be prompted to re-enter the positions.
 
-Po skončení hry se vypíše výsledek hry: `WHITE WINS`, `BLACK WINS`, `TIE`, `PAT`.
+If the player enters `save` instead of a move, they will be prompted to enter a filename, e.g., `game1.txt`. The program saves the game as `game1.txt` in the `examples/` directory.
+
+After the game ends, the result will be displayed: `WHITE WINS`, `BLACK WINS`, `TIE`, or `STALEMATE`.
+
