@@ -63,3 +63,7 @@ Here are some of the key projects included in this repository:
 
 ## Chess
 Additionally, this repository includes mine Chess game implementation. For more details on how to install and play the Chess game, please refer to the [Chess Game README](https://github.com/JahyLuky/Cpp/tree/main/Chess).
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
